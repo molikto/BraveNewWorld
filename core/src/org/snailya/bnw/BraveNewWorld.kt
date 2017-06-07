@@ -1,21 +1,12 @@
 package org.snailya.bnw
 
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Gdx.gl
-import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.BitmapFont
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.Label
-import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
+import com.badlogic.gdx.utils.Align
 import ktx.scene2d.*
-import ktx.style.color
 import ktx.style.label
 import ktx.style.skin
 import ktx.style.textButton
@@ -57,31 +48,32 @@ class BraveNewWorld(pdi: PlatformDependentInfo) : ApplicationInner(pdi) {
 
 class GamePage : Page() {
 
-    val img = Texture("badlogic.jpg")
+    val debug_img = Texture("badlogic.jpg")
 
-    var pos = Vector2(0F, 0F)
+    var debug_pos = Vector2(0F, 0F)
 
     init {
         ui = table {
             label("DEBUG TEXT")
-            textButton("BUTTON") {
-                addListener(object : ClickListener() {
-                    override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                        pos = Vector2(x, y)
-                    }
-                })
+            row()
+
+            textButton("DEBUG BUTTON") {
+                onClick { event, _, _ ->
+                    debug_pos = Vector2(event.stageX, event.stageY)
+                }
             }
+            debug = true
         }
     }
 
     override fun render() {
-        batch.begin()
-        batch.draw(img, pos.x, pos.y)
-        batch.end()
+//        batch.begin()
+//        batch.draw(debug_img, debug_pos.x, debug_pos.y)
+//        batch.end()
     }
 
     override fun dispose() {
-        img.dispose()
+        debug_img.dispose()
     }
 }
 

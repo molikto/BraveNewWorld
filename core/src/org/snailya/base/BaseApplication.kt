@@ -37,13 +37,6 @@ val Float.dp: Float
  */
 class PlatformDependentInfo(val iOSScale: Float?, val logicalWidth: Int?)
 
-fun fontGenerator(name: String) = FreeTypeFontGenerator(Gdx.files.internal(name))
-
-fun FreeTypeFontGenerator.ofSize(i: Float): BitmapFont {
-    val parameter = FreeTypeFontParameter()
-    parameter.size = i.toInt()
-    return this.generateFont(parameter)
-}
 
 
 abstract class Page {
@@ -51,7 +44,7 @@ abstract class Page {
     //fun uiViewport() = ScalingViewport(Scaling.stretch, game.backBufferWidth().toFloat(), game.backBufferHeight().toFloat(), OrthographicCamera())
     fun uiViewport() = ScreenViewport(OrthographicCamera())
     val uiStage = Stage(uiViewport(), game.batch)
-    var stage: Stage? = null
+    var inputProcessor: InputProcessor? = null
     var clearColor = Color.BLACK
     val batch = game.batch
 
@@ -71,7 +64,6 @@ abstract class Page {
     fun disposeInner() {
         dispose()
         uiStage.dispose()
-        stage?.dispose()
     }
 
     open fun dispose() {}
@@ -80,8 +72,6 @@ abstract class Page {
         gl.glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a)
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         uiStage.act() // TODO why 30fps??
-        stage?.act()
-        stage?.draw()
         uiStage.draw()
         render()
     }
@@ -91,7 +81,6 @@ abstract class Page {
 
     fun resizeInner(width: Int, height: Int) {
         uiStage.viewport.update(width, height, true)
-        stage?.viewport?.update(width, height, true)
         resize(width, height)
     }
 
@@ -136,35 +125,35 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
         input.inputProcessor = object : InputProcessor {
             override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean =
                     page.uiStage.touchUp(screenX, screenY, pointer, button) ||
-                            page.stage?.touchUp(screenX, screenY, pointer, button)?: false
+                            page.inputProcessor?.touchUp(screenX, screenY, pointer, button)?: false
 
             override fun mouseMoved(screenX: Int, screenY: Int): Boolean =
                     page.uiStage.mouseMoved(screenX, screenY) ||
-                            page.stage?.mouseMoved(screenX, screenY) ?: false
+                            page.inputProcessor?.mouseMoved(screenX, screenY) ?: false
 
             override fun keyTyped(character: Char): Boolean =
                     page.uiStage.keyTyped(character) ||
-                            page.stage?.keyTyped(character) ?: false
+                            page.inputProcessor?.keyTyped(character) ?: false
 
             override fun scrolled(amount: Int): Boolean =
                     page.uiStage.scrolled(amount) ||
-                            page.stage?.scrolled(amount) ?: false
+                            page.inputProcessor?.scrolled(amount) ?: false
 
             override fun keyUp(keycode: Int): Boolean =
                     page.uiStage.keyUp(keycode) ||
-                            page.stage?.keyUp(keycode) ?: false
+                            page.inputProcessor?.keyUp(keycode) ?: false
 
             override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean =
                     page.uiStage.touchDragged(screenX, screenY, pointer) ||
-                            page.stage?.touchDragged(screenX, screenY, pointer) ?: false
+                            page.inputProcessor?.touchDragged(screenX, screenY, pointer) ?: false
 
             override fun keyDown(keycode: Int): Boolean =
                     page.uiStage.keyDown(keycode) ||
-                            page.stage?.keyDown(keycode) ?: false
+                            page.inputProcessor?.keyDown(keycode) ?: false
 
             override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean =
                     page.uiStage.touchDown(screenX, screenY, pointer, button) ||
-                            page.stage?.touchDown(screenX, screenY, pointer, button) ?: false
+                            page.inputProcessor?.touchDown(screenX, screenY, pointer, button) ?: false
 
         }
     }
