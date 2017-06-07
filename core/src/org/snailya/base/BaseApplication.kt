@@ -2,7 +2,33 @@ package org.snailya.base
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Gdx.*
+import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.Screen
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.utils.Scaling
+import com.badlogic.gdx.utils.viewport.ScalingViewport
+import org.snailya.bnw.BraveNewWorld
+import org.snailya.bnw._bnw
+import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter
+import com.badlogic.gdx.utils.viewport.ScreenViewport
+import ktx.scene2d.KTableWidget
+
+
+var _game: ApplicationInner? = null
+val game by lazy { _game!! }
+
+val Int.dp: Float
+    get() = game.dpiPixel * this
+
+val Float.dp: Float
+    get() = game.dpiPixel * this
 
 
 /**
@@ -11,23 +37,84 @@ import com.badlogic.gdx.Screen
  */
 class PlatformDependentInfo(val iOSScale: Float?, val logicalWidth: Int?)
 
+fun fontGenerator(name: String) = FreeTypeFontGenerator(Gdx.files.internal(name))
+
+fun FreeTypeFontGenerator.ofSize(i: Float): BitmapFont {
+    val parameter = FreeTypeFontParameter()
+    parameter.size = i.toInt()
+    return this.generateFont(parameter)
+}
+
+
 abstract class Page {
+
+    //fun uiViewport() = ScalingViewport(Scaling.stretch, game.backBufferWidth().toFloat(), game.backBufferHeight().toFloat(), OrthographicCamera())
+    fun uiViewport() = ScreenViewport(OrthographicCamera())
+    val uiStage = Stage(uiViewport(), game.batch)
+    var stage: Stage? = null
+    var clearColor = Color.BLACK
+    val batch = game.batch
+
+    var ui : KTableWidget? = null
+        set(value) {
+            if (value != null) {
+                value.setFillParent(true)
+                uiStage.addActor(value)
+            } else {
+                uiStage.clear()
+            }
+        }
+
     open fun resume() {}
     open fun pause() {}
+
+    fun disposeInner() {
+        dispose()
+        uiStage.dispose()
+        stage?.dispose()
+    }
+
     open fun dispose() {}
-    open fun render() {}
-    open fun resize(width: Int, height: Int) {}
+
+    fun renderInner() {
+        gl.glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a)
+        gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        uiStage.act() // TODO why 30fps??
+        stage?.act()
+        stage?.draw()
+        uiStage.draw()
+        render()
+    }
+
+    open fun render() {
+    }
+
+    fun resizeInner(width: Int, height: Int) {
+        uiStage.viewport.update(width, height, true)
+        stage?.viewport?.update(width, height, true)
+        resize(width, height)
+    }
+
+    open fun resize(width: Int, height: Int) {
+    }
 }
+
 
 abstract class ApplicationInner(pdi: PlatformDependentInfo) {
 
-    fun backBufferWidth() = Gdx.graphics.backBufferWidth
-    fun backBufferHeight() = Gdx.graphics.backBufferHeight
+    init {
+        _game = this
+    }
+
+    fun backBufferWidth() = graphics.backBufferWidth
+    fun backBufferHeight() = graphics.backBufferHeight
+
+    val batch = SpriteBatch()
 
     /**
      * these are calculated ourselves, seems good to NOT use LIBGDX's API
      */
-    val dpiPixel: Float = pdi.iOSScale ?: (if (pdi.logicalWidth != null) (backBufferWidth().toFloat() / pdi.logicalWidth) else Gdx.graphics.density)
+    val dpiPixel: Float = pdi.iOSScale ?: (if (pdi.logicalWidth != null) (backBufferWidth().toFloat() / pdi.logicalWidth) else graphics.density)
     fun width(): Float = backBufferWidth() / dpiPixel
     fun height(): Float = backBufferHeight() / dpiPixel
 
@@ -35,7 +122,7 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
 
     init {
         debug("Pixel density: $dpiPixel," +
-                " w0: ${Gdx.graphics.width}, h: ${Gdx.graphics.height}," +
+                " w0: ${graphics.width}, h0: ${graphics.height}," +
                 " w: ${width()}, h: ${height()}," +
                 " rw: ${backBufferWidth()}, rh: ${backBufferHeight()}")
     }
@@ -45,14 +132,53 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
 
     lateinit var page: Page
 
+    fun postCreate() {
+        input.inputProcessor = object : InputProcessor {
+            override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean =
+                    page.uiStage.touchUp(screenX, screenY, pointer, button) ||
+                            page.stage?.touchUp(screenX, screenY, pointer, button)?: false
+
+            override fun mouseMoved(screenX: Int, screenY: Int): Boolean =
+                    page.uiStage.mouseMoved(screenX, screenY) ||
+                            page.stage?.mouseMoved(screenX, screenY) ?: false
+
+            override fun keyTyped(character: Char): Boolean =
+                    page.uiStage.keyTyped(character) ||
+                            page.stage?.keyTyped(character) ?: false
+
+            override fun scrolled(amount: Int): Boolean =
+                    page.uiStage.scrolled(amount) ||
+                            page.stage?.scrolled(amount) ?: false
+
+            override fun keyUp(keycode: Int): Boolean =
+                    page.uiStage.keyUp(keycode) ||
+                            page.stage?.keyUp(keycode) ?: false
+
+            override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean =
+                    page.uiStage.touchDragged(screenX, screenY, pointer) ||
+                            page.stage?.touchDragged(screenX, screenY, pointer) ?: false
+
+            override fun keyDown(keycode: Int): Boolean =
+                    page.uiStage.keyDown(keycode) ||
+                            page.stage?.keyDown(keycode) ?: false
+
+            override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean =
+                    page.uiStage.touchDown(screenX, screenY, pointer, button) ||
+                            page.stage?.touchDown(screenX, screenY, pointer, button) ?: false
+
+        }
+    }
 
     // maybe good place to stop/start game logic??
     open fun resume() = page.resume()
     open fun pause() = page.pause()
-    open fun dispose() = page.dispose()
-    open fun render() = page.render()
+    open fun dispose() {
+        page.disposeInner()
+        batch.dispose()
+    }
+    open fun render() = page.renderInner()
 
-    fun resize(width: Int, height: Int) = page.resize(width, height)
+    fun resize(width: Int, height: Int) = page.resizeInner(width, height)
 }
 
 open class ApplicationWrapper(val factory: () -> ApplicationInner) : ApplicationAdapter() {
@@ -60,6 +186,7 @@ open class ApplicationWrapper(val factory: () -> ApplicationInner) : Application
     lateinit var inner: ApplicationInner
     override fun create() {
         inner = factory()
+        inner.postCreate()
     }
 
     override fun pause() = inner.pause()
