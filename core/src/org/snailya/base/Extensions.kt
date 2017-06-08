@@ -17,7 +17,11 @@ import ktx.scene2d.defaultStyle
  * Created by molikto on 07/06/2017.
  */
 
-fun fontGenerator(name: String) = FreeTypeFontGenerator(Gdx.files.internal(name))
+
+/**
+ * See the code how path is constructed
+ */
+fun fontGenerator(name: String) = FreeTypeFontGenerator(Gdx.files.internal("fonts/$name.ttf"))
 
 fun FreeTypeFontGenerator.ofSize(i: Float): BitmapFont {
     val parameter = FreeTypeFontGenerator.FreeTypeFontParameter()

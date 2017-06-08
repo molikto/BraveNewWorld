@@ -1,11 +1,10 @@
 package org.snailya.bnw
 
+import com.badlogic.gdx.Gdx.*
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
-import com.badlogic.gdx.utils.Align
 import ktx.scene2d.*
 import ktx.style.label
 import ktx.style.skin
@@ -17,26 +16,24 @@ import org.snailya.base.*
  */
 class BraveNewWorldWrapper(pdi: PlatformDependentInfo) : ApplicationWrapper({ BraveNewWorld(pdi) })
 
-var _bnw: BraveNewWorld? = null
-val bnw by lazy { _bnw!! }
+val bnw by lazy { game as BraveNewWorld }
 
 /**
  * REAL THING
  */
 
 class BraveNewWorld(pdi: PlatformDependentInfo) : ApplicationInner(pdi) {
-    init { _bnw = this  }
 
-    val RobotoMono = fontGenerator("fonts/RobotoMono-Regular.ttf")
-    val RototoMono14 = RobotoMono.ofSize(14.dp)
+    val RobotoMono = fontGenerator("RobotoMono-Regular")
+    val RobotoMono14 = RobotoMono.ofSize(14.dp)
 
     val defaultSkin = skin {
         label {
-            font = RototoMono14
+            font = RobotoMono14
             fontColor = Color.WHITE
         }
         textButton {
-            font = RototoMono14
+            font = RobotoMono14
             fontColor = Color.WHITE
         }
     }
@@ -50,7 +47,7 @@ class GamePage : Page() {
 
     val debug_img = Texture("badlogic.jpg")
 
-    var debug_pos = Vector2(0F, 0F)
+    val game = Game()
 
     init {
         ui = table {
@@ -59,7 +56,6 @@ class GamePage : Page() {
 
             textButton("DEBUG BUTTON") {
                 onClick { event, _, _ ->
-                    debug_pos = Vector2(event.stageX, event.stageY)
                 }
             }
             debug = true
@@ -67,9 +63,19 @@ class GamePage : Page() {
     }
 
     override fun render() {
-//        batch.begin()
-//        batch.draw(debug_img, debug_pos.x, debug_pos.y)
-//        batch.end()
+        val time = graphics.deltaTime
+        run {
+            fun keyed(i: Int) = input.isKeyPressed(i)
+            val direction = Vector2(0F, 0F)
+            if (keyed(Input.Keys.W)) direction.add(0F, 1F)
+            if (keyed(Input.Keys.S)) direction.add(0F, -1F)
+            if (keyed(Input.Keys.A)) direction.add(-1F, 0F)
+            if (keyed(Input.Keys.D)) direction.add(1F, 0F)
+            game.move(direction, time)
+        }
+        batch.begin()
+        batch.draw(debug_img, game.position)
+        batch.end()
     }
 
     override fun dispose() {
