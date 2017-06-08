@@ -3,11 +3,13 @@ package org.snailya.base
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
+import ktx.math.vec2
 import ktx.scene2d.KTableWidget
 import ktx.scene2d.KWidget
 import ktx.scene2d.Scene2DSkin
@@ -37,4 +39,19 @@ fun Actor.onClick(action: (event: InputEvent, x: Float, y: Float) -> Unit) = thi
     override fun clicked(event: InputEvent, x: Float, y: Float) = action.invoke(event, x, y)
 })
 
+
+/**
+ * Kotlin math functions
+ */
+
+
+fun Vector2.copy(x: Float = this.x, y: Float = this.y) = vec2(x, y)
+
+/**
+ * Kotlin generic extensions
+ *
+ */
+
+inline val Int.tf: Float
+    inline get() = this.toFloat()
 

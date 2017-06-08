@@ -13,7 +13,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.Scaling
 import com.badlogic.gdx.utils.viewport.ScalingViewport
 import org.snailya.bnw.BraveNewWorld
-import org.snailya.bnw._bnw
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter
@@ -24,11 +23,11 @@ import ktx.scene2d.KTableWidget
 var _game: ApplicationInner? = null
 val game by lazy { _game!! }
 
-val Int.dp: Float
-    get() = game.dpiPixel * this
+inline val Int.dp: Float
+    inline get() = game.dpiPixel * this
 
-val Float.dp: Float
-    get() = game.dpiPixel * this
+inline val Float.dp: Float
+    inline get() = game.dpiPixel * this
 
 
 /**

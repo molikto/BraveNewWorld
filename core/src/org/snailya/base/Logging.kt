@@ -6,4 +6,4 @@ import com.badlogic.gdx.Gdx
  * Created by molikto on 06/06/2017.
  */
 
-fun debug(str: String) = Gdx.app.log("DEBUG", str)
+fun debug(str: Any) = Gdx.app.log("DEBUG", str.toString())

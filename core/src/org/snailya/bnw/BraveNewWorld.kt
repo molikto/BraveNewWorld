@@ -6,9 +6,8 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Vector2
 import ktx.scene2d.*
-import ktx.style.label
-import ktx.style.skin
-import ktx.style.textButton
+import ktx.math.*
+import ktx.style.*
 import org.snailya.base.*
 
 /**
@@ -47,7 +46,7 @@ class GamePage : Page() {
 
     val debug_img = Texture("badlogic.jpg")
 
-    val game = Game()
+    val g = Game()
 
     init {
         ui = table {
@@ -64,19 +63,33 @@ class GamePage : Page() {
 
     override fun render() {
         val time = graphics.deltaTime
+        val direction = vec2(0F, 0F)
         run {
             fun keyed(i: Int) = input.isKeyPressed(i)
-            val direction = Vector2(0F, 0F)
             if (keyed(Input.Keys.W)) direction.add(0F, 1F)
             if (keyed(Input.Keys.S)) direction.add(0F, -1F)
             if (keyed(Input.Keys.A)) direction.add(-1F, 0F)
             if (keyed(Input.Keys.D)) direction.add(1F, 0F)
-            game.move(direction, time)
+            direction.nor()
         }
+        if (direction.isZero) {
+            if (input.isTouched) {
+                // order matters!
+                direction.set(vec2(input.x.tf, (game.backBufferHeight() -  input.y).tf).gameCoor() - g.position).nor()
+            }
+        }
+        debug("Moving to $direction")
+        g.move(direction, time)
         batch.begin()
-        batch.draw(debug_img, game.position)
+        val pos = g.position.screenCoor()
+        batch.draw(debug_img, pos.x, pos.y)
         batch.end()
     }
+
+    fun Vector2.screenCoor(): Vector2 = this.copy() * 48.dp
+    fun Vector2.gameCoor(): Vector2 = this.copy() / 48.dp
+    fun Vector2.screenCoor(temp: Vector2): Vector2 = temp.set(this) * 48.dp
+    fun Vector2.gameCoor(temp: Vector2): Vector2 = temp.set(this) / 48.dp
 
     override fun dispose() {
         debug_img.dispose()

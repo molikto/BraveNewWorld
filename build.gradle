@@ -99,6 +99,7 @@ project(":core") {
 
     dependencies {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+        compile "io.github.libktx:ktx-math:$ktxVersion"
         compile "io.github.libktx:ktx-style:$ktxVersion"
         compile "io.github.libktx:ktx-scene2d:$ktxVersion"
         compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
