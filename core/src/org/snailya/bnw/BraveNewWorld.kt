@@ -72,19 +72,21 @@ class GamePage : Page() {
             if (keyed(Input.Keys.D)) direction.add(1F, 0F)
             direction.nor()
         }
+        // THIS IS THE ONLY
         if (direction.isZero) {
             if (input.isTouched) {
                 // order matters!
-                direction.set(vec2(input.x.tf, (game.backBufferHeight() -  input.y).tf).gameCoor() - g.position).nor()
+                direction.set(inputGameCoor(input.x, input.y)- g.position).nor()
             }
         }
-        debug("Moving to $direction")
         g.move(direction, time)
         batch.begin()
         val pos = g.position.screenCoor()
         batch.draw(debug_img, pos.x, pos.y)
         batch.end()
     }
+
+    fun inputGameCoor(x: Int, y: Int) = vec2(input.x.tf, (game.backBufferHeight() -  input.y).tf).gameCoor()
 
     fun Vector2.screenCoor(): Vector2 = this.copy() * 48.dp
     fun Vector2.gameCoor(): Vector2 = this.copy() / 48.dp

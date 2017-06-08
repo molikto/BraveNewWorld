@@ -12,12 +12,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.Scaling
 import com.badlogic.gdx.utils.viewport.ScalingViewport
-import org.snailya.bnw.BraveNewWorld
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import ktx.scene2d.KTableWidget
+import ktx.log.*
 
 
 var _game: ApplicationInner? = null
@@ -109,10 +109,10 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
     // TODO logical size image loader
 
     init {
-        debug("Pixel density: $dpiPixel," +
+        debug { "Pixel density: $dpiPixel," +
                 " w0: ${graphics.width}, h0: ${graphics.height}," +
                 " w: ${width()}, h: ${height()}," +
-                " rw: ${backBufferWidth()}, rh: ${backBufferHeight()}")
+                " rw: ${backBufferWidth()}, rh: ${backBufferHeight()}" }
     }
 
 
