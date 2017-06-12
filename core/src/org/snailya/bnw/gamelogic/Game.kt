@@ -1,8 +1,6 @@
 package org.snailya.bnw.gamelogic
 
-import com.badlogic.gdx.Input.Keys.F
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.utils.Align.center
 import ktx.math.*
 import org.snailya.base.configured
 import org.snailya.base.copy
@@ -25,17 +23,17 @@ open class Walker {
     lateinit var position: Vector2
 }
 
-class MapCell {
-    var color: Int = debug_random.nextInt()
+class MapTile {
+    var debug_color: Int = debug_random.nextInt()
 }
 
 class BnwGame {
     val mapSize = 300
-    val map: Array<Array<MapCell>> = Array(mapSize, { Array(mapSize, { MapCell() })})
+    val map: Array<Array<MapTile>> = Array(mapSize, { Array(mapSize, { MapTile() })})
     val center =  vec2(mapSize.tf / 2, mapSize.tf / 2)
 
-    val playerConfig = configured (PlayerConfig()) { speed = 1F }
-    val player= configured(Player()) { config = playerConfig; position = center.copy() }
+    val playerConfig = configured(PlayerConfig()) { speed = 1F }
+    val player = configured(Player()) { config = playerConfig; position = center.copy() }
 
     fun move(direction: Vector2, time: Float) {
         player.position + (direction * (player.config.speed * time))
