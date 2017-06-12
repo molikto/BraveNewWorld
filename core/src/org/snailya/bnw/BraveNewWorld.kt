@@ -2,13 +2,23 @@ package org.snailya.bnw
 
 import com.badlogic.gdx.Gdx.*
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.Input.Keys.F
+import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.math.Matrix4
+import com.badlogic.gdx.math.Matrix4.inv
 import com.badlogic.gdx.math.Vector2
+import com.oracle.util.Checksums.update
+import ktx.log.*
 import ktx.scene2d.*
 import ktx.math.*
 import ktx.style.*
 import org.snailya.base.*
+import org.snailya.bnw.gamelogic.BnwGame
+import java.lang.Math.max
+import java.lang.Math.min
 
 /**
  * BASIC SETUP
@@ -46,7 +56,7 @@ class GamePage : Page() {
 
     val debug_img = Texture("badlogic.jpg")
 
-    val g = Game()
+    val g = BnwGame()
 
     init {
         ui = table {
@@ -60,6 +70,24 @@ class GamePage : Page() {
             debug = true
         }
     }
+
+    var focus = g.center.copy()
+    var zoom = 48.dp
+    val projection: Matrix4 = Matrix4()
+    val inverseProjection : Matrix4 = Matrix4()
+
+    init {
+        inputProcessor = object : BaseInputProcessor() {
+            override fun scrolled(amount: Int): Boolean {
+                zoom *= (1 + amount.dp / 50)
+                return true
+            }
+        }
+    }
+
+    fun inputGameCoor(x: Int, y: Int) =
+            vec2(x.tf, (game.backBufferHeight() -  y).tf).extends().mul(inverseProjection).lose()
+
 
     override fun render() {
         val time = graphics.deltaTime
@@ -76,22 +104,39 @@ class GamePage : Page() {
         if (direction.isZero) {
             if (input.isTouched) {
                 // order matters!
-                direction.set(inputGameCoor(input.x, input.y)- g.position).nor()
+                direction.set(inputGameCoor(input.x, input.y)- g.player.position).nor()
             }
         }
         g.move(direction, time)
+
+        projection.setToOrtho2DCentered(focus.x, focus.y, game.backBufferWidth() / zoom, game.backBufferHeight() / zoom)
+
+        inverseProjection.set(projection)
+        inverseProjection.inv()
+
+
+        val gtl = vec3(0F, 0F, 0F).mul(inverseProjection)
+        val gbr = vec3(1F, 1F, 0F).mul(inverseProjection)
+
+        batch.projectionMatrix = projection
+
         batch.begin()
-        val pos = g.position.screenCoor()
-        batch.draw(debug_img, pos.x, pos.y)
+
+        val margin = 3
+        val top = max(gtl.y.toInt() - margin, 0)
+        val left = max(gtl.x.toInt() - margin, 0)
+        val bottom = min(gbr.y.toInt() + margin + 1, 0)
+        val right = min(gbr.x.toInt() + margin + 1, 0)
+
+        for (y in top until bottom + 1) {
+            for (x in left until right + 1) {
+                //batch.draw(debug_img, )
+            }
+        }
+        batch.draw(debug_img, g.player.position.x, g.player.position.y, 1F, 1F)
         batch.end()
     }
 
-    fun inputGameCoor(x: Int, y: Int) = vec2(input.x.tf, (game.backBufferHeight() -  input.y).tf).gameCoor()
-
-    fun Vector2.screenCoor(): Vector2 = this.copy() * 48.dp
-    fun Vector2.gameCoor(): Vector2 = this.copy() / 48.dp
-    fun Vector2.screenCoor(temp: Vector2): Vector2 = temp.set(this) * 48.dp
-    fun Vector2.gameCoor(temp: Vector2): Vector2 = temp.set(this) / 48.dp
 
     override fun dispose() {
         debug_img.dispose()

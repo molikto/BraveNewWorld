@@ -70,6 +70,7 @@ abstract class Page {
     fun renderInner() {
         gl.glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a)
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        batch.projectionMatrix = identityMatrix4
         uiStage.act() // TODO why 30fps??
         uiStage.draw()
         render()
@@ -109,7 +110,7 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
     // TODO logical size image loader
 
     init {
-        debug { "Pixel density: $dpiPixel," +
+        info { "Pixel density: $dpiPixel," +
                 " w0: ${graphics.width}, h0: ${graphics.height}," +
                 " w: ${width()}, h: ${height()}," +
                 " rw: ${backBufferWidth()}, rh: ${backBufferHeight()}" }
