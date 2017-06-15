@@ -9,9 +9,10 @@ import java.nio.ByteBuffer
 
 
 object NetworkingCommon {
-    const val tcpPort = 54554
-    const val udpPort = 54552
+    const val tcpPort = 54559
+    const val udpPort = 54558
     const val timePerTick = 100
+    const val timePerSimulation = 20
     const val objectBufferSize = 2048
     const val writeBufferSize = objectBufferSize * 8
 
@@ -29,7 +30,9 @@ object NetworkingCommon {
         data class MyMessage<T>(val clazz: Class<T>, val parser: KotlinSerializationAdapter<T>)
 
         val myMessages = listOf<MyMessage<*>>(
-                MyMessage(StartGameMessage::class.java, StartGameMessage.Companion)
+                MyMessage(StartGameMessage::class.java, StartGameMessage.Companion),
+                MyMessage(PlayerInputMessage::class.java, PlayerInputMessage.Companion),
+                MyMessage(PlayerInputsMessage::class.java, PlayerInputsMessage.Companion)
         )
 
         override fun getLengthLength(): Int = 4

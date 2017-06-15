@@ -4,8 +4,13 @@ abstract class KotlinType(open val name: String) {
     abstract fun adapter(): String
     open fun codegenParse(): String = "${adapter()}.parse(b)"
     open fun codegenSerialize(a: String): String = "${adapter()}.serialize(b, $a)"
+
+    val q: KotlinType by lazy { NullableType(this) }
 }
 
+class CustomType(override val name: String, val adapterName: String) : KotlinType(name) {
+    override fun adapter(): String = adapterName
+}
 
 object IntType : KotlinType("Int") {
     override fun adapter(): String = "IntAdapter"
@@ -29,7 +34,7 @@ class Field(val name: String, val ty: KotlinType) {
     }
 }
 
-class RecordType(override val name: String, val fields: List<Field>, val id: Int) : KotlinType(name) {
+class RecordType(override val name: String, val fields: List<Field>) : KotlinType(name) {
     override fun adapter(): String = "$name.Companion"
 
     fun codegen(): String {
@@ -70,8 +75,10 @@ open class Spec(
     val records = mutableListOf<RecordType>()
     val enums = mutableListOf<EnumType>()
 
-    fun record(name: String, vararg fs: Field) {
-        records.add(RecordType(name, fs.toList()))
+    fun record(name: String, vararg fs: Field): RecordType {
+        val res = RecordType(name, fs.toList())
+        records.add(res)
+        return res
     }
 
     fun f(name: String, t: KotlinType) = Field(name, t)
@@ -84,8 +91,10 @@ open class Spec(
         val sb = StringBuilder()
         sb.append("""
 package $pkg
+
 import org.snailya.base.*
 import java.nio.ByteBuffer
+import com.badlogic.gdx.math.Vector2
 
 """)
         for (c in records) sb.append(c.codegen())
@@ -100,10 +109,27 @@ import java.nio.ByteBuffer
 
 object BnwSpec : Spec("org.snailya.bnw", File("shared/src")) {
 
+
+    val Vector2 = CustomType("Vector2", "vector2Adapter")
     init {
         record("StartGameMessage",
+                f("myIndex", IntType),
                 f("delay", IntType),
                 f("playerSize", IntType)
+        )
+
+        val PlayerInput = record("PlayerInput",
+                f("dest", Vector2.q)
+        )
+
+        val PlayerInputMessage = record("PlayerInputMessage",
+                f("tick", IntType),
+                f("inputs", ListType(PlayerInput))
+        )
+
+        record("PlayerInputsMessage",
+                f("tick", IntType),
+                f("inputs", ListType(ListType(PlayerInput)))
         )
     }
 }

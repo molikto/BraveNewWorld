@@ -2,38 +2,43 @@ package org.snailya.bnw.ui
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Matrix4
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import ktx.math.*
 import ktx.scene2d.*
 import org.snailya.base.*
+import org.snailya.bnw.NetworkingCommon
+import org.snailya.bnw.PlayerInput
 import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.networking.ServerConnection
 
 /**
- * Created by molikto on 14/06/2017.
+ *
+ * a normal game loop will be like:
+ *
+ * get and apply input
+ * update game state
+ * render
+ *
+ * a networked game loop will be:
+ *
  */
 
 
 
-class GamePage(c: ServerConnection) : Page() {
+class GamePage(val c: ServerConnection) : Page() {
 
     val debug_img = Texture("badlogic.jpg")
 
-    val g = BnwGame(c.myId, c.value.playerSize)
+    val g = BnwGame(c.myIndex, c.playerSize, c.gameStartTime)
 
     lateinit  var debug_info: Label
     init {
         ui = table {
-            debug_info = label("DEBUG TEXT")
+            debug_info = label("")
             row()
-
-//            textButton("DEBUG BUTTON") {
-//                onClick { event, _, _ ->
-//                }
-//            }
             debug = true
         }
     }
@@ -57,26 +62,39 @@ class GamePage(c: ServerConnection) : Page() {
             vec2(x.tf, (game.backBufferHeight() -  y).tf).extends().mul(inverseProjection).lose()
 
 
+    var dest: Vector2? = null
+
     override fun render() {
-        val time = Gdx.graphics.deltaTime
-        val direction = vec2(0F, 0F)
-        run {
-            fun keyed(i: Int) = Gdx.input.isKeyPressed(i)
-            if (keyed(Input.Keys.W)) direction.add(0F, 1F)
-            if (keyed(Input.Keys.S)) direction.add(0F, -1F)
-            if (keyed(Input.Keys.A)) direction.add(-1F, 0F)
-            if (keyed(Input.Keys.D)) direction.add(1F, 0F)
-            direction.nor()
+        if (Gdx.input.justTouched()) {
+            dest = inputGameCoor(Gdx.input.x, Gdx.input.y)
         }
 
-        focus + (direction * (focusSpeed * time))
+        val time = System.currentTimeMillis()
+        while (g.time + NetworkingCommon.timePerSimulation <= time) {
+            val toTime = g.time + NetworkingCommon.timePerSimulation
+            var inputs: List<List<PlayerInput>>? = null
+            if (c.time + NetworkingCommon.timePerTick == toTime) {
+                inputs = c.tick(listOf(org.snailya.bnw.PlayerInput(dest)))
+                dest = null
+            }
+            g.tick(inputs)
+        }
 
-        if (Gdx.input.isTouched) {
-            val movement = inputGameCoor(Gdx.input.x, Gdx.input.y) - g.agent.position
+        run { // local input
+            val delta = Gdx.graphics.deltaTime
+            val direction = vec2(0F, 0F)
+            run {
+                fun keyed(i: Int) = Gdx.input.isKeyPressed(i)
+                if (keyed(Input.Keys.W)) direction.add(0F, 1F)
+                if (keyed(Input.Keys.S)) direction.add(0F, -1F)
+                if (keyed(Input.Keys.A)) direction.add(-1F, 0F)
+                if (keyed(Input.Keys.D)) direction.add(1F, 0F)
+                direction.nor()
+            }
+            focus + (direction * (focusSpeed * delta))
         }
 
 
-        //g.move(direction, time)
 
         projection.setToOrtho2DCentered(focus.x, focus.y, game.backBufferWidth() / zoom, game.backBufferHeight() / zoom)
 
@@ -102,13 +120,15 @@ class GamePage(c: ServerConnection) : Page() {
 
         batch.begin()
 
-        for (y in top until bottom) {
-            for (x in left until right) {
-                batch.color = Color(g.map[x][y].debug_color)
-                batch.draw(debug_img, x.tf, y.tf, 1F, 1F)
-            }
+//        for (y in top until bottom) {
+//            for (x in left until right) {
+//                batch.color = Color(g.map[x][y].debug_color)
+//                batch.draw(debug_img, x.tf, y.tf, 1F, 1F)
+//            }
+//        }
+        for (agent in g.agents) {
+            batch.draw(debug_img, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
         }
-        batch.draw(debug_img, g.agent.position.x, g.agent.position.y, 1F, 1F)
 
         batch.end()
     }

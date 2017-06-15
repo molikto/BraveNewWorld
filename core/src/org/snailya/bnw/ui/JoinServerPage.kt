@@ -26,11 +26,12 @@ class JoinServerPage : Page() {
             }
         }
         post {
-            joiningServer("0.0.0.0")
+            joiningServer("")
         }
     }
 
-    fun onErrorGoBack(c: ServerConnection?) {
+    fun onErrorGoBack(err: Throwable, c: ServerConnection?) {
+        err.printStackTrace()
         c?.disconnect()
         bnw.change { JoinServerPage() }
     }
@@ -38,10 +39,11 @@ class JoinServerPage : Page() {
     fun joiningServer(ip: String) = simplePage {
         val connection = ServerConnection(ip)
         connection.connect().flatMap {
-            it.obs().filter{ it.rttGot }.firstOrError().map { connection } }.subscribe({ c ->
+            it.obs().filter{ connection.rttGot }.firstOrError().map { connection }
+        }.subscribe({ c ->
             bnw.change { waitingForGame(c) }
-        }, {
-            onErrorGoBack(null)
+        }, { err ->
+            onErrorGoBack(err, null)
         })
         table {
             label("joining server at $ip")
@@ -49,10 +51,10 @@ class JoinServerPage : Page() {
     }
 
     fun waitingForGame(c: ServerConnection) = simplePage {
-        c.obs().filter { it.gameStarted() }.firstOrError().subscribe({
+        c.obs().filter { c.gameStartTime >= 0 }.firstOrError().subscribe({
             bnw.change { GamePage(c) }
-        }, {
-            onErrorGoBack(c)
+        }, { err ->
+            onErrorGoBack(err, c)
         })
         table {
             label("waiting for game")
