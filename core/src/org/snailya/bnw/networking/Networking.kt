@@ -2,6 +2,7 @@ package org.snailya.bnw.networking
 
 import com.esotericsoftware.kryonet.Client
 import com.esotericsoftware.kryonet.Connection
+import com.esotericsoftware.kryonet.FrameworkMessage
 import com.esotericsoftware.kryonet.Listener
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -15,7 +16,7 @@ import org.snailya.bnw.StartGameMessage
 
 class ServerConnection(internal val client: Client) {
 
-    class State(val tick: Int = -1) {
+    data class State(val rttGot: Boolean = false, val tick: Int = -1) {
         fun gameStarted() = tick >= 0
     }
 
@@ -36,15 +37,19 @@ class ServerConnection(internal val client: Client) {
 
             override fun received(connection: Connection, obj: Any) {
                 when (obj) {
+                    is FrameworkMessage.Ping ->
+                            if (obj.isReply) state.onNext(State(true))
                     is StartGameMessage -> {
-                        state.onNext(State(0))
+                        state.onNext(state.value.copy(tick = 0))
                     }
                 }
             }
         })
     }
-    inner class GameConnection {
 
+
+    fun disconnect() {
+        client.dispose()
     }
 }
 class Networking {
@@ -55,8 +60,7 @@ class Networking {
      */
     fun join(ip: String): Single<ServerConnection> =
         Single.fromCallable {
-            val connected = ServerConnection(Client())
-            NetworkingCommon.register(connected.client)
+            val connected = ServerConnection(NetworkingCommon.createClient())
             connected.client.start()
             connected.client.connect(5000, ip, NetworkingCommon.tcpPort, NetworkingCommon.udpPort)
             connected

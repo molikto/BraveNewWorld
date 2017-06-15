@@ -13,8 +13,7 @@ import com.esotericsoftware.kryonet.Server
 object BnwServer {
 
     @JvmStatic fun main(arg: Array<String>) {
-        val server = Server()
-        NetworkingCommon.register(server)
+        val server = NetworkingCommon.createServer()
 
         var gameStartTime = -1L
 

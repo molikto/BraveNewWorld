@@ -1,10 +1,8 @@
 package org.snailya.bnw.ui
 
-import ktx.log.info
 import ktx.scene2d.*
 import org.snailya.base.*
 import org.snailya.bnw.bnw
-import org.snailya.bnw.networking.Networking
 import org.snailya.bnw.networking.ServerConnection
 
 /**
@@ -22,8 +20,8 @@ class JoinServerPage : Page() {
             row()
 
             textButton("confirm").onClick { _, _, _ ->
-                val ip = ip.text
-                bnw.change { joiningServer(ip) }
+                val ipStr = ip.text
+                bnw.change { joiningServer(ipStr) }
             }
         }
         post {
@@ -31,11 +29,18 @@ class JoinServerPage : Page() {
         }
     }
 
+    fun onErrorGoBack(c: ServerConnection?) {
+        c?.disconnect()
+        bnw.change { JoinServerPage() }
+    }
+
     fun joiningServer(ip: String) = simplePage {
-        bnw.net.join(ip).subscribe({ c ->
+        bnw.net.join(ip).flatMap {
+            val connection = it
+            it.obs().filter{it.rttGot}.firstOrError().map { connection } }.subscribe({ c ->
             bnw.change { waitingForGame(c) }
         }, {
-            bnw.change { JoinServerPage() }
+            onErrorGoBack(null)
         })
         table {
             label("joining server at $ip")
@@ -43,9 +48,11 @@ class JoinServerPage : Page() {
     }
 
     fun waitingForGame(c: ServerConnection) = simplePage {
-        c.obs().subscribe {
-            if (it.gameStarted()) bnw.change { tempInGame() }
-        }
+        c.obs().filter { it.gameStarted() }.firstOrError().subscribe({
+            bnw.change { tempInGame() }
+        }, {
+            onErrorGoBack(c)
+        })
         table {
             label("waiting for game")
         }
