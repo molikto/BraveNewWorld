@@ -14,15 +14,31 @@ import org.snailya.bnw.NetworkingCommon
 import org.snailya.bnw.StartGameMessage
 
 
-class ServerConnection(internal val client: Client) {
+class ServerConnection(val ip: String) {
 
-    data class State(val rttGot: Boolean = false, val tick: Int = -1) {
-        fun gameStarted() = tick >= 0
+
+    private val client: Client = NetworkingCommon.createClient()
+
+    val myId: Int
+     get() = client.id
+
+    data class State(
+            var rttGot: Boolean = false,
+            var gameStartTime: Long = -1L,
+            var pendingTick: Int = -1,
+            var  playerSize: Int = 0,
+            var delay: Int = 1
+
+    ) {
+        fun gameStarted() = gameStartTime >= 0
     }
 
     private val state: BehaviorSubject<State> = BehaviorSubject.createDefault(State())
 
     fun obs(): Observable<State> = state.observeOn(GdxScheduler)
+
+    val value: State
+        get() = state.value
 
     init {
         client.addListener(object : Listener() {
@@ -37,10 +53,18 @@ class ServerConnection(internal val client: Client) {
 
             override fun received(connection: Connection, obj: Any) {
                 when (obj) {
-                    is FrameworkMessage.Ping ->
-                            if (obj.isReply) state.onNext(State(true))
+                    is FrameworkMessage.Ping -> {
+                        if (obj.isReply) {
+                            state.value.rttGot = true
+                            state.onNext(state.value)
+                        }
+                    }
                     is StartGameMessage -> {
-                        state.onNext(state.value.copy(tick = 0))
+                        state.value.gameStartTime = System.currentTimeMillis()
+                        state.value.pendingTick = 0
+                        state.value.playerSize = obj.playerSize
+                        state.value.delay = obj.delay
+                        state.onNext(state.value)
                     }
                 }
             }
@@ -51,18 +75,14 @@ class ServerConnection(internal val client: Client) {
     fun disconnect() {
         client.dispose()
     }
-}
-class Networking {
 
-
-    /**
-     * op: if success, gameSession will have a value
-     */
-    fun join(ip: String): Single<ServerConnection> =
-        Single.fromCallable {
-            val connected = ServerConnection(NetworkingCommon.createClient())
-            connected.client.start()
-            connected.client.connect(5000, ip, NetworkingCommon.tcpPort, NetworkingCommon.udpPort)
-            connected
+    fun connect(): Single<ServerConnection> {
+        return Single.fromCallable {
+            client.start()
+            client.connect(5000, ip, NetworkingCommon.tcpPort, NetworkingCommon.udpPort)
+            this
         }.subscribeOn(Schedulers.io()).observeOn(GdxScheduler)
+    }
 }
+
+

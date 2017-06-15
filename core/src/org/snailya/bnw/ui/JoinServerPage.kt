@@ -1,5 +1,6 @@
 package org.snailya.bnw.ui
 
+import com.esotericsoftware.kryonet.Server
 import ktx.scene2d.*
 import org.snailya.base.*
 import org.snailya.bnw.bnw
@@ -35,9 +36,9 @@ class JoinServerPage : Page() {
     }
 
     fun joiningServer(ip: String) = simplePage {
-        bnw.net.join(ip).flatMap {
-            val connection = it
-            it.obs().filter{it.rttGot}.firstOrError().map { connection } }.subscribe({ c ->
+        val connection = ServerConnection(ip)
+        connection.connect().flatMap {
+            it.obs().filter{ it.rttGot }.firstOrError().map { connection } }.subscribe({ c ->
             bnw.change { waitingForGame(c) }
         }, {
             onErrorGoBack(null)
@@ -49,17 +50,13 @@ class JoinServerPage : Page() {
 
     fun waitingForGame(c: ServerConnection) = simplePage {
         c.obs().filter { it.gameStarted() }.firstOrError().subscribe({
-            bnw.change { tempInGame() }
+            bnw.change { GamePage(c) }
         }, {
             onErrorGoBack(c)
         })
         table {
             label("waiting for game")
         }
-    }
-
-    private fun  tempInGame() = simplePage {
-        table { label("in game") }
     }
 
 }

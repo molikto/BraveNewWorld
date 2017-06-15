@@ -1,7 +1,6 @@
 package org.snailya.bnw
 
 import org.snailya.base.*
-import org.snailya.bnw.networking.Networking
 import org.snailya.bnw.ui.JoinServerPage
 import org.snailya.bnw.ui.GeneralUi
 
@@ -20,8 +19,6 @@ val bnw by lazy { game as BraveNewWorld }
 class BraveNewWorld(pdi: PlatformDependentInfo) : ApplicationInner(pdi) {
 
     val ui = GeneralUi()
-
-    val net = Networking()
 
     init { page = JoinServerPage() }
 }

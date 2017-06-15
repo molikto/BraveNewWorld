@@ -9,9 +9,9 @@ import java.util.*
 
 val debug_random = Random()
 
-open class PlayerConfig : WalkerConfig() {
+open class AgentConfig : WalkerConfig() {
 }
-class Player : Walker() {
+class Agent : Walker() {
     var health: Int = 10
 }
 
@@ -30,23 +30,24 @@ class MapTile {
 
 
 
-class BnwGame() {
+class BnwGame(val myId: Int, val playerSize: Int) {
     val mapSize = 300
     val map: Array<Array<MapTile>> = Array(mapSize, { Array(mapSize, { MapTile() })})
     val center =  vec2(mapSize.tf / 2, mapSize.tf / 2)
 
-    val playerConfig = configured(PlayerConfig()) { speed = 1F }
-    val player = configured(Player()) { config = playerConfig; position = center.copy() }
+    val agentConfig = configured(AgentConfig()) {  }
+    val agent = configured(Agent()) { config =  agentConfig; position = center.copy() }
 
 //    fun move(direction: Vector2, time: Float) {
 //        player.position + (direction * (player.config.speed * time))
 //    }
 
+
     fun step(inputs: Array<PlayerInput>) {
     }
 }
 
-class PlayerInfo {
+class PlayerInfo(val id: Int) {
 }
 
 class PlayerState(val info: PlayerInfo) {

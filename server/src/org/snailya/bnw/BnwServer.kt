@@ -38,7 +38,7 @@ object BnwServer {
                             val maxTick: Int = Math.ceil(maxRtt.toDouble() / NetworkingCommon.timePerTick).toInt()
                             println("RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick")
                             for (c in connections) {
-                                c.sendTCP(StartGameMessage(maxTick))
+                                c.sendTCP(StartGameMessage(maxTick, 2))
                             }
                             gameStartTime = System.currentTimeMillis()
                         }

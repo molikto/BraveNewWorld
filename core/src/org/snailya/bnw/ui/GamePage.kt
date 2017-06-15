@@ -10,6 +10,7 @@ import ktx.math.*
 import ktx.scene2d.*
 import org.snailya.base.*
 import org.snailya.bnw.gamelogic.BnwGame
+import org.snailya.bnw.networking.ServerConnection
 
 /**
  * Created by molikto on 14/06/2017.
@@ -17,11 +18,11 @@ import org.snailya.bnw.gamelogic.BnwGame
 
 
 
-class GamePage(ip: String) : Page() {
+class GamePage(c: ServerConnection) : Page() {
 
     val debug_img = Texture("badlogic.jpg")
 
-    val g = BnwGame()
+    val g = BnwGame(c.myId, c.value.playerSize)
 
     lateinit  var debug_info: Label
     init {
@@ -67,17 +68,14 @@ class GamePage(ip: String) : Page() {
             if (keyed(Input.Keys.D)) direction.add(1F, 0F)
             direction.nor()
         }
-        if (direction.isZero) {
-            if (Gdx.input.isTouched) {
-                direction.set(
-                        (inputGameCoor(Gdx.input.x, Gdx.input.y) -
-                                inputGameCoor(game.backBufferWidth() / 2, game.backBufferHeight() / 2)).nor()
-                )
-            }
+
+        focus + (direction * (focusSpeed * time))
+
+        if (Gdx.input.isTouched) {
+            val movement = inputGameCoor(Gdx.input.x, Gdx.input.y) - g.agent.position
         }
 
 
-        focus + (direction * (focusSpeed * time))
         //g.move(direction, time)
 
         projection.setToOrtho2DCentered(focus.x, focus.y, game.backBufferWidth() / zoom, game.backBufferHeight() / zoom)
@@ -110,7 +108,7 @@ class GamePage(ip: String) : Page() {
                 batch.draw(debug_img, x.tf, y.tf, 1F, 1F)
             }
         }
-        batch.draw(debug_img, g.player.position.x, g.player.position.y, 1F, 1F)
+        batch.draw(debug_img, g.agent.position.x, g.agent.position.y, 1F, 1F)
 
         batch.end()
     }
@@ -119,4 +117,5 @@ class GamePage(ip: String) : Page() {
     override fun dispose() {
         debug_img.dispose()
     }
+
 }
