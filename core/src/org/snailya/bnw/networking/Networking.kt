@@ -1,6 +1,5 @@
 package org.snailya.bnw.networking
 
-import com.badlogic.gdx.math.Vector2
 import com.esotericsoftware.kryonet.Client
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.FrameworkMessage
@@ -31,14 +30,15 @@ class ServerConnection(val ip: String) {
     var delay: Int = 1
 
 
-    var received: PlayerInputsMessage? = null
+    var received: GameCommandsMessage? = null
 
-    fun  tick(dest: List<org.snailya.bnw.PlayerInput>): List<List<PlayerInput>>? {
+    fun  tick(commands: List<PlayerCommand>): List<List<PlayerCommand>>? {
         tick += 1
         time += NetworkingCommon.timePerTick
-        client.sendUDP(PlayerInputMessage(tick - 1, dest))
+        client.sendUDP(PlayerCommandsMessage(tick - 1, commands))
         if (tick > 1) {
-            val res = received!!.inputs
+            // TODO lost connection
+            val res = received!!.commands
             received = null
             return res
         } else {
@@ -79,7 +79,7 @@ class ServerConnection(val ip: String) {
                             delay = obj.delay
                             state.onNext(Unit)
                         }
-                        is PlayerInputsMessage -> {
+                        is GameCommandsMessage -> {
                             if (obj.tick == tick - 1) {
                                 received = obj
                             } else {

@@ -18,7 +18,7 @@ object BnwServer : Listener() {
     var tick = 0
 
     const val gameSize = 2
-    var cachedInputs: Array<List<PlayerInput>?> = emptyArray()
+    var cachedInputs: Array<List<PlayerCommand>?> = emptyArray()
 
     @JvmStatic fun main(arg: Array<String>) {
         server = NetworkingCommon.createServer()
@@ -56,15 +56,15 @@ object BnwServer : Listener() {
                     cachedInputs = Array(gameSize, { null })
                 }
             }
-            is PlayerInputMessage -> {
+            is PlayerCommandsMessage -> {
                 if (p.tick == tick) {
                     val index = indexOf(c)
                     if (cachedInputs[index] == null) {
-                        cachedInputs[index] = p.inputs
+                        cachedInputs[index] = p.commands
                     }
                     if (cachedInputs.all { it != null }) {
                         tick += 1
-                        val info = PlayerInputsMessage(tick - 1, cachedInputs.map { it!! }.toList())
+                        val info = GameCommandsMessage(tick - 1, cachedInputs.map { it!! }.toList())
                         for (i in 0 until gameSize) {
                             cachedInputs[i] = null
                         }

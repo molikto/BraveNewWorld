@@ -34,7 +34,7 @@ class MapTile {
 
 class BnwGame(val myIndex: Int, val playerSize: Int, val gameStartTime: Long) {
 
-    val tickTime = NetworkingCommon.timePerSimulation
+    val tickTime = NetworkingCommon.timePerGameTick
     var time = gameStartTime
     val mapSize = 300
     val map: Array<Array<MapTile>> = Array(mapSize, { Array(mapSize, { MapTile() })})
@@ -45,14 +45,14 @@ class BnwGame(val myIndex: Int, val playerSize: Int, val gameStartTime: Long) {
         configured(Agent()) { config =  agentConfig; position = center.copy() }
     }
 
-    fun tick(inputs: List<List<PlayerInput>>?) {
-        if (inputs != null) {
-            assert(inputs.size == playerSize)
+    fun tick(commands: List<List<PlayerCommand>>?) {
+        if (commands != null) {
+            assert(commands.size == playerSize)
             for (i in 0 until playerSize) {
                 val agent = agents[i]
-                val input = inputs[i]
-                for (j in input) {
-                    agent.dest = j.dest
+                val cs = commands[i]
+                for (c in cs) {
+                    agent.dest = c.dest
                 }
             }
         }

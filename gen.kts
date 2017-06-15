@@ -118,18 +118,18 @@ object BnwSpec : Spec("org.snailya.bnw", File("shared/src")) {
                 f("playerSize", IntType)
         )
 
-        val PlayerInput = record("PlayerInput",
+        val PlayerCommand = record("PlayerCommand",
                 f("dest", Vector2.q)
         )
 
-        val PlayerInputMessage = record("PlayerInputMessage",
+        val PlayerCommandsMessage = record("PlayerCommandsMessage",
                 f("tick", IntType),
-                f("inputs", ListType(PlayerInput))
+                f("commands", ListType(PlayerCommand))
         )
 
-        record("PlayerInputsMessage",
+        record("GameCommandsMessage",
                 f("tick", IntType),
-                f("inputs", ListType(ListType(PlayerInput)))
+                f("commands", ListType(ListType(PlayerCommand)))
         )
     }
 }

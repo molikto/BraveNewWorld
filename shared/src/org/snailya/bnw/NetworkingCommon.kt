@@ -2,8 +2,6 @@ package org.snailya.bnw
 
 import com.esotericsoftware.kryonet.*
 import org.snailya.base.KotlinSerializationAdapter
-import org.snailya.bnw.NetworkingCommon.objectBufferSize
-import org.snailya.bnw.NetworkingCommon.writeBufferSize
 import java.nio.ByteBuffer
 
 
@@ -12,7 +10,7 @@ object NetworkingCommon {
     const val tcpPort = 54559
     const val udpPort = 54558
     const val timePerTick = 100
-    const val timePerSimulation = 20
+    const val timePerGameTick = 20
     const val objectBufferSize = 2048
     const val writeBufferSize = objectBufferSize * 8
 
@@ -31,8 +29,8 @@ object NetworkingCommon {
 
         val myMessages = listOf<MyMessage<*>>(
                 MyMessage(StartGameMessage::class.java, StartGameMessage.Companion),
-                MyMessage(PlayerInputMessage::class.java, PlayerInputMessage.Companion),
-                MyMessage(PlayerInputsMessage::class.java, PlayerInputsMessage.Companion)
+                MyMessage(PlayerCommandsMessage::class.java, PlayerCommandsMessage.Companion),
+                MyMessage(GameCommandsMessage::class.java, GameCommandsMessage.Companion)
         )
 
         override fun getLengthLength(): Int = 4

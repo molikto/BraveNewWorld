@@ -10,7 +10,7 @@ import ktx.math.*
 import ktx.scene2d.*
 import org.snailya.base.*
 import org.snailya.bnw.NetworkingCommon
-import org.snailya.bnw.PlayerInput
+import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.networking.ServerConnection
 
@@ -59,26 +59,40 @@ class GamePage(val c: ServerConnection) : Page() {
     }
 
     fun inputGameCoor(x: Int, y: Int) =
-            vec2(x.tf, (game.backBufferHeight() -  y).tf).extends().mul(inverseProjection).lose()
+            vec2(x.tf * 2 / game.backBufferWidth() - 1, 1 - y.tf * 2 / game.backBufferHeight()).extends().mul(inverseProjection).lose()
 
 
     var dest: Vector2? = null
 
     override fun render() {
+
+        // enqueue game input
         if (Gdx.input.justTouched()) {
             dest = inputGameCoor(Gdx.input.x, Gdx.input.y)
         }
 
+        // get previous tick confirmed operations
+        // dequeue game input, network tick
+        // game simulation tick
         val time = System.currentTimeMillis()
-        while (g.time + NetworkingCommon.timePerSimulation <= time) {
-            val toTime = g.time + NetworkingCommon.timePerSimulation
-            var inputs: List<List<PlayerInput>>? = null
-            if (c.time + NetworkingCommon.timePerTick == toTime) {
-                inputs = c.tick(listOf(org.snailya.bnw.PlayerInput(dest)))
-                dest = null
+        var gameTicks = 0
+        var netTicks = 0
+        while (true) {
+            val toTime = g.time + NetworkingCommon.timePerGameTick
+            if (toTime <= time) {
+                gameTicks += 1
+                var previousCommands: List<List<PlayerCommand>>? = null
+                if (c.time + NetworkingCommon.timePerTick == toTime) {
+                    netTicks += 1
+                    previousCommands = c.tick(if(dest == null) emptyList() else listOf(PlayerCommand(dest)))
+                    dest = null
+                }
+                g.tick(previousCommands)
+            } else {
+                break
             }
-            g.tick(inputs)
         }
+        // info { "game tick $gameTicks, net tick $netTicks" }
 
         run { // local input
             val delta = Gdx.graphics.deltaTime
