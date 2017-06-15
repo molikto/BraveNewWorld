@@ -24,6 +24,8 @@ import ktx.scene2d.defaultStyle
  */
 
 
+inline fun post(crossinline a: () -> Unit) = Gdx.app.postRunnable { a.invoke() }
+
 /**
  * See the code how path is constructed
  */
@@ -67,18 +69,4 @@ val UnitVector = vec2(1F, 1F)
 val identityMatrix4 = Matrix4()
 
 fun identityMatrix4() = Matrix4()
-
-/**
- * Kotlin generic extensions
- *
- */
-
-inline val Int.tf: Float
-    inline get() = this.toFloat()
-
-
-inline fun <T> configured(receiver: T, block: T.() -> Unit): T {
-    receiver.block()
-    return receiver
-}
 

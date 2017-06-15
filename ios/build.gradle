@@ -24,7 +24,3 @@ apply plugin: 'kotlin'
 repositories {
     mavenCentral()
 }
-sourceSets {
-    main.java.srcDirs += 'src/main/kotlin'
-}
-

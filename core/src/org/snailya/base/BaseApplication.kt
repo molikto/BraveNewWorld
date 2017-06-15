@@ -38,6 +38,12 @@ class PlatformDependentInfo(val iOSScale: Float?, val logicalWidth: Int?)
 
 
 
+fun simplePage(uip: () -> KTableWidget?): Page = object : Page() {
+   init {
+       ui = uip.invoke()
+   }
+}
+
 abstract class Page {
 
     //fun uiViewport() = ScalingViewport(Scaling.stretch, game.backBufferWidth().toFloat(), game.backBufferHeight().toFloat(), OrthographicCamera())
@@ -120,6 +126,11 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
 
 
     lateinit var page: Page
+
+    fun change(p: () -> Page) {
+        page.dispose()
+        page = p.invoke()
+    }
 
     fun postCreate() {
         input.inputProcessor = object : InputProcessor {
