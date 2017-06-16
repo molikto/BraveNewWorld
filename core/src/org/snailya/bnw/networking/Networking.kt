@@ -8,6 +8,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
+import ktx.log.debug
 import ktx.log.info
 import org.snailya.base.GdxScheduler
 import org.snailya.base.post
@@ -37,10 +38,13 @@ class ServerConnection(val ip: String) {
     var previousCommands: PlayerCommandsMessage? = null
 
     var gamePaused: Boolean = false
+    var pausedFrames = 0
 
 
 
     var received: GameCommandsMessage? = null
+
+    var debug_previousSendTime = 0L
 
     fun  tick(commands: List<PlayerCommand>, debug_hash: Int): List<List<PlayerCommand>>? {
         time += NetworkingCommon.timePerTick
@@ -49,6 +53,7 @@ class ServerConnection(val ip: String) {
             gamePaused = false
             tick += 1
             previousCommands = PlayerCommandsMessage(tick - 1, debug_hash, commands)
+            debug_previousSendTime = System.currentTimeMillis()
             client.sendUDP(previousCommands)
             if (isFirstTick) {
                 return null
@@ -59,7 +64,9 @@ class ServerConnection(val ip: String) {
             }
         } else {
             gamePaused = true
+            pausedFrames += 1
             // will ignore the the input, also the output should not be used
+            debug_previousSendTime = System.currentTimeMillis()
             client.sendUDP(previousCommands)
             return null
         }
@@ -82,7 +89,7 @@ class ServerConnection(val ip: String) {
 
             override fun received(connection: Connection, obj: Any) {
                 post {
-                    info { "received $obj, $tick" }
+                    var debug_unexpected = false
                     when (obj) {
                         is FrameworkMessage.Ping -> {
                             if (obj.isReply) {
@@ -102,10 +109,12 @@ class ServerConnection(val ip: String) {
                             if (obj.tick == tick - 1) {
                                 received = obj
                             } else {
+                                debug_unexpected = true
                                 info  {"unexpected message $obj, $tick" }
                             }
                         }
                     }
+                    if (!debug_unexpected) info { "received $obj, $tick, rtt: ${System.currentTimeMillis() - debug_previousSendTime}" }
                 }
             }
         })
