@@ -62,7 +62,7 @@ object LongAdapter : KotlinSerializationAdapter<Long>() {
 
 object BooleanAdapter : KotlinSerializationAdapter<Boolean>() {
     override fun parse(b: ByteBuffer): Boolean = b.get() == 1.toByte()
-    override fun serialize(b: ByteBuffer, t: Boolean) { b.put((if (t) 1 else 0).toByte()) }
+    override fun serialize(b: ByteBuffer, t: Boolean) { b.put(if (t) 1.toByte() else 0.toByte()) }
 }
 
 
