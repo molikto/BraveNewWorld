@@ -8,7 +8,7 @@ import java.nio.ByteBuffer
  * Created by molikto on 15/06/2017.
  */
 
-object vector2Adapter : KotlinSerializationAdapter<Vector2>() {
+object Vector2Adapter : KotlinSerializationAdapter<Vector2>() {
     override fun parse(b: ByteBuffer): Vector2 {
         return Vector2(b.getFloat(), b.getFloat())
     }

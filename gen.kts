@@ -110,7 +110,7 @@ import com.badlogic.gdx.math.Vector2
 object BnwSpec : Spec("org.snailya.bnw", File("shared/src")) {
 
 
-    val Vector2 = CustomType("Vector2", "vector2Adapter")
+    val Vector2 = CustomType("Vector2", "Vector2Adapter")
     init {
         record("StartGameMessage",
                 f("myIndex", IntType),

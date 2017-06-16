@@ -27,11 +27,11 @@ data class PlayerCommand(
     companion object : KotlinSerializationAdapter<PlayerCommand>() {
 
         override fun parse(b: ByteBuffer): PlayerCommand {
-            return PlayerCommand(vector2Adapter.nullAdapter.parse(b))
+            return PlayerCommand(Vector2Adapter.nullAdapter.parse(b))
         }
 
         override fun serialize(b: ByteBuffer, t: PlayerCommand) {
-            vector2Adapter.nullAdapter.serialize(b, t.dest)
+            Vector2Adapter.nullAdapter.serialize(b, t.dest)
         }
     }
 }
