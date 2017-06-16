@@ -19,15 +19,20 @@ class ServerConnection(val ip: String) {
 
     private val client: Client = NetworkingCommon.createClient()
 
-
-    var myIndex: Int = 0
+    // valid after ping got
     var rttGot: Boolean = false
+
+    // valid after game started
+    var myIndex: Int = 0
     var gameStartTime: Long = -1L
-    //  gameStartTime + tick * timePerTick = time
-    var time: Long = -1L
-    var tick = 0
     var playerSize: Int = 0
     var delay: Int = 1
+
+    // game states that changes
+    // gameStartTime + tick * timePerTick = time
+    var time: Long = -1L
+    var tick = 0
+
 
 
     var received: GameCommandsMessage? = null
