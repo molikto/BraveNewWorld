@@ -37,16 +37,17 @@ data class PlayerCommand(
 }
 data class PlayerCommandsMessage(
         val tick: Int,
+        val debug_hash: Int,
         val commands: List<PlayerCommand>
 ) {
     companion object : KotlinSerializationAdapter<PlayerCommandsMessage>() {
 
         override fun parse(b: ByteBuffer): PlayerCommandsMessage {
-            return PlayerCommandsMessage(b.getInt(), PlayerCommand.Companion.listAdapter.parse(b))
+            return PlayerCommandsMessage(b.getInt(), b.getInt(), PlayerCommand.Companion.listAdapter.parse(b))
         }
 
         override fun serialize(b: ByteBuffer, t: PlayerCommandsMessage) {
-            IntAdapter.serialize(b, t.tick); PlayerCommand.Companion.listAdapter.serialize(b, t.commands)
+            IntAdapter.serialize(b, t.tick); IntAdapter.serialize(b, t.debug_hash); PlayerCommand.Companion.listAdapter.serialize(b, t.commands)
         }
     }
 }

@@ -124,6 +124,8 @@ object BnwSpec : Spec("org.snailya.bnw", File("shared/src")) {
 
         val PlayerCommandsMessage = record("PlayerCommandsMessage",
                 f("tick", IntType),
+                f("debug_hash", IntType),
+                //f("retry", BooleanType),
                 f("commands", ListType(PlayerCommand))
         )
 

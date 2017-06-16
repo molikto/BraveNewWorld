@@ -63,5 +63,9 @@ class BnwGame(val myIndex: Int, val playerSize: Int, val gameStartTime: Long) {
         }
         time += tickTime
     }
+
+    fun  debug_hash(): Int {
+        return agents.map { it.position.hashCode() }.sum()
+    }
 }
 

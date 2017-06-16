@@ -12,6 +12,7 @@ import ktx.log.info
 import org.snailya.base.GdxScheduler
 import org.snailya.base.post
 import org.snailya.bnw.*
+import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 
 class ServerConnection(val ip: String) {
@@ -22,31 +23,44 @@ class ServerConnection(val ip: String) {
     // valid after ping got
     var rttGot: Boolean = false
 
+    val id
+        get() = client.id
     // valid after game started
     var myIndex: Int = 0
     var gameStartTime: Long = -1L
     var playerSize: Int = 0
     var delay: Int = 1
 
-    // game states that changes
-    // gameStartTime + tick * timePerTick = time
+    // already ticked time
     var time: Long = -1L
     var tick = 0
+    var previousCommands: PlayerCommandsMessage? = null
+
+    var gamePaused: Boolean = false
 
 
 
     var received: GameCommandsMessage? = null
 
-    fun  tick(commands: List<PlayerCommand>): List<List<PlayerCommand>>? {
-        tick += 1
+    fun  tick(commands: List<PlayerCommand>, debug_hash: Int): List<List<PlayerCommand>>? {
         time += NetworkingCommon.timePerTick
-        client.sendUDP(PlayerCommandsMessage(tick - 1, commands))
-        if (tick > 1) {
-            // TODO lost connection
-            val res = received!!.commands
-            received = null
-            return res
+        val isFirstTick = tick == 0
+        if (isFirstTick || received != null) {
+            gamePaused = false
+            tick += 1
+            previousCommands = PlayerCommandsMessage(tick - 1, debug_hash, commands)
+            client.sendUDP(previousCommands)
+            if (isFirstTick) {
+                return null
+            } else {
+                val res = received!!.commands
+                received = null
+                return res
+            }
         } else {
+            gamePaused = true
+            // will ignore the the input, also the output should not be used
+            client.sendUDP(previousCommands)
             return null
         }
     }
@@ -88,7 +102,7 @@ class ServerConnection(val ip: String) {
                             if (obj.tick == tick - 1) {
                                 received = obj
                             } else {
-                                throw Exception("$obj, $tick")
+                                info  {"unexpected message $obj, $tick" }
                             }
                         }
                     }

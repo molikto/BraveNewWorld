@@ -16,12 +16,14 @@ object BnwServer : Listener() {
 
     var gameStartTime: Long = 0
     var tick = 0
+    var previousConfirmation: GameCommandsMessage? = null
 
     const val gameSize = 2
-    var cachedInputs: Array<List<PlayerCommand>?> = emptyArray()
+    var cachedCommands: Array<PlayerCommandsMessage?> = emptyArray()
 
     @JvmStatic fun main(arg: Array<String>) {
         server = NetworkingCommon.createServer()
+        // server.addListener(LagListener(20, 200, this))
         server.addListener(this)
         server.bind(NetworkingCommon.tcpPort, NetworkingCommon.udpPort)
         server.start()
@@ -33,6 +35,7 @@ object BnwServer : Listener() {
     }
 
     override fun disconnected(p0: Connection) {
+        server.stop()
     }
 
     override fun idle(p0: Connection) {
@@ -40,7 +43,7 @@ object BnwServer : Listener() {
 
 
     override fun received(c: Connection, p: Any) {
-        println(p)
+        println("recieved form ${c.id} $p")
         when (p) {
             is FrameworkMessage.Ping -> {
                 val connections = server.connections
@@ -53,28 +56,37 @@ object BnwServer : Listener() {
                         c.sendTCP(StartGameMessage(indexOf(c), maxTick, 2))
                     }
                     gameStartTime = System.currentTimeMillis()
-                    cachedInputs = Array(gameSize, { null })
+                    cachedCommands = Array(gameSize, { null })
                 }
             }
             is PlayerCommandsMessage -> {
                 if (p.tick == tick) {
                     val index = indexOf(c)
-                    if (cachedInputs[index] == null) {
-                        cachedInputs[index] = p.commands
+                    if (cachedCommands[index] == null) {
+                        cachedCommands[index] = p
                     }
-                    if (cachedInputs.all { it != null }) {
+                    if (cachedCommands.all { it != null }) {
                         tick += 1
-                        val info = GameCommandsMessage(tick - 1, cachedInputs.map { it!! }.toList())
+                        if (cachedCommands.map { it!!.debug_hash }.toSet().size != 1) {
+                            throw Exception("desync!!")
+                        }
+                        val commands = cachedCommands.map { it!!.commands }.toList()
+                        val info = GameCommandsMessage(tick - 1, commands)
+                        previousConfirmation = info
                         for (i in 0 until gameSize) {
-                            cachedInputs[i] = null
+                            cachedCommands[i] = null
                         }
                         val connections = server.connections
                         for (k in connections) {
                             k.sendUDP(info)
                         }
                     }
+                } else if (p.tick == tick - 1) {
+                    c.sendUDP(previousConfirmation)
+                } else if (p.tick > tick) {
+                    // ignore
                 } else {
-                    throw Exception("Not current tick")
+                    println("got a very lagged message form client ${c.id}, current tick is $tick, message tick is ${p.tick}")
                 }
             }
         }

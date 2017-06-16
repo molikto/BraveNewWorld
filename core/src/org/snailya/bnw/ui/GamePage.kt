@@ -2,10 +2,12 @@ package org.snailya.bnw.ui
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import ktx.log.debug
 import ktx.math.*
 import ktx.scene2d.*
 import org.snailya.base.*
@@ -13,6 +15,7 @@ import org.snailya.bnw.NetworkingCommon
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.networking.ServerConnection
+import java.util.*
 
 /**
  *
@@ -63,12 +66,15 @@ class GamePage(val c: ServerConnection) : Page() {
 
 
     var dest: Vector2? = null
+    val debug_random = Random()
 
     override fun render() {
 
         // enqueue game input
-        if (Gdx.input.justTouched()) {
-            dest = inputGameCoor(Gdx.input.x, Gdx.input.y)
+        if (!c.gamePaused) {
+            if (Gdx.input.justTouched()) {
+                dest = inputGameCoor(Gdx.input.x, Gdx.input.y)
+            }
         }
 
         // get previous tick confirmed operations
@@ -81,16 +87,26 @@ class GamePage(val c: ServerConnection) : Page() {
             val toTime = g.time + NetworkingCommon.timePerGameTick
             if (toTime <= time) {
                 gameTicks += 1
-                var previousCommands: List<List<PlayerCommand>>? = null
+                var confirmedCommands: List<List<PlayerCommand>>? = null
                 if (c.time + NetworkingCommon.timePerTick == toTime) {
                     netTicks += 1
-                    previousCommands = c.tick(if(dest == null) emptyList() else listOf(PlayerCommand(dest)))
-                    dest = null
+                    confirmedCommands = c.tick(if(dest == null) emptyList() else listOf(PlayerCommand(dest)), g.debug_hash())
+                    if (c.gamePaused) {
+                        g.time += NetworkingCommon.timePerTick
+                        break
+                    } else {
+                        dest = null
+                    }
                 }
-                g.tick(previousCommands)
+                g.tick(confirmedCommands)
             } else {
                 break
             }
+        }
+
+        if (c.gamePaused) {
+            debug_info.setText("PAUSED")
+            return
         }
         // info { "game tick $gameTicks, net tick $netTicks" }
 
