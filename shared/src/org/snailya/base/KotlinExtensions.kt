@@ -13,3 +13,16 @@ inline fun <T> configured(receiver: T, block: T.() -> Unit): T {
 fun tif(s: String) = println("${System.currentTimeMillis()}:  $s")
 
 
+inline fun time(str: String, b: () -> Unit) {
+    val t = System.currentTimeMillis()
+    b.invoke()
+    tif("timed ${System.currentTimeMillis() - t}: $str")
+}
+inline fun timet(str: String, b: () -> String) {
+    val t = System.currentTimeMillis()
+    var res = b.invoke()
+    if (!res.isEmpty()) res = ", " + res
+    tif("timed ${System.currentTimeMillis() - t}: $str$res")
+}
+
+

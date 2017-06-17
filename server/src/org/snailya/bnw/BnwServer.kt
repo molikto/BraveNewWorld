@@ -4,7 +4,12 @@ import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.FrameworkMessage
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
+import com.esotericsoftware.minlog.Log
+import org.joor.Reflect
 import org.snailya.base.tif
+import org.snailya.base.timet
+import java.lang.reflect.AccessibleObject.setAccessible
+import java.lang.reflect.Field
 
 
 object BnwServer : Listener() {
@@ -40,59 +45,63 @@ object BnwServer : Listener() {
 
 
     override fun received(c: Connection, p: Any) {
-        var typeStr: String = ""
-        when (p) {
-            is FrameworkMessage.Ping -> {
-                val connections = server.connections
-                if (connections.size >= gameSize && connections.all{ it.returnTripTime >= 0 }) {
-                    val rtts = connections.map { it.returnTripTime }
-                    val maxRtt = rtts.max()!!
-                    val maxTick: Int = Math.ceil(maxRtt.toDouble() / NetworkingShared.timePerTick).toInt()
-                    tif("RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick")
-                    for (c in connections) {
-                        c.sendTCP(StartGameMessage(indexOf(c), maxTick, 2))
-                    }
-                    gameStartTime = System.currentTimeMillis()
-                    cachedCommands = Array(gameSize, { null })
-                }
-            }
-            is PlayerCommandsMessage -> {
-                if (p.tick == tick) {
-                    val index = indexOf(c)
-                    if (cachedCommands[index] == null) {
-                        cachedCommands[index] = p
-                    }
-                    if (cachedCommands.all { it != null }) {
-                        tick += 1
-                        if (cachedCommands.map { it!!.debug_hash }.toSet().size != 1) {
-                            throw Exception("desync!!")
-                        }
-                        val commands = cachedCommands.map { it!!.commands }.toList()
-                        val info = GameCommandsMessage(tick - 1, commands, false)
-                        previousConfirmation = info.copy(debug_resend = true)
-                        for (i in 0 until gameSize) {
-                            cachedCommands[i] = null
-                        }
+        timet("received form ${c.id} $p") {
+            when (p) {
+                is FrameworkMessage.Ping -> {
+                    if (p.isReply) {
                         val connections = server.connections
-                        for (k in connections) {
-                            k.sendUDP(info)
+                        if (connections.size >= gameSize && connections.all{ it.returnTripTime >= 0 }) {
+                            val rtts = connections.map { it.returnTripTime }
+                            val maxRtt = rtts.max()!!
+                            val maxTick: Int = Math.ceil(maxRtt.toDouble() / NetworkingShared.timePerTick).toInt()
+                            tif("RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick")
+                            for (cc in connections) {
+                                cc.sendTCP(StartGameMessage(indexOf(cc), maxTick, 2))
+                            }
+                            gameStartTime = System.currentTimeMillis()
+                            cachedCommands = Array(gameSize, { null })
                         }
                     }
-                    typeStr = ", on time"
-                } else if (p.tick == tick - 1) {
-                    val index = indexOf(c)
-                    val resend = cachedCommands[index] == null
-                    if (resend) c.sendUDP(previousConfirmation)
-                    typeStr = ", previous tick, resending $resend"
-                } else if (p.tick > tick) {
-                    // ignore
-                    typeStr = ", future tick"
-                } else {
-                    typeStr = ", very old tick!!"
+                    ""
                 }
+                is PlayerCommandsMessage -> {
+                    if (p.tick == tick) {
+                        val index = indexOf(c)
+                        if (cachedCommands[index] == null) {
+                            cachedCommands[index] = p
+                        }
+                        if (cachedCommands.all { it != null }) {
+                            tick += 1
+                            if (cachedCommands.map { it!!.debug_hash }.toSet().size != 1) {
+                                throw Exception("de-sync!!")
+                            }
+                            val commands = cachedCommands.map { it!!.commands }.toList()
+                            val info = GameCommandsMessage(tick - 1, commands, false)
+                            previousConfirmation = info.copy(debug_resend = true)
+                            for (i in 0 until gameSize) {
+                                cachedCommands[i] = null
+                            }
+                            val connections = server.connections
+                            for (k in connections) {
+                                k.sendUDP(info)
+                            }
+                        }
+                        "on time"
+                    } else if (p.tick == tick - 1) {
+                        val index = indexOf(c)
+                        val resend = cachedCommands[index] == null
+                        if (resend) c.sendUDP(previousConfirmation)
+                        "previous tick, resending $resend"
+                    } else if (p.tick > tick) {
+                        // ignore
+                        "future tick"
+                    } else {
+                        "very old tick!!"
+                    }
+                }
+                else -> ""
             }
         }
-        tif("received form ${c.id} $p$typeStr")
 
     }
 

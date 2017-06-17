@@ -10,8 +10,7 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import ktx.log.info
 import org.snailya.base.GdxScheduler
-import org.snailya.base.post
-import org.snailya.base.tif
+import org.snailya.base.*
 import org.snailya.bnw.*
 
 
@@ -20,7 +19,6 @@ class ServerConnection(val ip: String) {
 
     private val client: Client = NetworkingShared.createClient()
 
-    // valid after ping got
     var rttGot: Boolean = false
 
     val id
@@ -31,15 +29,13 @@ class ServerConnection(val ip: String) {
     var playerSize: Int = 0
     var delay: Int = 1
 
-    // already ticked time
     var tickedTime: Long = -1L
     var tick = 0
     var previousCommands: PlayerCommandsMessage? = null
-
     var gamePaused: Boolean = false
+
     var continuousPausedFrames = 0
     var pausedFrames = 0
-    var tenPausedFramesMinusFrames = 0
 
 
 
@@ -56,11 +52,9 @@ class ServerConnection(val ip: String) {
             previousCommands = message.copy(debug_resend = true)
             debug_previousSendTime = System.currentTimeMillis()
             debug_previousSendTick = tick
-            client.sendUDP(message)
-            tif("sending $tick")
+            time("sending message $tick") { client.sendUDP(message) }
             gamePaused = false
             continuousPausedFrames = 0
-            tenPausedFramesMinusFrames -= 1
             tickedTime += NetworkingShared.timePerTick
             tick += 1
             if (isFirstTick) {
@@ -75,11 +69,9 @@ class ServerConnection(val ip: String) {
             val tick = previousCommands!!.tick
             debug_previousSendTime = System.currentTimeMillis()
             debug_previousSendTick = tick
-            tif("resending $tick")
-            client.sendUDP(previousCommands)
+            time("resending message $tick") { client.sendUDP(previousCommands) }
             gamePaused = true
             pausedFrames += 1
-            tenPausedFramesMinusFrames += 10
             continuousPausedFrames += 1
             // will ignore the the input, also the output should not be used
             return null
@@ -107,10 +99,8 @@ class ServerConnection(val ip: String) {
                     var debug_unexpected = false
                     when (obj) {
                         is FrameworkMessage.Ping -> {
-                            if (obj.isReply) {
-                                rttGot = true
-                                state.onNext(Unit)
-                            }
+                            rttGot = true
+                            state.onNext(Unit)
                         }
                         is StartGameMessage -> {
                             gameStartTime = System.currentTimeMillis() + 50

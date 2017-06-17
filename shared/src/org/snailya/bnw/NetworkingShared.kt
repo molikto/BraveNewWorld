@@ -2,6 +2,7 @@ package org.snailya.bnw
 
 import com.esotericsoftware.kryonet.*
 import org.snailya.base.KotlinSerializationAdapter
+import org.snailya.base.tif
 import java.nio.ByteBuffer
 
 
@@ -11,6 +12,9 @@ object NetworkingShared {
     const val udpPort = 54558
     const val timePerTick = 100
     const val timePerGameTick = 20
+    init {
+        assert(timePerTick % timePerGameTick == 0)
+    }
     const val gameTickPerTick = timePerTick / timePerGameTick
     const val objectBufferSize = 2048
     const val writeBufferSize = objectBufferSize * 8

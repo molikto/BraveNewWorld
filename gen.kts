@@ -112,6 +112,7 @@ object BnwSpec : Spec("org.snailya.bnw", File("shared/src")) {
 
     val Vector2 = CustomType("Vector2", "Vector2Adapter")
     init {
+
         record("StartGameMessage",
                 f("myIndex", IntType),
                 f("delay", IntType),
