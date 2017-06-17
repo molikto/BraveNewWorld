@@ -12,24 +12,36 @@ import java.lang.reflect.AccessibleObject.setAccessible
 import java.lang.reflect.Field
 
 
-object BnwServer : Listener() {
+object BnwServer : (() -> Unit) {
 
-    lateinit var server: Server
+    override fun invoke(): Unit {
+        BnwGameServer(this)
+    }
+
+
+    @JvmStatic fun main(arg: Array<String>) {
+        this.invoke()
+    }
+}
+
+class BnwGameServer(val debug_onStop: () -> Unit): Listener() {
+
+    val gameSize = 1
+
+    var server = NetworkingShared.createServer()
+    init {
+        //server.addListener(LagListener(60, 80, this))
+        server.addListener(this)
+        server.bind(NetworkingShared.tcpPort, NetworkingShared.udpPort)
+        server.start()
+    }
 
     var gameStartTime: Long = 0
     var tick = 0
     var previousConfirmation: GameCommandsMessage? = null
 
-    const val gameSize = 1
     var cachedCommands: Array<PlayerCommandsMessage?> = emptyArray()
 
-    @JvmStatic fun main(arg: Array<String>) {
-        server = NetworkingShared.createServer()
-        server.addListener(LagListener(60, 80, this))
-        //server.addListener(this)
-        server.bind(NetworkingShared.tcpPort, NetworkingShared.udpPort)
-        server.start()
-    }
 
 
     override fun connected(p0: Connection) {
@@ -38,6 +50,7 @@ object BnwServer : Listener() {
 
     override fun disconnected(p0: Connection) {
         server.stop()
+        debug_onStop.invoke()
     }
 
     override fun idle(p0: Connection) {

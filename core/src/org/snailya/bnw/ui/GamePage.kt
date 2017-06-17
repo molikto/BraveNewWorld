@@ -105,7 +105,6 @@ class GamePage(val c: ServerConnection) : Page() {
                 break
             }
         }
-
         if (c.gamePaused) {
             debug_info.setText("PAUSED")
             return
@@ -152,12 +151,12 @@ class GamePage(val c: ServerConnection) : Page() {
 
         batch.begin()
 
-//        for (y in top until bottom) {
-//            for (x in left until right) {
-//                batch.color = Color(g.map[x][y].debug_color)
-//                batch.draw(debug_img, x.tf, y.tf, 1F, 1F)
-//            }
-//        }
+        for (y in top until bottom) {
+            for (x in left until right) {
+                batch.color = Color(g.map[x][y].debug_color)
+                batch.draw(debug_img, x.tf, y.tf, 1F, 1F)
+            }
+        }
         for (agent in g.agents) {
             batch.draw(debug_img, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
         }

@@ -26,19 +26,39 @@ open class Walker {
     var dest: Vector2? = null
 }
 
+
+/**
+ * https://en.wikipedia.org/wiki/Soil
+ */
+enum class GroundType {
+    Snow, Sand, Soil, SoilRich,
+//    Snow, Tundra, Bare, Scorched,
+//    Taiga, Shrubland, TemperateDesert,
+//    TemperateRainForest, TemperateDec, Grassland,
+//    TropicalRainForest, TropicalSeasonalForest, SubtropicalDesert
+
+}
 class MapTile {
-    var debug_color: Int = debug_random.nextInt()
+    var isBlock = false
 }
 
 
 
 class BnwGame(val myIndex: Int, val playerSize: Int, val gameStartTime: Long) {
 
+    val random = Random(gameStartTime)
+
     val tickTime = NetworkingShared.timePerGameTick
     var tickedTime = gameStartTime
     val mapSize = 300
     val map: Array<Array<MapTile>> = Array(mapSize, { Array(mapSize, { MapTile() })})
+
+    init {
+        val hasBlocks = (0 until mapSize / 5).map { (0 until mapSize / 5).map { random.nextBoolean() } }
+        for (i in 0 until mapSize) for (j in 0 until mapSize) map[i][j].isBlock = hasBlocks[i / 5][j / 5];
+    }
     val center =  vec2(mapSize.tf / 2, mapSize.tf / 2)
+
 
     val agentConfig = configured(AgentConfig()) {  }
     val agents = (0 until playerSize).map {

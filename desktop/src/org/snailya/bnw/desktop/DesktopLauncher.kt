@@ -8,11 +8,11 @@ import org.snailya.bnw.BraveNewWorldWrapper
 object DesktopLauncher {
     @JvmStatic fun main(arg: Array<String>) {
         val config = Lwjgl3ApplicationConfiguration()
-        config.setIdleFPS(120)
-//        val width = 736
-//        val height = 410
-        val width = 100
-        val height = 100
+        //config.setIdleFPS(120)
+        val width = 736
+        val height = 410
+//        val width = 100
+//        val height = 100
         config.setWindowedMode(width, height)
         config.setHdpiMode(Lwjgl3ApplicationConfiguration.HdpiMode.Pixels)
         Lwjgl3Application(BraveNewWorldWrapper(PlatformDependentInfo(null, width)), config)
