@@ -25,9 +25,9 @@ class JoinServerPage : Page() {
                 bnw.change { joiningServer(ipStr) }
             }
         }
-        post {
-            joiningServer("")
-        }
+//        post {
+//            joiningServer("")
+//        }
     }
 
     fun onErrorGoBack(err: Throwable, c: ServerConnection?) {

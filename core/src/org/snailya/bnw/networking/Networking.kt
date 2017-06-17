@@ -8,18 +8,16 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
-import ktx.log.debug
 import ktx.log.info
 import org.snailya.base.GdxScheduler
 import org.snailya.base.post
 import org.snailya.bnw.*
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 
 class ServerConnection(val ip: String) {
 
 
-    private val client: Client = NetworkingCommon.createClient()
+    private val client: Client = NetworkingShared.createClient()
 
     // valid after ping got
     var rttGot: Boolean = false
@@ -33,41 +31,51 @@ class ServerConnection(val ip: String) {
     var delay: Int = 1
 
     // already ticked time
-    var time: Long = -1L
+    var tickedTime: Long = -1L
     var tick = 0
     var previousCommands: PlayerCommandsMessage? = null
 
     var gamePaused: Boolean = false
+    var continuousPausedFrames = 0
     var pausedFrames = 0
+    var tenPausedFramesMinusFrames = 0
 
 
 
     var received: GameCommandsMessage? = null
+    var receivedTime: Long = 0L
 
     var debug_previousSendTime = 0L
 
     fun  tick(commands: List<PlayerCommand>, debug_hash: Int): List<List<PlayerCommand>>? {
-        time += NetworkingCommon.timePerTick
         val isFirstTick = tick == 0
         if (isFirstTick || received != null) {
-            gamePaused = false
-            tick += 1
-            previousCommands = PlayerCommandsMessage(tick - 1, debug_hash, commands)
+            previousCommands = PlayerCommandsMessage(tick, debug_hash, commands)
             debug_previousSendTime = System.currentTimeMillis()
             client.sendUDP(previousCommands)
+            info { "${System.currentTimeMillis()}: sending $tick"}
+            gamePaused = false
+            continuousPausedFrames = 0
+            tenPausedFramesMinusFrames -= 1
+            tickedTime += NetworkingShared.timePerTick
+            tick += 1
             if (isFirstTick) {
                 return null
             } else {
                 val res = received!!.commands
                 received = null
+                receivedTime = 0L
                 return res
             }
         } else {
+            info { "${System.currentTimeMillis()}: resending ${previousCommands!!.tick}" }
+            client.sendUDP(previousCommands)
             gamePaused = true
             pausedFrames += 1
+            tenPausedFramesMinusFrames += 10
+            continuousPausedFrames += 1
             // will ignore the the input, also the output should not be used
             debug_previousSendTime = System.currentTimeMillis()
-            client.sendUDP(previousCommands)
             return null
         }
     }
@@ -99,7 +107,7 @@ class ServerConnection(val ip: String) {
                         }
                         is StartGameMessage -> {
                             gameStartTime = System.currentTimeMillis()
-                            time = gameStartTime
+                            tickedTime = gameStartTime
                             myIndex = obj.myIndex
                             playerSize = obj.playerSize
                             delay = obj.delay
@@ -108,6 +116,7 @@ class ServerConnection(val ip: String) {
                         is GameCommandsMessage -> {
                             if (obj.tick == tick - 1) {
                                 received = obj
+                                receivedTime = System.currentTimeMillis()
                             } else {
                                 debug_unexpected = true
                                 info  {"unexpected message $obj, $tick" }
@@ -129,7 +138,7 @@ class ServerConnection(val ip: String) {
         return Single.fromCallable {
             info { "connecting to remote" }
             client.start()
-            client.connect(5000, ip, NetworkingCommon.tcpPort, NetworkingCommon.udpPort)
+            client.connect(5000, ip, NetworkingShared.tcpPort, NetworkingShared.udpPort)
             info { "connected to remote" }
             this
         }.subscribeOn(Schedulers.io()).observeOn(GdxScheduler)

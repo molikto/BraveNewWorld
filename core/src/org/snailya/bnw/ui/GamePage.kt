@@ -2,16 +2,14 @@ package org.snailya.bnw.ui
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Label
-import ktx.log.debug
 import ktx.math.*
 import ktx.scene2d.*
 import org.snailya.base.*
-import org.snailya.bnw.NetworkingCommon
+import org.snailya.bnw.NetworkingShared
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.networking.ServerConnection
@@ -67,6 +65,7 @@ class GamePage(val c: ServerConnection) : Page() {
 
     var dest: Vector2? = null
     val debug_random = Random()
+    val random = Random()
 
     override fun render() {
 
@@ -77,22 +76,25 @@ class GamePage(val c: ServerConnection) : Page() {
             }
         }
 
-        // get previous tick confirmed operations
-        // dequeue game input, network tick
-        // game simulation tick
         val time = System.currentTimeMillis()
+        if (c.gamePaused && c.received != null) {
+            g.tickedTime = c.receivedTime - NetworkingShared.timePerGameTick
+            c.tickedTime = c.receivedTime - NetworkingShared.timePerTick
+        }
         var gameTicks = 0
         var netTicks = 0
         while (true) {
-            val toTime = g.time + NetworkingCommon.timePerGameTick
+            val toTime = g.tickedTime + NetworkingShared.timePerGameTick
             if (toTime <= time) {
                 gameTicks += 1
                 var confirmedCommands: List<List<PlayerCommand>>? = null
-                if (c.time + NetworkingCommon.timePerTick == toTime) {
+                if (c.tickedTime + NetworkingShared.timePerTick == toTime) {
                     netTicks += 1
                     confirmedCommands = c.tick(if(dest == null) emptyList() else listOf(PlayerCommand(dest)), g.debug_hash())
                     if (c.gamePaused) {
-                        g.time += NetworkingCommon.timePerTick
+                        // we schedule a resend at next tick time
+                        c.tickedTime += NetworkingShared.timePerTick
+                        g.tickedTime += NetworkingShared.timePerTick
                         break
                     } else {
                         dest = null

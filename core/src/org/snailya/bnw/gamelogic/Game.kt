@@ -34,8 +34,8 @@ class MapTile {
 
 class BnwGame(val myIndex: Int, val playerSize: Int, val gameStartTime: Long) {
 
-    val tickTime = NetworkingCommon.timePerGameTick
-    var time = gameStartTime
+    val tickTime = NetworkingShared.timePerGameTick
+    var tickedTime = gameStartTime
     val mapSize = 300
     val map: Array<Array<MapTile>> = Array(mapSize, { Array(mapSize, { MapTile() })})
     val center =  vec2(mapSize.tf / 2, mapSize.tf / 2)
@@ -61,7 +61,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, val gameStartTime: Long) {
                 a.position + (it.copy() - a.position).nor() * tickTime / 1000 * a.config.speed
             }
         }
-        time += tickTime
+        tickedTime += tickTime
     }
 
     fun  debug_hash(): Int {

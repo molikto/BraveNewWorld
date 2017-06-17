@@ -6,24 +6,17 @@ import java.nio.ByteBuffer
 
 
 
-object NetworkingCommon {
+object NetworkingShared {
     const val tcpPort = 54559
     const val udpPort = 54558
     const val timePerTick = 100
     const val timePerGameTick = 20
+    const val gameTickPerTick = timePerTick / timePerGameTick
     const val objectBufferSize = 2048
     const val writeBufferSize = objectBufferSize * 8
 
     @Suppress("UsePropertyAccessSyntax")
     object MySerialization : Serialization {
-
-        val frameworkMessages = listOf<Class<*>>(
-                FrameworkMessage.RegisterTCP::class.java,
-                FrameworkMessage.RegisterUDP::class.java,
-                FrameworkMessage.KeepAlive::class.java,
-                FrameworkMessage.DiscoverHost::class.java,
-                FrameworkMessage.Ping::class.java
-        )
 
         data class MyMessage<T>(val clazz: Class<T>, val parser: KotlinSerializationAdapter<T>)
 
@@ -53,7 +46,7 @@ object NetworkingCommon {
                 b.putInt(obj.id)
                 b.put(if (obj.isReply) 1.toByte() else 0.toByte())
             } else {
-                val index = myMessages.indexOfFirst{ it.clazz == obj.javaClass }
+                val index = myMessages.indexOfFirst { it.clazz == obj.javaClass }
                 b.put((index + 5).toByte())
                 (myMessages[index].parser as KotlinSerializationAdapter<Any>).serialize(b, obj)
             }

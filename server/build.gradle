@@ -3,3 +3,14 @@ apply plugin: 'kotlin'
 
 sourceCompatibility = 1.6
 sourceSets.main.java.srcDirs = [ "src/" ]
+
+
+task dist(type: Jar) {
+    from files(sourceSets.main.output.classesDir)
+    from files(sourceSets.main.output.resourcesDir)
+    from {configurations.compile.collect {zipTree(it)}}
+
+    manifest {
+        attributes 'Main-Class': "org.snailya.bnw.BnwServer"
+    }
+}

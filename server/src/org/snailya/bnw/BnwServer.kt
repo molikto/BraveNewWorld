@@ -5,10 +5,8 @@ import com.esotericsoftware.kryonet.FrameworkMessage
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
 
-/**
- * Created by molikto on 14/06/2017.
- */
 
+fun debug(s: String) = println("${System.currentTimeMillis()}:  $s")
 
 object BnwServer : Listener() {
 
@@ -22,10 +20,10 @@ object BnwServer : Listener() {
     var cachedCommands: Array<PlayerCommandsMessage?> = emptyArray()
 
     @JvmStatic fun main(arg: Array<String>) {
-        server = NetworkingCommon.createServer()
-        // server.addListener(LagListener(20, 200, this))
-        server.addListener(this)
-        server.bind(NetworkingCommon.tcpPort, NetworkingCommon.udpPort)
+        server = NetworkingShared.createServer()
+        server.addListener(LagListener(60, 80, this))
+        //server.addListener(this)
+        server.bind(NetworkingShared.tcpPort, NetworkingShared.udpPort)
         server.start()
     }
 
@@ -43,15 +41,15 @@ object BnwServer : Listener() {
 
 
     override fun received(c: Connection, p: Any) {
-        println("recieved form ${c.id} $p")
+        var typeStr: String = ""
         when (p) {
             is FrameworkMessage.Ping -> {
                 val connections = server.connections
                 if (connections.size >= gameSize && connections.all{ it.returnTripTime >= 0 }) {
                     val rtts = connections.map { it.returnTripTime }
                     val maxRtt = rtts.max()!!
-                    val maxTick: Int = Math.ceil(maxRtt.toDouble() / NetworkingCommon.timePerTick).toInt()
-                    println("RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick")
+                    val maxTick: Int = Math.ceil(maxRtt.toDouble() / NetworkingShared.timePerTick).toInt()
+                    debug("RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick")
                     for (c in connections) {
                         c.sendTCP(StartGameMessage(indexOf(c), maxTick, 2))
                     }
@@ -81,15 +79,20 @@ object BnwServer : Listener() {
                             k.sendUDP(info)
                         }
                     }
+                    typeStr = ", on time"
                 } else if (p.tick == tick - 1) {
                     c.sendUDP(previousConfirmation)
+                    typeStr = ", previous tick"
                 } else if (p.tick > tick) {
                     // ignore
+                    typeStr = ", future tick"
                 } else {
-                    println("got a very lagged message form client ${c.id}, current tick is $tick, message tick is ${p.tick}")
+                    typeStr = ", very old tick!!"
                 }
             }
         }
+        debug("received form ${c.id} $p$typeStr")
+
     }
 
     private fun  indexOf(c: Connection): Int {
