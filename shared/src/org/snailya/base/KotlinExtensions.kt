@@ -18,6 +18,7 @@ inline fun time(str: String, b: () -> Unit) {
     b.invoke()
     tif("timed ${System.currentTimeMillis() - t}: $str")
 }
+
 inline fun timet(str: String, b: () -> String) {
     val t = System.currentTimeMillis()
     var res = b.invoke()

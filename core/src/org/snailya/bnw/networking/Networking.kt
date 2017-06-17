@@ -28,6 +28,9 @@ class ServerConnection(val ip: String) {
     var gameStartTime: Long = -1L
     var playerSize: Int = 0
     var delay: Int = 1
+    var clientServerTimeDiff: Long = 0
+
+    fun guessedServerTime() = System.currentTimeMillis() - clientServerTimeDiff
 
     var tickedTime: Long = -1L
     var tick = 0
@@ -52,7 +55,7 @@ class ServerConnection(val ip: String) {
             previousCommands = message.copy(debug_resend = true)
             debug_previousSendTime = System.currentTimeMillis()
             debug_previousSendTick = tick
-            time("sending message $tick") { client.sendUDP(message) }
+            time("guessed time ${guessedServerTime()}, sending message $tick") { client.sendUDP(message) }
             gamePaused = false
             continuousPausedFrames = 0
             tickedTime += NetworkingShared.timePerTick
@@ -69,7 +72,7 @@ class ServerConnection(val ip: String) {
             val tick = previousCommands!!.tick
             debug_previousSendTime = System.currentTimeMillis()
             debug_previousSendTick = tick
-            time("resending message $tick") { client.sendUDP(previousCommands) }
+            time("guessed time ${guessedServerTime()}, resending message $tick") { client.sendUDP(previousCommands) }
             gamePaused = true
             pausedFrames += 1
             continuousPausedFrames += 1
@@ -81,6 +84,7 @@ class ServerConnection(val ip: String) {
     private val state: BehaviorSubject<Unit> = BehaviorSubject.createDefault(Unit)
 
     fun obs(): Observable<Unit> = state
+
 
     init {
         client.addListener(object : Listener() {
@@ -94,7 +98,7 @@ class ServerConnection(val ip: String) {
             }
 
             override fun received(connection: Connection, obj: Any) {
-                tif("received called in network thread")
+                tif("guessed time ${guessedServerTime()}, received called in network thread")
                 post {
                     var debug_unexpected = false
                     when (obj) {
@@ -108,6 +112,8 @@ class ServerConnection(val ip: String) {
                             myIndex = obj.myIndex
                             playerSize = obj.playerSize
                             delay = obj.delay
+                            val currentServerTime = obj.serverTime + obj.rtt / 2
+                            clientServerTimeDiff = System.currentTimeMillis() - currentServerTime
                             state.onNext(Unit)
                         }
                         is GameCommandsMessage -> {
@@ -116,11 +122,11 @@ class ServerConnection(val ip: String) {
                                 receivedTime = System.currentTimeMillis()
                             } else {
                                 debug_unexpected = true
-                                tif("unexpected message $obj, $tick")
+                                tif("guessed time ${guessedServerTime()}, unexpected message $obj, $tick")
                             }
                         }
                     }
-                    if (!debug_unexpected) tif("received $obj, $tick")
+                    if (!debug_unexpected) tif("guessed time ${guessedServerTime()}, received $obj, $tick")
                 }
             }
         })

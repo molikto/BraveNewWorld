@@ -8,6 +8,7 @@ import org.snailya.bnw.BraveNewWorldWrapper
 object DesktopLauncher {
     @JvmStatic fun main(arg: Array<String>) {
         val config = Lwjgl3ApplicationConfiguration()
+        config.setIdleFPS(120)
 //        val width = 736
 //        val height = 410
         val width = 100

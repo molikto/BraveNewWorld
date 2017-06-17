@@ -7,17 +7,19 @@ import com.badlogic.gdx.math.Vector2
 
 data class StartGameMessage(
         val myIndex: Int,
+        val serverTime: Long,
+        val rtt: Int,
         val delay: Int,
         val playerSize: Int
 ) {
     companion object : KotlinSerializationAdapter<StartGameMessage>() {
 
         override fun parse(b: ByteBuffer): StartGameMessage {
-            return StartGameMessage(b.getInt(), b.getInt(), b.getInt())
+            return StartGameMessage(b.getInt(), b.getLong(), b.getInt(), b.getInt(), b.getInt())
         }
 
         override fun serialize(b: ByteBuffer, t: StartGameMessage) {
-            IntAdapter.serialize(b, t.myIndex); IntAdapter.serialize(b, t.delay); IntAdapter.serialize(b, t.playerSize)
+            IntAdapter.serialize(b, t.myIndex); LongAdapter.serialize(b, t.serverTime); IntAdapter.serialize(b, t.rtt); IntAdapter.serialize(b, t.delay); IntAdapter.serialize(b, t.playerSize)
         }
     }
 }

@@ -115,6 +115,8 @@ object BnwSpec : Spec("org.snailya.bnw", File("shared/src")) {
 
         record("StartGameMessage",
                 f("myIndex", IntType),
+                f("serverTime", LongType),
+                f("rtt", IntType),
                 f("delay", IntType),
                 f("playerSize", IntType)
         )

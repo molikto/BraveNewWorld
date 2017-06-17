@@ -20,7 +20,7 @@ object BnwServer : Listener() {
     var tick = 0
     var previousConfirmation: GameCommandsMessage? = null
 
-    const val gameSize = 2
+    const val gameSize = 1
     var cachedCommands: Array<PlayerCommandsMessage?> = emptyArray()
 
     @JvmStatic fun main(arg: Array<String>) {
@@ -55,8 +55,9 @@ object BnwServer : Listener() {
                             val maxRtt = rtts.max()!!
                             val maxTick: Int = Math.ceil(maxRtt.toDouble() / NetworkingShared.timePerTick).toInt()
                             tif("RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick")
+                            val time = System.currentTimeMillis()
                             for (cc in connections) {
-                                cc.sendTCP(StartGameMessage(indexOf(cc), maxTick, 2))
+                                cc.sendTCP(StartGameMessage(indexOf(cc), time, cc.returnTripTime, maxTick, gameSize))
                             }
                             gameStartTime = System.currentTimeMillis()
                             cachedCommands = Array(gameSize, { null })
