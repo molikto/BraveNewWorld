@@ -23,7 +23,7 @@ object LongType : KotlinType("Long") {
 }
 object BooleanType : KotlinType("Boolean") {
     override fun adapter(): String = "BooleanAdapter"
-    override fun codegenParse(): String = "(b.get() == 1)"
+    override fun codegenParse(): String = "(b.get() == 1.toByte())"
 }
 object StringType : KotlinType("String") {
     override fun adapter(): String = "StringAdapter"
@@ -126,12 +126,14 @@ object BnwSpec : Spec("org.snailya.bnw", File("shared/src")) {
                 f("tick", IntType),
                 f("debug_hash", IntType),
                 //f("retry", BooleanType),
-                f("commands", ListType(PlayerCommand))
+                f("commands", ListType(PlayerCommand)),
+                f("debug_resend", BooleanType)
         )
 
         record("GameCommandsMessage",
                 f("tick", IntType),
-                f("commands", ListType(ListType(PlayerCommand)))
+                f("commands", ListType(ListType(PlayerCommand))),
+                f("debug_resend", BooleanType)
         )
     }
 }

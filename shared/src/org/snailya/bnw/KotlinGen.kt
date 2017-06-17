@@ -38,31 +38,33 @@ data class PlayerCommand(
 data class PlayerCommandsMessage(
         val tick: Int,
         val debug_hash: Int,
-        val commands: List<PlayerCommand>
+        val commands: List<PlayerCommand>,
+        val debug_resend: Boolean
 ) {
     companion object : KotlinSerializationAdapter<PlayerCommandsMessage>() {
 
         override fun parse(b: ByteBuffer): PlayerCommandsMessage {
-            return PlayerCommandsMessage(b.getInt(), b.getInt(), PlayerCommand.Companion.listAdapter.parse(b))
+            return PlayerCommandsMessage(b.getInt(), b.getInt(), PlayerCommand.Companion.listAdapter.parse(b), (b.get() == 1.toByte()))
         }
 
         override fun serialize(b: ByteBuffer, t: PlayerCommandsMessage) {
-            IntAdapter.serialize(b, t.tick); IntAdapter.serialize(b, t.debug_hash); PlayerCommand.Companion.listAdapter.serialize(b, t.commands)
+            IntAdapter.serialize(b, t.tick); IntAdapter.serialize(b, t.debug_hash); PlayerCommand.Companion.listAdapter.serialize(b, t.commands); BooleanAdapter.serialize(b, t.debug_resend)
         }
     }
 }
 data class GameCommandsMessage(
         val tick: Int,
-        val commands: List<List<PlayerCommand>>
+        val commands: List<List<PlayerCommand>>,
+        val debug_resend: Boolean
 ) {
     companion object : KotlinSerializationAdapter<GameCommandsMessage>() {
 
         override fun parse(b: ByteBuffer): GameCommandsMessage {
-            return GameCommandsMessage(b.getInt(), PlayerCommand.Companion.listAdapter.listAdapter.parse(b))
+            return GameCommandsMessage(b.getInt(), PlayerCommand.Companion.listAdapter.listAdapter.parse(b), (b.get() == 1.toByte()))
         }
 
         override fun serialize(b: ByteBuffer, t: GameCommandsMessage) {
-            IntAdapter.serialize(b, t.tick); PlayerCommand.Companion.listAdapter.listAdapter.serialize(b, t.commands)
+            IntAdapter.serialize(b, t.tick); PlayerCommand.Companion.listAdapter.listAdapter.serialize(b, t.commands); BooleanAdapter.serialize(b, t.debug_resend)
         }
     }
 }

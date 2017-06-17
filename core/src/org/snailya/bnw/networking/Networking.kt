@@ -11,6 +11,7 @@ import io.reactivex.subjects.BehaviorSubject
 import ktx.log.info
 import org.snailya.base.GdxScheduler
 import org.snailya.base.post
+import org.snailya.base.tif
 import org.snailya.bnw.*
 
 
@@ -46,14 +47,17 @@ class ServerConnection(val ip: String) {
     var receivedTime: Long = 0L
 
     var debug_previousSendTime = 0L
+    var debug_previousSendTick = 0
 
     fun  tick(commands: List<PlayerCommand>, debug_hash: Int): List<List<PlayerCommand>>? {
         val isFirstTick = tick == 0
         if (isFirstTick || received != null) {
-            previousCommands = PlayerCommandsMessage(tick, debug_hash, commands)
+            val message = PlayerCommandsMessage(tick, debug_hash, commands, false)
+            previousCommands = message.copy(debug_resend = true)
             debug_previousSendTime = System.currentTimeMillis()
-            client.sendUDP(previousCommands)
-            info { "${System.currentTimeMillis()}: sending $tick"}
+            debug_previousSendTick = tick
+            client.sendUDP(message)
+            tif("sending $tick")
             gamePaused = false
             continuousPausedFrames = 0
             tenPausedFramesMinusFrames -= 1
@@ -68,14 +72,16 @@ class ServerConnection(val ip: String) {
                 return res
             }
         } else {
-            info { "${System.currentTimeMillis()}: resending ${previousCommands!!.tick}" }
+            val tick = previousCommands!!.tick
+            debug_previousSendTime = System.currentTimeMillis()
+            debug_previousSendTick = tick
+            tif("resending $tick")
             client.sendUDP(previousCommands)
             gamePaused = true
             pausedFrames += 1
             tenPausedFramesMinusFrames += 10
             continuousPausedFrames += 1
             // will ignore the the input, also the output should not be used
-            debug_previousSendTime = System.currentTimeMillis()
             return null
         }
     }
@@ -96,6 +102,7 @@ class ServerConnection(val ip: String) {
             }
 
             override fun received(connection: Connection, obj: Any) {
+                tif("received called in network thread")
                 post {
                     var debug_unexpected = false
                     when (obj) {
@@ -106,7 +113,7 @@ class ServerConnection(val ip: String) {
                             }
                         }
                         is StartGameMessage -> {
-                            gameStartTime = System.currentTimeMillis()
+                            gameStartTime = System.currentTimeMillis() + 50
                             tickedTime = gameStartTime
                             myIndex = obj.myIndex
                             playerSize = obj.playerSize
@@ -119,11 +126,11 @@ class ServerConnection(val ip: String) {
                                 receivedTime = System.currentTimeMillis()
                             } else {
                                 debug_unexpected = true
-                                info  {"unexpected message $obj, $tick" }
+                                tif("unexpected message $obj, $tick")
                             }
                         }
                     }
-                    if (!debug_unexpected) info { "received $obj, $tick, rtt: ${System.currentTimeMillis() - debug_previousSendTime}" }
+                    if (!debug_unexpected) tif("received $obj, $tick")
                 }
             }
         })

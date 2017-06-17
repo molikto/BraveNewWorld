@@ -4,9 +4,8 @@ import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.FrameworkMessage
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
+import org.snailya.base.tif
 
-
-fun debug(s: String) = println("${System.currentTimeMillis()}:  $s")
 
 object BnwServer : Listener() {
 
@@ -49,7 +48,7 @@ object BnwServer : Listener() {
                     val rtts = connections.map { it.returnTripTime }
                     val maxRtt = rtts.max()!!
                     val maxTick: Int = Math.ceil(maxRtt.toDouble() / NetworkingShared.timePerTick).toInt()
-                    debug("RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick")
+                    tif("RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick")
                     for (c in connections) {
                         c.sendTCP(StartGameMessage(indexOf(c), maxTick, 2))
                     }
@@ -69,8 +68,8 @@ object BnwServer : Listener() {
                             throw Exception("desync!!")
                         }
                         val commands = cachedCommands.map { it!!.commands }.toList()
-                        val info = GameCommandsMessage(tick - 1, commands)
-                        previousConfirmation = info
+                        val info = GameCommandsMessage(tick - 1, commands, false)
+                        previousConfirmation = info.copy(debug_resend = true)
                         for (i in 0 until gameSize) {
                             cachedCommands[i] = null
                         }
@@ -81,8 +80,10 @@ object BnwServer : Listener() {
                     }
                     typeStr = ", on time"
                 } else if (p.tick == tick - 1) {
-                    c.sendUDP(previousConfirmation)
-                    typeStr = ", previous tick"
+                    val index = indexOf(c)
+                    val resend = cachedCommands[index] == null
+                    if (resend) c.sendUDP(previousConfirmation)
+                    typeStr = ", previous tick, resending $resend"
                 } else if (p.tick > tick) {
                     // ignore
                     typeStr = ", future tick"
@@ -91,7 +92,7 @@ object BnwServer : Listener() {
                 }
             }
         }
-        debug("received form ${c.id} $p$typeStr")
+        tif("received form ${c.id} $p$typeStr")
 
     }
 

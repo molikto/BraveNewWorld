@@ -10,5 +10,6 @@ inline fun <T> configured(receiver: T, block: T.() -> Unit): T {
     return receiver
 }
 
+fun tif(s: String) = println("${System.currentTimeMillis()}:  $s")
 
 
