@@ -10,7 +10,7 @@ open class AgentConfig : WalkerConfig() {
 }
 
 open class WalkerConfig {
-    var speed: Float = 1F.ps
+    var speed: Float = 0.2F.ps
 }
 
 
@@ -29,7 +29,7 @@ open class WalkerConfig {
 class MapTile {
     lateinit var position: IntVector2
     @Strictfp
-    fun center(s: StrictVector2): StrictVector2 {
+    inline fun center(s: StrictVector2): StrictVector2 {
         s.x = position.x + 0.5F
         s.y = position.y + 0.5F
         return s
@@ -152,7 +152,8 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
 
         @Strictfp operator fun invoke(position: StrictVector2, dest: IntVector2, /* out */ route: MutableList<MapTile>) {
-            if (map(dest).rock) {
+            val dt = map(dest)
+            if (dt.rock) {
                 println("glitch: dest is rock")
                 return
             }
@@ -165,7 +166,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 val next = map(ipos)
                 next.center(tpos)
                 val cost = (pos - tpos).len()
-                util_tryAddRoute(next, dest, IntVector2.Zero, cost)
+                util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
             }
             for (vec in relativeCorners) {
                 val next = map(ipos.x + vec.x, ipos.y + vec.y)
@@ -175,7 +176,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                     pos.set(position)
                     next.center(tpos)
                     val cost = (pos - tpos).len()
-                    util_tryAddRoute(next, dest, vec, cost)
+                    util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
                 }
             }
             for (vec in relativeSides) {
@@ -184,12 +185,12 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                     pos.set(position)
                     next.center(tpos)
                     val cost = (pos - tpos).len()
-                    util_tryAddRoute(next, dest, vec, cost)
+                    util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
                 }
             }
             while (!pq.isEmpty()) {
                 val nearest = pq.poll()!!
-                if (nearest.position == dest) {
+                if (nearest.position == dt.position) {
                     var t = nearest
                     while (true) {
                         route.add(t)
@@ -207,30 +208,37 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                     val next0 = map(ipos.x + vec.x, ipos.y)
                     val next1 = map(ipos.x, ipos.y + vec.y)
                     if (!next.rock && !next0.rock && !next1.rock) {
-                        util_tryAddRoute(next, dest, vec, nearest.temp_cost + cornerCost)
+                        util_tryAddRoute(next, dt, vec, nearest.temp_cost + cornerCost, true)
                     }
                 }
                 for (vec in relativeSides) {
                     val next = map(ipos.x + vec.x, ipos.y + vec.y)
                     if (!next.rock) {
-                        util_tryAddRoute(next, dest, vec, nearest.temp_cost + 1F)
+                        util_tryAddRoute(next, dt, vec, nearest.temp_cost + 1F, true)
                     }
                 }
             }
             return // no route
         }
 
-        val apos = ivec2()
+        val apos = svec2()
+        val bpos = svec2()
 
-        inline private fun util_tryAddRoute(next: MapTile, dest: IntVector2, vec: IntVector2, cost: Float) {
+        inline private fun util_tryAddRoute(next: MapTile, dt: MapTile, vec: IntVector2, cost: Float, h: Boolean) {
             val new = next.temp_visited != counter
             if (new || cost < next.temp_cost) {
                 if (!new) pq.remove(next)
                 next.temp_cost = cost
-                apos.set(dest)
-                apos - next.position
-                val remainingDis = apos.len()
-                next.temp_priority = cost + remainingDis
+                val p = if (h) {
+                    dt.center(apos)
+                    next.center(bpos)
+                    apos - bpos
+                    val remainingDis = apos.len()
+                    remainingDis
+                } else {
+                    0F
+                }
+                next.temp_priority = cost + p
                 next.temp_visited = counter
                 next.temp_ttpo = vec
                 pq.add(next)
@@ -280,7 +288,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
         // immediate next tile
         val route = mutableListOf<MapTile>()
 
-        fun findRoute(dest: IntVector2) = findRoute(position, dest, route)
+        fun findRoute(dest: IntVector2) =  time("finding route") { findRoute(position, dest, route) }
 
         fun walk() = walk(this, route, position)
     }

@@ -78,8 +78,8 @@ abstract class Page {
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
         batch.projectionMatrix = identityMatrix4
         uiStage.act() // TODO why 30fps??
-        uiStage.draw()
         render()
+        uiStage.draw()
     }
 
     open fun render() {

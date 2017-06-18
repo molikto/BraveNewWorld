@@ -1,7 +1,9 @@
 package org.snailya.bnw.ui
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Gdx.input
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
@@ -10,6 +12,7 @@ import ktx.math.*
 import ktx.scene2d.*
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
+import org.snailya.bnw.bnw
 import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
@@ -39,6 +42,7 @@ class GamePage(val c: ServerConnection) : Page() {
     val debug_img = Texture("badlogic.jpg")
     val sand = Texture("sand.png")
     val rock = Texture("rock.png")
+    val black= Texture("black.png")
 
 
 
@@ -107,6 +111,12 @@ class GamePage(val c: ServerConnection) : Page() {
                 }
             }
         }
+
+//        run {
+//            val dest = g.map(inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2())
+//            debug_info.setText(dest.temp_cost.toString())
+//        }
+
 
         // tick the network and game - maybe causing a pause
         val time = System.currentTimeMillis()
@@ -186,16 +196,19 @@ class GamePage(val c: ServerConnection) : Page() {
         val bottom = Math.min(gbr.y.toInt() + 1 + margin, g.map.size)
         val right = Math.min(gbr.x.toInt() + 1 + margin, g.map.size)
 
-        val debugText = "tl: $gtl, br: $gbr, focus: $focus\n" +
-                "top $top, left $left, right $right, bottom $bottom"
-
-        debug_info.setText(debugText)
-
         batch.begin()
 
         for (y in top until bottom) {
             for (x in left until right) {
-                batch.draw(if (g.map(x, y).rock) rock else sand, x.tf, y.tf, 1F, 1F)
+                val tile = g.map(x, y)
+                batch.draw(if (tile.rock) rock else sand, x.tf, y.tf, 1F, 1F)
+                if (true) {
+                    if (g.findRoute.counter == tile.temp_visited) {
+                        batch.color = Color(1F, 1F, 1F, tile.temp_cost / 30)
+                        batch.draw(black, x.tf, y.tf, 1F, 1F)
+                        batch.color = Color.WHITE
+                    }
+                }
             }
         }
         // TODO maybe I need a different shader for the background and moving things, or different projection..

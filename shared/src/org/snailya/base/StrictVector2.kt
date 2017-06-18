@@ -8,17 +8,17 @@ data class StrictVector2(@JvmField var x: Float, @JvmField var y: Float) {
     }
 
     @Strictfp
-    fun copy(): StrictVector2 {
+    inline fun copy(): StrictVector2 {
         return StrictVector2(x, y)
     }
 
     @Strictfp
-    fun len(): Float {
+    inline fun len(): Float {
         return StrictMath.sqrt((x * x + y * y).toDouble()).toFloat()
     }
 
     @Strictfp
-    fun nor(): StrictVector2 {
+    inline fun nor(): StrictVector2 {
         val len = len()
         if (len != 0f) {
             x /= len
@@ -42,28 +42,28 @@ data class StrictVector2(@JvmField var x: Float, @JvmField var y: Float) {
 }
 
 @Strictfp
-operator fun  StrictVector2.plus(position: StrictVector2): StrictVector2 {
+inline operator fun  StrictVector2.plus(position: StrictVector2): StrictVector2 {
     this.x += position.x
     this.y += position.y
     return this
 }
 
 @Strictfp
-operator fun StrictVector2.minus(position: StrictVector2): StrictVector2 {
+inline operator fun StrictVector2.minus(position: StrictVector2): StrictVector2 {
     this.x -= position.x
     this.y -= position.y
     return this
 }
 
 @Strictfp
-operator fun  StrictVector2.times(p: Int): StrictVector2 {
+inline operator fun  StrictVector2.times(p: Int): StrictVector2 {
     this.x *= p
     this.y *= p
     return this
 }
 
 @Strictfp
-operator fun  StrictVector2.div(p: Int): StrictVector2 {
+inline operator fun  StrictVector2.div(p: Int): StrictVector2 {
     this.x /= p
     this.y /= p
     return this
@@ -71,14 +71,14 @@ operator fun  StrictVector2.div(p: Int): StrictVector2 {
 
 
 @Strictfp
-operator fun  StrictVector2.times(p: Float): StrictVector2 {
+inline operator fun  StrictVector2.times(p: Float): StrictVector2 {
     this.x *= p
     this.y *= p
     return this
 }
 
 @Strictfp
-operator fun  StrictVector2.div(p: Float): StrictVector2 {
+inline operator fun  StrictVector2.div(p: Float): StrictVector2 {
     this.x /= p
     this.y /= p
     return this

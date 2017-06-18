@@ -23,15 +23,15 @@ class GeneralUi() {
     val defaultSkin = skin {
         label {
             font = RobotoMono14
-            fontColor = Color.WHITE
+            fontColor = Color.RED
         }
         textButton {
             font = RobotoMono14
-            fontColor = Color.WHITE
+            fontColor = Color.RED
         }
         textField {
             font = RobotoMono14
-            fontColor = Color.WHITE
+            fontColor = Color.RED
         }
     }
 
