@@ -19,7 +19,7 @@ object GameConfigAsserts {
     }
 }
 
-// per second value to per tick value
+// second value to per tick value
 val Float.ps
     get() = this / gameTickPerSecond
 

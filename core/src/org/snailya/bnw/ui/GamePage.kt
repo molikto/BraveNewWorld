@@ -1,7 +1,6 @@
 package org.snailya.bnw.ui
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Gdx.input
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
@@ -12,11 +11,11 @@ import ktx.math.*
 import ktx.scene2d.*
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
-import org.snailya.bnw.bnw
 import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
+import sun.management.resources.agent
 
 /**
  *
@@ -43,6 +42,7 @@ class GamePage(val c: ServerConnection) : Page() {
     val sand = Texture("sand.png")
     val rock = Texture("rock.png")
     val black= Texture("black.png")
+    val white = Texture("white.png")
 
 
 
@@ -214,6 +214,18 @@ class GamePage(val c: ServerConnection) : Page() {
         // TODO maybe I need a different shader for the background and moving things, or different projection..
         for (agent in g.agents) {
             batch.draw(debug_img, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
+            if (agent.lockingOnTarget != null) {
+                val lockOnSize = agent.lockingOnTime / agent.totalLockOnTime
+                batch.draw(black, agent.position.x - lockOnSize/2, agent.position.y - lockOnSize/2, lockOnSize, lockOnSize)
+            }
+            if (agent.health != agent.maxHealth) {
+                batch.color = Color.RED
+                batch.draw(white, agent.position.x - 0.5F, agent.position.y - 0.5F, 0.1F, agent.health / agent.maxHealth)
+                batch.color = Color.WHITE
+            }
+        }
+        for (bullet in g.bullets) {
+            batch.draw(black, bullet.position.x - 0.1F, bullet.position.y - 0.1F, 0.2F, 0.2F)
         }
 
         batch.end()

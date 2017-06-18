@@ -1,6 +1,9 @@
 package org.snailya.base
 
 
+// TODO not thread safe
+val temp_dis = StrictVector2(0F, 0F)
+val temp_pointToLineDistance = StrictVector2(0F, 0F)
 
 data class StrictVector2(@JvmField var x: Float, @JvmField var y: Float) {
     companion object {
@@ -12,9 +15,18 @@ data class StrictVector2(@JvmField var x: Float, @JvmField var y: Float) {
         return StrictVector2(x, y)
     }
 
+
+    inline fun dis(a: StrictVector2): Float {
+        temp_dis.set(this)
+        temp_dis - a
+        return temp_dis.len()
+    }
+
+    @Strictfp
+    inline fun len2(): Float = (x * x + y * y)
     @Strictfp
     inline fun len(): Float {
-        return StrictMath.sqrt((x * x + y * y).toDouble()).toFloat()
+        return StrictMath.sqrt(len2().toDouble()).toFloat()
     }
 
     @Strictfp
@@ -82,4 +94,31 @@ inline operator fun  StrictVector2.div(p: Float): StrictVector2 {
     this.x /= p
     this.y /= p
     return this
+}
+
+
+@Strictfp
+fun pointToLineDistance(A: StrictVector2, B: StrictVector2, P: StrictVector2): Float {
+    val normalLength = StrictMath.sqrt((B.x - A.x) * (B.x - A.x) + (B.y - A.y) * (B.y - A.y).toDouble())
+    return (Math.abs((P.x - A.x) * (B.y - A.y) - (P.y - A.y) * (B.x - A.x)) / normalLength).toFloat()
+}
+
+
+@Strictfp
+fun pointToLineSegmentDistance(v: StrictVector2, w: StrictVector2, p: StrictVector2): Float {
+    // https//stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+    // Return minimum distance between line segment vw and point p
+    temp_pointToLineDistance.set(v)
+    temp_pointToLineDistance - w
+    val len2 = temp_pointToLineDistance.len2()
+    if (len2 == 0F) return p.dis(v)
+    // Consider the line extending the segment, parameterized as v + t (w - v).
+    // We find projection of point p onto the line.
+    // It falls where t = [(p-v) . (w-v)] / |w-v|^2
+    // We clamp t from [0,1] to handle points outside the segment vw.
+    var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / len2
+    t = maxOf(0F, minOf(1F, t))
+    temp_pointToLineDistance.set(w)
+    val projection = (temp_pointToLineDistance - v) * t + v // Projection falls on the segment
+    return p.dis(projection)
 }

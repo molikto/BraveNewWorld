@@ -9,8 +9,9 @@ inline fun <T> configured(receiver: T, block: T.() -> Unit): T {
     receiver.block()
     return receiver
 }
+var logger: (String) -> Unit = {}
 
-fun tif(s: String) = println("${System.currentTimeMillis()}:  $s")
+fun tif(s: String) = logger("${System.currentTimeMillis()}:  $s")
 
 
 inline fun time(str: String, b: () -> Unit) {

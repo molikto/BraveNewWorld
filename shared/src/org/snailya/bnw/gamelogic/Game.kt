@@ -26,26 +26,6 @@ open class WalkerConfig {
 //
 //}
 
-class MapTile {
-    lateinit var position: IntVector2
-    @Strictfp
-    inline fun center(s: StrictVector2): StrictVector2 {
-        s.x = position.x + 0.5F
-        s.y = position.y + 0.5F
-        return s
-    }
-    var rock = false
-
-    var temp_cost: Float = 0F
-    var temp_priority: Float = 0F
-    var temp_visited: Int = -1
-    var temp_ttpo: IntVector2 = IntVector2.Zero // to the previous of
-}
-
-val relativeCorners = arrayOf(ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1))
-val cornerCost = StrictMath.sqrt(2.0).toFloat()
-val relativeSides =  arrayOf(ivec2(-1, 0), ivec2(1, 0), ivec2(0, 1), ivec2(0, -1))
-
 
 class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
@@ -57,37 +37,154 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
      */
     val random = Random(seed)
 
-
     /**
      * map
      *
      * the map will have unwalk-able areas around it now, so no need to check pointer over-bound
      */
+
+    val relativeCorners = arrayOf(ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1))
+    val cornerCost = StrictMath.sqrt(2.0).toFloat()
+    val relativeSides =  arrayOf(ivec2(-1, 0), ivec2(1, 0), ivec2(0, 1), ivec2(0, -1))
+
+
+
+    class MapTile {
+        lateinit var position: IntVector2
+        @Strictfp
+        inline fun center(s: StrictVector2): StrictVector2 {
+            s.x = position.x + 0.5F
+            s.y = position.y + 0.5F
+            return s
+        }
+        var rock = false
+
+        var temp_cost: Float = 0F
+        var temp_priority: Float = 0F
+        var temp_visited: Int = -1
+        var temp_ttpo: IntVector2 = IntVector2.Zero // to the previous of
+    }
+
+
     inner class Map {
         // tiles 0.... 99, metrics 0..1...100
-        val size = 100
+        val size = 10
         val map: Array<Array<MapTile>> = Array(size, { x ->  Array(size, { y -> configured(MapTile()) { rock = x == 0 || y == 0 || x == size - 1 || y == size - 1; position = ivec2(x, y) } })})
 
 
         fun random() = map[random.nextInt(size)][random.nextInt(size)]
 
         inline operator fun invoke(i: IntVector2) = map[i.x][i.y]
+        inline operator fun invoke(i: StrictVector2) = map[i.x.toInt()][i.y.toInt()]
 
         inline operator fun invoke(x: Int, y: Int) = map[x][y]
+        inline operator fun invoke(x: Float, y: Float) = map[x.toInt()][y.toInt()]
 
         init { // temp generate map and players
             val hasBlocks = (0 until size / 5).map { (0 until size / 5).map { random.nextInt(10) == 0 } }
             for (i in 0 until size) for (j in 0 until size) map[i][j].rock = map[i][j].rock || hasBlocks[i / 5][j / 5];
         }
+
+        // TODO return the hit point
+        @Strictfp
+        fun hitWall(a: StrictVector2, b: StrictVector2): MapTile? {
+            if (a.x < 0 || a.y < 0 || a.x >= size || a.y >= size) return null
+            if (this(a).rock) return this(a)
+            val higher = if (a.y > b.y) a else b
+            val lower = if (a.y > b.y) b else a
+            val vertical = a.x == b.x
+            val slope = if (vertical) 0F else (a.y - b.y) / (a.x - b.x)
+            for (i in Math.max(0, StrictMath.ceil(lower.y.toDouble()).toInt()) .. Math.min(size - 1, higher.y.toInt())) {
+                val y = i
+                val fx = if (vertical) a.x else ((y - a.y) / slope + a.x)
+                val x = fx.toInt()
+                if (x.toFloat() == fx) { // a exact value
+                    if (slope > 0F) {
+                        var can1 = this(x, y)
+                        if (can1.rock) return can1
+                        can1 = this(x - 1, y - 1)
+                        if (can1.rock) return can1
+                        can1 = this(x, y - 1)
+                        val can2 = this(x - 1, y)
+                        if (can1.rock && can2.rock) return if (random.nextBoolean()) can1 else can2
+                    } else if (slope < 0F) {
+                        var can1 = this(x - 1, y)
+                        if (can1.rock) return can1
+                        can1 = this(x, y - 1)
+                        if (can1.rock) return can1
+                        can1 = this(x, y)
+                        val can2 = this(x - 1, y - 1)
+                        if (can1.rock && can2.rock) return if (random.nextBoolean()) can1 else can2
+                    } else {
+                        // TODO... make it better, whatever
+                        var can1 = this(x, y)
+                        if (can1.rock) return can1
+                        can1 = this(x - 1, y - 1)
+                        if (can1.rock) return can1
+                        can1 = this(x - 1, y)
+                        if (can1.rock) return can1
+                        can1 = this(x, y - 1)
+                        if (can1.rock) return can1
+                    }
+                } else {
+                    var can1 = this(x, y)
+                    if (can1.rock) return can1
+                    can1 = this(x, y - 1)
+                    if (can1.rock) return can1
+                }
+            }
+            return null
+        }
     }; val map = Map()
+
+
+    /**
+     * bullets!!
+     */
+
+    val bullets = mutableListOf<Bullet>()
+
+    inner class Bullet(val shooterFaction: Int, val initial: StrictVector2, to: StrictVector2) {
+        val temp_pos: StrictVector2 = svec2()
+        val maxLifetime = 1F
+        var lifetime = maxLifetime
+        val speed = 10F.ps
+        val position: StrictVector2 = initial.copy()
+        val tick = (to.copy() - initial).nor() * speed
+
+        @Strictfp
+        fun fly() {
+            assert(lifetime > 0)
+            temp_pos.set(position)
+            position + tick
+            // TODO hit wall
+            if (map.hitWall(temp_pos, position) == null) {
+                for (a in agents) {
+                    if (a.faction == shooterFaction && initial.dis(position) <1.3F) {
+                        // ignore this
+                    } else {
+                        val inter = a.intersects(temp_pos, position)
+                        if (inter != null) {
+                            a.injured((1 - inter) * 2F)
+                            lifetime = 0F
+                        }
+                    }
+                }
+            } else {
+                lifetime = 0F
+            }
+            lifetime -= 1F.ps
+        }
+    }
 
     /**
      * agents
      */
     val agentConfig = configured(AgentConfig()) {  }
-    val agents = (0 until playerSize).map {
-        configured(Agent()) { config =  agentConfig; position = svec2(0.5F, 0.5F) }
+    val agents = (0 until playerSize).map { index ->
+        configured(Agent()) { faction = index; config =  agentConfig; position = svec2(0.5F, 0.5F) }
     }
+
 
     init {
         for (a in agents) {
@@ -115,8 +212,13 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 }
             }
         }
+        for (b in bullets) {
+            b.fly()
+        }
+        bullets.removeAll { it.lifetime <= 0 }
         for (a in agents) {
-            a.walk()
+            a.tryFireOrLockOn()
+            a.tryWalk()
         }
     }
 
@@ -146,7 +248,6 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 return 0
             }
         })
-        var pos = svec2()
         var tpos = svec2()
         var ipos = ivec2()
 
@@ -160,12 +261,11 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
             route.clear()
             this.counter++
             pq.clear()
-            pos.set(position)
-            ipos.set(pos)
+            ipos.set(position)
             run {
                 val next = map(ipos)
                 next.center(tpos)
-                val cost = (pos - tpos).len()
+                val cost = position.dis(tpos)
                 util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
             }
             for (vec in relativeCorners) {
@@ -173,18 +273,16 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 val next0 = map(ipos.x + vec.x, ipos.y)
                 val next1 = map(ipos.x, ipos.y + vec.y)
                 if (!next.rock && !next0.rock && !next1.rock) {
-                    pos.set(position)
                     next.center(tpos)
-                    val cost = (pos - tpos).len()
+                    val cost = position.dis(tpos)
                     util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
                 }
             }
             for (vec in relativeSides) {
                 val next = map(ipos.x + vec.x, ipos.y + vec.y)
                 if (!next.rock) {
-                    pos.set(position)
                     next.center(tpos)
-                    val cost = (pos - tpos).len()
+                    val cost = position.dis(tpos)
                     util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
                 }
             }
@@ -251,8 +349,10 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
     class WalkWrapper {
 
+        // temp
         val pos = svec2()
         @Strictfp operator fun invoke(walker: Walker, /* in-out */ route: MutableList<MapTile>, /* in-out */ position: StrictVector2) {
+            // TODO re-plan when game structure changes
             if (!route.isEmpty()) {
                 val id = route.last()
                 id.center(pos)
@@ -280,19 +380,100 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
     }; val walk = WalkWrapper()
 
 
-    inner class Agent : Walker() {
-        var health: Int = 10
+
+
+    /**
+     *
+     *
+     *
+     *
+     */
+
+
+    inner class Agent() : Walker() {
+        var faction: Int = -1
+        // temp variables
+        // constants
+        val totalLockOnTime = 0.5F
+        val maxLockOnDistance = 5F
+        val maxHealth = 10F
+        var health: Float = maxHealth
+        var lockingOnTarget: Agent? = null
+        var lockingOnTime = 0F
+
+        @Strictfp
+        fun tryFireOrLockOn() {
+            if (walking) {
+                lockingOnTarget = null
+            } else {
+                val target = lockingOnTarget
+                if (target != null) {
+                    val distance = target.position.dis(position)
+                    if (distance <= maxLockOnDistance && map.hitWall(position, target.position) == null) {
+                        lockingOnTime += 0.2F.ps
+                        if (lockingOnTime >= totalLockOnTime) {
+                            bullets.add(Bullet(faction, position, target.position))
+                            lockingOnTarget = null
+                            lockingOnTarget = null
+                        }
+                    } else {
+                        lockingOnTarget = null
+                    }
+                } else {
+                    // TODO find target more smart...
+                    // TODO size of the target???
+                    for (a in agents) {
+                        if (a != this) {
+                            val distance = a.position.dis(position)
+                            if (distance <= maxLockOnDistance) {
+                                if (map.hitWall(position, a.position) == null) {
+                                    lockingOnTarget = a
+                                    lockingOnTime = 0F
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        fun  injured(fl: Float) {
+            health -= fl
+        }
     }
 
     inner open class Walker {
         lateinit var config: WalkerConfig
+
         lateinit var position: StrictVector2
-        // immediate next tile
+        val size = 0.5F // TODO now all stuff is actually round!
         val route = mutableListOf<MapTile>()
+        inline val walking: Boolean
+            get() = !route.isEmpty()
 
-        fun findRoute(dest: IntVector2) =  time("finding route") { findRoute(position, dest, route) }
+        fun findRoute(dest: IntVector2) {
+          time("finding route") { findRoute(position, dest, route) }
+        }
 
-        fun walk() = walk(this, route, position)
+        val temp_pos = svec2()
+
+        fun tryWalk() = walk(this, route, position)
+
+        @Strictfp
+        fun intersects(from: StrictVector2, to: StrictVector2): Float? {
+            val dis = pointToLineDistance(from, to, position)
+            if (dis < size) {
+                val d2 = pointToLineSegmentDistance(from, to, position)
+                if (d2 < size) {
+                    // the reason we return dis is because this is where the line will hit most deep
+                    return dis / size
+                } else {
+                    return null
+                }
+            } else {
+                return null
+            }
+        }
     }
 
 
