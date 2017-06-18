@@ -3,14 +3,14 @@ package org.snailya.bnw
 
 import org.snailya.base.*
 import java.nio.ByteBuffer
-import com.badlogic.gdx.math.Vector2
+
 
 data class StartGameMessage(
-        val myIndex: Int,
-        val serverTime: Long,
-        val rtt: Int,
-        val delay: Int,
-        val playerSize: Int
+        @JvmField val myIndex: Int,
+        @JvmField val serverTime: Long,
+        @JvmField val rtt: Int,
+        @JvmField val delay: Int,
+        @JvmField val playerSize: Int
 ) {
     companion object : KotlinSerializationAdapter<StartGameMessage>() {
 
@@ -24,24 +24,24 @@ data class StartGameMessage(
     }
 }
 data class PlayerCommand(
-        val dest: Vector2?
+        @JvmField val dest: StrictVector2?
 ) {
     companion object : KotlinSerializationAdapter<PlayerCommand>() {
 
         override fun parse(b: ByteBuffer): PlayerCommand {
-            return PlayerCommand(Vector2Adapter.nullAdapter.parse(b))
+            return PlayerCommand(IVector2Adapter.nullAdapter.parse(b))
         }
 
         override fun serialize(b: ByteBuffer, t: PlayerCommand) {
-            Vector2Adapter.nullAdapter.serialize(b, t.dest)
+            IVector2Adapter.nullAdapter.serialize(b, t.dest)
         }
     }
 }
 data class PlayerCommandsMessage(
-        val tick: Int,
-        val debug_hash: Int,
-        val commands: List<PlayerCommand>,
-        val debug_resend: Boolean
+        @JvmField val tick: Int,
+        @JvmField val debug_hash: Int,
+        @JvmField val commands: List<PlayerCommand>,
+        @JvmField val debug_resend: Boolean
 ) {
     companion object : KotlinSerializationAdapter<PlayerCommandsMessage>() {
 
@@ -55,9 +55,9 @@ data class PlayerCommandsMessage(
     }
 }
 data class GameCommandsMessage(
-        val tick: Int,
-        val commands: List<List<PlayerCommand>>,
-        val debug_resend: Boolean
+        @JvmField val tick: Int,
+        @JvmField val commands: List<List<PlayerCommand>>,
+        @JvmField val debug_resend: Boolean
 ) {
     companion object : KotlinSerializationAdapter<GameCommandsMessage>() {
 

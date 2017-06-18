@@ -42,7 +42,6 @@ project(":shared") {
         compile "com.esotericsoftware:kryonet:2.22.0-RC1"
         compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
         compile "io.reactivex.rxjava2:rxjava:2.1.0"
-        compile "com.badlogicgames.gdx:gdx:$gdxVersion"
         compile group: 'org.jooq', name: 'joor', version: '0.9.6'
     }
 }

@@ -14,6 +14,7 @@ import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.networking.ServerConnection
 import java.util.*
+import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 /**
  *
@@ -31,10 +32,25 @@ import java.util.*
 
 class GamePage(val c: ServerConnection) : Page() {
 
+    /**
+     * textures
+     *
+     * game textures should be later defined in data files, not here
+     */
     val debug_img = Texture("badlogic.jpg")
+    val sand = Texture("sand.png")
+    val rock = Texture("rock.png")
 
+
+
+    /**
+     * game simulation
+     */
     val g = BnwGame(c.myIndex, c.playerSize, c.gameStartTime)
 
+    /**
+     * ui
+     */
     lateinit  var debug_info: Label
     init {
         ui = table {
@@ -44,11 +60,12 @@ class GamePage(val c: ServerConnection) : Page() {
         }
     }
 
-    var focus = g.center.copy()
-    var focusSpeed = 1F
+    /**
+     * game ui
+     */
+    var focus: Vector2 = g.agents[g.myIndex].position.vec2()
+    var focusSpeed = 10F
     var zoom = 48.dp
-    val projection: Matrix4 = Matrix4()
-    val inverseProjection : Matrix4 = Matrix4()
 
     init {
         inputProcessor = object : BaseInputProcessor() {
@@ -59,59 +76,80 @@ class GamePage(val c: ServerConnection) : Page() {
         }
     }
 
+    /**
+     * commands
+     */
+    var dest: Vector2? = null
+
+    /**
+     * rendering
+     */
+    val projection: Matrix4 = Matrix4()
+    val inverseProjection : Matrix4 = Matrix4()
+
     fun inputGameCoor(x: Int, y: Int) =
             vec2(x.tf * 2 / game.backBufferWidth() - 1, 1 - y.tf * 2 / game.backBufferHeight()).extends().mul(inverseProjection).lose()
 
 
-    var dest: Vector2? = null
-    val debug_random = Random()
-    val random = Random()
+    /**
+     * ticks
+     */
+    var gameTickedTime = c.gameStartTime
+    var networkTickedTime: Long = c.gameStartTime
 
     override fun render() {
 
-        // enqueue game input
+        // if not paused - enqueue game input
         if (!c.gamePaused) {
             if (Gdx.input.justTouched()) {
                 dest = inputGameCoor(Gdx.input.x, Gdx.input.y)
             }
         }
 
+        // tick the network and game - maybe causing a pause
         val time = System.currentTimeMillis()
         if (c.gamePaused && c.received != null) {
-            g.tickedTime = c.receivedTime - NetworkingShared.timePerGameTick
-            c.tickedTime = c.receivedTime - NetworkingShared.timePerTick
+            gameTickedTime = c.receivedTime - NetworkingShared.timePerGameTick
+            networkTickedTime = c.receivedTime - NetworkingShared.timePerTick
         }
         var gameTicks = 0
         var netTicks = 0
         while (true) {
-            val toTime = g.tickedTime + NetworkingShared.timePerGameTick
+            val toTime = gameTickedTime + NetworkingShared.timePerGameTick
             if (toTime <= time) {
                 gameTicks += 1
                 var confirmedCommands: List<List<PlayerCommand>>? = null
-                if (c.tickedTime + NetworkingShared.timePerTick == toTime) {
+                if (networkTickedTime + NetworkingShared.timePerTick == toTime) {
                     netTicks += 1
-                    confirmedCommands = c.tick(if(dest == null) emptyList() else listOf(PlayerCommand(dest)), g.debug_hash())
+                    val d = dest
+                    confirmedCommands = c.tick(if(d == null) emptyList() else listOf(PlayerCommand(d.svec2())), g.debug_hash())
+                    networkTickedTime += NetworkingShared.timePerTick
                     if (c.gamePaused) {
                         // we schedule a resend at next tick time
-                        c.tickedTime += NetworkingShared.timePerTick
-                        g.tickedTime += NetworkingShared.timePerTick
+                        gameTickedTime += NetworkingShared.timePerTick
                         break
                     } else {
                         dest = null
                     }
                 }
                 g.tick(confirmedCommands)
+                gameTickedTime += NetworkingShared.timePerGameTick
             } else {
                 break
             }
         }
+        // info { "game tick $gameTicks, net tick $netTicks" }
+
+        // game paused UI, just return
         if (c.gamePaused) {
             debug_info.setText("PAUSED")
             return
         }
-        // info { "game tick $gameTicks, net tick $netTicks" }
 
-        run { // local input
+
+        // local input
+
+        run {
             val delta = Gdx.graphics.deltaTime
             val direction = vec2(0F, 0F)
             run {
@@ -126,6 +164,9 @@ class GamePage(val c: ServerConnection) : Page() {
         }
 
 
+        /**
+         * game rendering
+         */
 
         projection.setToOrtho2DCentered(focus.x, focus.y, game.backBufferWidth() / zoom, game.backBufferHeight() / zoom)
 
@@ -153,11 +194,11 @@ class GamePage(val c: ServerConnection) : Page() {
 
         for (y in top until bottom) {
             for (x in left until right) {
-                batch.color = Color(g.map[x][y].debug_color)
-                batch.draw(debug_img, x.tf, y.tf, 1F, 1F)
+                batch.draw(if (g.map[x][y].isBlock) rock else sand, x.tf, y.tf, 1F, 1F)
             }
         }
         for (agent in g.agents) {
+            // TODO maybe I need a different shader for the background and moving things
             batch.draw(debug_img, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
         }
 
@@ -170,3 +211,4 @@ class GamePage(val c: ServerConnection) : Page() {
     }
 
 }
+

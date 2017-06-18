@@ -30,7 +30,7 @@ object StringType : KotlinType("String") {
 }
 class Field(val name: String, val ty: KotlinType) {
     fun  codegenDeclare(): String {
-        return "val $name: ${ty.name}"
+        return "@JvmField val $name: ${ty.name}"
     }
 }
 
@@ -70,7 +70,8 @@ class EnumType(override val name: String, enums: List<String>) : KotlinType(name
 
 open class Spec(
         val pkg: String,
-        val dir: File
+        val dir: File,
+        val imports: String = ""
 ) {
     val records = mutableListOf<RecordType>()
     val enums = mutableListOf<EnumType>()
@@ -94,7 +95,7 @@ package $pkg
 
 import org.snailya.base.*
 import java.nio.ByteBuffer
-import com.badlogic.gdx.math.Vector2
+$imports
 
 """)
         for (c in records) sb.append(c.codegen())
@@ -106,12 +107,22 @@ import com.badlogic.gdx.math.Vector2
     }
 }
 
+object BaseSpec : Spec("org.snailya.base", File("shared/src")) {
+
+    /**
+     * basic things
+     */
+    val StrictVector2 = CustomType("StrictVector2", "IVector2Adapter")
+}
+
+BaseSpec.codegen()
 
 object BnwSpec : Spec("org.snailya.bnw", File("shared/src")) {
 
 
-    val Vector2 = CustomType("Vector2", "Vector2Adapter")
+    // should not have this
     init {
+
 
         record("StartGameMessage",
                 f("myIndex", IntType),
@@ -122,7 +133,7 @@ object BnwSpec : Spec("org.snailya.bnw", File("shared/src")) {
         )
 
         val PlayerCommand = record("PlayerCommand",
-                f("dest", Vector2.q)
+                f("dest", BaseSpec.StrictVector2.q)
         )
 
         val PlayerCommandsMessage = record("PlayerCommandsMessage",

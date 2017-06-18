@@ -1,14 +1,11 @@
 package org.snailya.bnw.gamelogic
 
-import com.badlogic.gdx.math.Vector2
-import ktx.math.*
-import org.snailya.base.configured
-import org.snailya.base.copy
+import org.snailya.base.*
 import org.snailya.base.tf
 import org.snailya.bnw.*
 import java.util.*
+import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
-val debug_random = Random()
 
 open class AgentConfig : WalkerConfig() {
 }
@@ -17,13 +14,13 @@ class Agent : Walker() {
 }
 
 open class WalkerConfig {
-    var speed: Float = 1F
+    var speed: Float = 0.02F /* per tick */
 }
 
 open class Walker {
     lateinit var config: WalkerConfig
-    lateinit var position: Vector2
-    var dest: Vector2? = null
+    lateinit var position: StrictVector2
+    var dest: StrictVector2? = null
 }
 
 
@@ -43,28 +40,49 @@ class MapTile {
 }
 
 
+class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
-class BnwGame(val myIndex: Int, val playerSize: Int, val gameStartTime: Long) {
+    /**
+     * basic
+     */
+    val random = Random(seed)
 
-    val random = Random(gameStartTime)
-
-    val tickTime = NetworkingShared.timePerGameTick
-    var tickedTime = gameStartTime
-    val mapSize = 300
+    /**
+     * map
+     */
+    val mapSize = 100
     val map: Array<Array<MapTile>> = Array(mapSize, { Array(mapSize, { MapTile() })})
 
-    init {
-        val hasBlocks = (0 until mapSize / 5).map { (0 until mapSize / 5).map { random.nextBoolean() } }
+
+    init { // temp generate map and players
+        val hasBlocks = (0 until mapSize / 5).map { (0 until mapSize / 5).map { random.nextInt(10) == 0 } }
         for (i in 0 until mapSize) for (j in 0 until mapSize) map[i][j].isBlock = hasBlocks[i / 5][j / 5];
     }
-    val center =  vec2(mapSize.tf / 2, mapSize.tf / 2)
 
-
+    /**
+     * agents
+     */
     val agentConfig = configured(AgentConfig()) {  }
     val agents = (0 until playerSize).map {
-        configured(Agent()) { config =  agentConfig; position = center.copy() }
+        configured(Agent()) { config =  agentConfig; position = svec2(0.5F, 0.5F) }
     }
 
+    init {
+        for (a in agents) {
+            while (true) {
+                val x = random.nextInt(mapSize)
+                val y = random.nextInt(mapSize)
+                if (!map[x][y].isBlock) {
+                    a.position = svec2(x + 0.5F, y + 0.5F)
+                    break
+                }
+            }
+        }
+    }
+
+    /**
+     * tick! tick!
+     */
     fun tick(commands: List<List<PlayerCommand>>?) {
         if (commands != null) {
             assert(commands.size == playerSize)
@@ -78,14 +96,26 @@ class BnwGame(val myIndex: Int, val playerSize: Int, val gameStartTime: Long) {
         }
         for (a in agents) {
             a.dest?.let {
-                a.position + (it.copy() - a.position).nor() * tickTime / 1000 * a.config.speed
+                a.position + (it.copy() - a.position).nor() * a.config.speed
             }
         }
-        tickedTime += tickTime
     }
 
+
+
+    /**
+     *
+     *
+     * debug
+     *
+     *
+     */
     fun  debug_hash(): Int {
         return agents.map { it.position.hashCode() }.sum()
     }
 }
+
+
+
+
 
