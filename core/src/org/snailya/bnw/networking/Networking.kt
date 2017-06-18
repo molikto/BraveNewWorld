@@ -27,6 +27,7 @@ class ServerConnection(val ip: String) {
     // valid after game started
     var myIndex: Int = 0
     var gameStartTime: Long = -1L
+    var serverGameStartTime: Long = -1L
     var playerSize: Int = 0
     var delay: Int = 1
 
@@ -105,6 +106,7 @@ class ServerConnection(val ip: String) {
                         }
                         is StartGameMessage -> {
                             gameStartTime = System.currentTimeMillis() + 50
+                            serverGameStartTime = obj.serverTime
                             myIndex = obj.myIndex
                             playerSize = obj.playerSize
                             delay = obj.delay

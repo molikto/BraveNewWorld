@@ -37,13 +37,14 @@ class MapTile {
     var rock = false
 
     var temp_cost: Float = 0F
+    var temp_priority: Float = 0F
     var temp_visited: Int = -1
     var temp_ttpo: IntVector2 = IntVector2.Zero // to the previous of
 }
 
-val mapCorners = arrayOf(ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1), ivec2(-1, 0), ivec2(1, 0), ivec2(0, 1), ivec2(0, -1))
+val relativeCorners = arrayOf(ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1))
 val cornerCost = StrictMath.sqrt(2.0).toFloat()
-val mapCornerCosts = floatArrayOf(cornerCost, cornerCost, cornerCost, cornerCost, 1F, 1F, 1F, 1F)
+val relativeSides =  arrayOf(ivec2(-1, 0), ivec2(1, 0), ivec2(0, 1), ivec2(0, -1))
 
 
 class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
@@ -76,7 +77,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
         init { // temp generate map and players
             val hasBlocks = (0 until size / 5).map { (0 until size / 5).map { random.nextInt(10) == 0 } }
-            for (i in 0 until size) for (j in 0 until size) map[i][j].rock = hasBlocks[i / 5][j / 5];
+            for (i in 0 until size) for (j in 0 until size) map[i][j].rock = map[i][j].rock || hasBlocks[i / 5][j / 5];
         }
     }; val map = Map()
 
@@ -137,9 +138,9 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
             @Strictfp
             override fun compare(o1: MapTile, o2: MapTile): Int {
-                if (o1.temp_cost > o2.temp_cost) {
+                if (o1.temp_priority > o2.temp_priority) {
                     return 1
-                } else if (o1.temp_cost < o2.temp_cost) {
+                } else if (o1.temp_priority < o2.temp_priority) {
                     return -1
                 }
                 return 0
@@ -158,56 +159,113 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 return
             }
             this.counter++
-            val counter = this.counter
             pq.clear()
             pos.set(position)
             ipos.set(pos)
-            for (x in (ipos.x - 1) .. (ipos.x + 1)) {
-                for (y in (ipos.y - 1) .. (ipos.y + 1)) {
-                    val tile = map(x, y)
-                    if (!tile.rock) {
-                        pos.set(position)
-                        tile.center(tpos)
-                        tile.temp_cost = (pos - tpos).len()
-                        tile.temp_visited = counter
-                        tile.temp_ttpo = IntVector2.Zero
-                        pq.add(tile)
-                    }
+            run {
+                val next = map(ipos)
+                next.center(tpos)
+                val cost = (pos - tpos).len()
+                util_tryAddRoute(next, dest, IntVector2.Zero, cost)
+            }
+            for (vec in relativeCorners) {
+                val next = map(ipos.x + vec.x, ipos.y + vec.y)
+                val next0 = map(ipos.x + vec.x, ipos.y)
+                val next1 = map(ipos.x, ipos.y + vec.y)
+                if (!next.rock && !next0.rock && !next1.rock) {
+                    pos.set(position)
+                    next.center(tpos)
+                    val cost = (pos - tpos).len()
+                    util_tryAddRoute(next, dest, vec, cost)
+                }
+            }
+            for (vec in relativeSides) {
+                val next = map(ipos.x + vec.x, ipos.y + vec.y)
+                if (!next.rock) {
+                    pos.set(position)
+                    next.center(tpos)
+                    val cost = (pos - tpos).len()
+                    util_tryAddRoute(next, dest, vec, cost)
                 }
             }
             while (!pq.isEmpty()) {
                 val nearest = pq.poll()!!
                 if (nearest.position == dest) {
                     var t = nearest
-                    do {
+                    while (true) {
                         route.add(t)
-                        t = map(nearest.position.x - nearest.temp_ttpo.x, nearest.position.y - nearest.temp_ttpo.y)
-                    } while (t.temp_ttpo != IntVector2.Zero)
+                        if (t.temp_ttpo != IntVector2.Zero) {
+                            t = map(t.position.x - t.temp_ttpo.x, t.position.y - t.temp_ttpo.y)
+                        } else {
+                            break
+                        }
+                    }
                     return
                 }
                 ipos.set(nearest.position)
-                for (i in 0 until 8) {
-                    val vec = mapCorners[i]
+                for (vec in relativeCorners) {
                     val next = map(ipos.x + vec.x, ipos.y + vec.y)
-                    val cost = nearest.temp_cost + mapCornerCosts[i]
-                    val new = next.temp_visited != counter
-                    if (new || cost < next.temp_cost) {
-                        if (!new) pq.remove(next)
-                        next.temp_cost = cost
-                        next.temp_visited = counter
-                        next.temp_ttpo = vec
-                        pq.add(next)
+                    val next0 = map(ipos.x + vec.x, ipos.y)
+                    val next1 = map(ipos.x, ipos.y + vec.y)
+                    if (!next.rock && !next0.rock && !next1.rock) {
+                        util_tryAddRoute(next, dest, vec, nearest.temp_cost + cornerCost)
+                    }
+                }
+                for (vec in relativeSides) {
+                    val next = map(ipos.x + vec.x, ipos.y + vec.y)
+                    if (!next.rock) {
+                        util_tryAddRoute(next, dest, vec, nearest.temp_cost + 1F)
                     }
                 }
             }
             return // no route
         }
 
+        val apos = ivec2()
+
+        inline private fun util_tryAddRoute(next: MapTile, dest: IntVector2, vec: IntVector2, cost: Float) {
+            val new = next.temp_visited != counter
+            if (new || cost < next.temp_cost) {
+                if (!new) pq.remove(next)
+                next.temp_cost = cost
+                apos.set(dest)
+                apos - next.position
+                val remainingDis = apos.len()
+                next.temp_priority = cost + remainingDis
+                next.temp_visited = counter
+                next.temp_ttpo = vec
+                pq.add(next)
+            }
+        }
+
     }; val findRoute = FindRouteWrapper()
 
     class WalkWrapper {
 
-        @Strictfp operator fun invoke(route: MutableList<MapTile>, /* in-out */ position: StrictVector2) {
+        val pos = svec2()
+        @Strictfp operator fun invoke(walker: Walker, /* in-out */ route: MutableList<MapTile>, /* in-out */ position: StrictVector2) {
+            if (!route.isEmpty()) {
+                val id = route.last()
+                id.center(pos)
+                pos - position
+                val dis = pos.len()
+                val time = dis / walker.config.speed
+                if (time < 1) { // we can finish this dis
+                    // move the player to id
+                    id.center(position)
+                    // remove last
+                    route.removeAt(route.size - 1)
+                    if (!route.isEmpty()) {
+                        // I don't think... we don't never have a situation where a creature can move multiple tiles per tick
+                        val nid = route.last()
+                        nid.center(pos)
+                        pos - position
+                        position + pos.nor() * walker.config.speed * (1 - time)
+                    }
+                } else {
+                    position + pos.nor() * walker.config.speed
+                }
+            }
         }
 
     }; val walk = WalkWrapper()
@@ -225,7 +283,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
         fun findRoute(dest: IntVector2) = findRoute(position, dest, route)
 
-        fun walk() = walk(route, position)
+        fun walk() = walk(this, route, position)
     }
 
 

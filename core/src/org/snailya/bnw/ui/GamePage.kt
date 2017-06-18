@@ -45,7 +45,7 @@ class GamePage(val c: ServerConnection) : Page() {
     /**
      * game simulation
      */
-    val g = BnwGame(c.myIndex, c.playerSize, c.gameStartTime)
+    val g = BnwGame(c.myIndex, c.playerSize, c.serverGameStartTime)
 
     /**
      * ui

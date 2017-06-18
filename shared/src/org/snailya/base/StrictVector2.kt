@@ -2,7 +2,7 @@ package org.snailya.base
 
 
 
-class StrictVector2(var x: Float, var y: Float) {
+data class StrictVector2(@JvmField var x: Float, @JvmField var y: Float) {
     companion object {
         val Zero = StrictVector2(0F, 0F)
     }
