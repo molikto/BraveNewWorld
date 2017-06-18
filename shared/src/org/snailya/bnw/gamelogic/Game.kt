@@ -131,8 +131,8 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
      *
      */
 
+    // all variables is temp
     inner class FindRouteWrapper {
-        // all variables is temp
         var counter = -1
         val pq = PriorityQueue<MapTile>(30, object : Comparator<MapTile> {
 
@@ -152,12 +152,11 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
 
         @Strictfp operator fun invoke(position: StrictVector2, dest: IntVector2, /* out */ route: MutableList<MapTile>) {
-            if (!map(dest).rock) {
-                route.clear()
-            } else {
+            if (map(dest).rock) {
                 println("glitch: dest is rock")
                 return
             }
+            route.clear()
             this.counter++
             pq.clear()
             pos.set(position)
