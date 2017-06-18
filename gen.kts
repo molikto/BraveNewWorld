@@ -112,7 +112,8 @@ object BaseSpec : Spec("org.snailya.base", File("shared/src")) {
     /**
      * basic things
      */
-    val StrictVector2 = CustomType("StrictVector2", "IVector2Adapter")
+    val StrictVector2 = CustomType("StrictVector2", "StrictVector2Adapter")
+    val IntVector2 = CustomType("IntVector2", "IntVector2Adapter")
 }
 
 BaseSpec.codegen()
@@ -133,7 +134,7 @@ object BnwSpec : Spec("org.snailya.bnw", File("shared/src")) {
         )
 
         val PlayerCommand = record("PlayerCommand",
-                f("dest", BaseSpec.StrictVector2.q)
+                f("dest", BaseSpec.IntVector2)
         )
 
         val PlayerCommandsMessage = record("PlayerCommandsMessage",

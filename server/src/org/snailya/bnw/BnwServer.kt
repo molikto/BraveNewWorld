@@ -66,7 +66,7 @@ class BnwGameServer(val debug_onStop: () -> Unit): Listener() {
                         if (connections.size >= gameSize && connections.all{ it.returnTripTime >= 0 }) {
                             val rtts = connections.map { it.returnTripTime }
                             val maxRtt = rtts.max()!!
-                            val maxTick: Int = Math.ceil(maxRtt.toDouble() / NetworkingShared.timePerTick).toInt()
+                            val maxTick: Int = Math.ceil(maxRtt.toDouble() / timePerTick).toInt()
                             tif("RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick")
                             val time = System.currentTimeMillis()
                             for (cc in connections) {

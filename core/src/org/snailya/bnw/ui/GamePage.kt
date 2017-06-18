@@ -9,12 +9,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import ktx.math.*
 import ktx.scene2d.*
 import org.snailya.base.*
-import org.snailya.bnw.NetworkingShared
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.networking.ServerConnection
-import java.util.*
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
+import org.snailya.bnw.timePerGameTick
+import org.snailya.bnw.timePerTick
 
 /**
  *
@@ -79,7 +78,7 @@ class GamePage(val c: ServerConnection) : Page() {
     /**
      * commands
      */
-    var dest: Vector2? = null
+    val commands = mutableListOf<PlayerCommand>()
 
     /**
      * rendering
@@ -102,38 +101,40 @@ class GamePage(val c: ServerConnection) : Page() {
         // if not paused - enqueue game input
         if (!c.gamePaused) {
             if (Gdx.input.justTouched()) {
-                dest = inputGameCoor(Gdx.input.x, Gdx.input.y)
+                val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
+                if (!g.map(dest).rock) {
+                    commands.add(PlayerCommand(dest))
+                }
             }
         }
 
         // tick the network and game - maybe causing a pause
         val time = System.currentTimeMillis()
         if (c.gamePaused && c.received != null) {
-            gameTickedTime = c.receivedTime - NetworkingShared.timePerGameTick
-            networkTickedTime = c.receivedTime - NetworkingShared.timePerTick
+            gameTickedTime = c.receivedTime - timePerGameTick
+            networkTickedTime = c.receivedTime - timePerTick
         }
         var gameTicks = 0
         var netTicks = 0
         while (true) {
-            val toTime = gameTickedTime + NetworkingShared.timePerGameTick
+            val toTime = gameTickedTime + timePerGameTick
             if (toTime <= time) {
                 gameTicks += 1
                 var confirmedCommands: List<List<PlayerCommand>>? = null
-                if (networkTickedTime + NetworkingShared.timePerTick == toTime) {
+                if (networkTickedTime + timePerTick == toTime) {
                     netTicks += 1
-                    val d = dest
-                    confirmedCommands = c.tick(if(d == null) emptyList() else listOf(PlayerCommand(d.svec2())), g.debug_hash())
-                    networkTickedTime += NetworkingShared.timePerTick
+                    confirmedCommands = c.tick(commands, g.debug_hash())
+                    networkTickedTime += timePerTick
                     if (c.gamePaused) {
                         // we schedule a resend at next tick time
-                        gameTickedTime += NetworkingShared.timePerTick
+                        gameTickedTime += timePerTick
                         break
                     } else {
-                        dest = null
+                        commands.clear()
                     }
                 }
                 g.tick(confirmedCommands)
-                gameTickedTime += NetworkingShared.timePerGameTick
+                gameTickedTime += timePerGameTick
             } else {
                 break
             }
@@ -182,8 +183,8 @@ class GamePage(val c: ServerConnection) : Page() {
         val margin = 0
         val top = Math.max(gtl.y.toInt() - margin, 0)
         val left = Math.max(gtl.x.toInt() - margin, 0)
-        val bottom = Math.min(gbr.y.toInt() + 1 + margin, g.mapSize)
-        val right = Math.min(gbr.x.toInt() + 1 + margin, g.mapSize)
+        val bottom = Math.min(gbr.y.toInt() + 1 + margin, g.map.size)
+        val right = Math.min(gbr.x.toInt() + 1 + margin, g.map.size)
 
         val debugText = "tl: $gtl, br: $gbr, focus: $focus\n" +
                 "top $top, left $left, right $right, bottom $bottom"
@@ -194,11 +195,11 @@ class GamePage(val c: ServerConnection) : Page() {
 
         for (y in top until bottom) {
             for (x in left until right) {
-                batch.draw(if (g.map[x][y].isBlock) rock else sand, x.tf, y.tf, 1F, 1F)
+                batch.draw(if (g.map(x, y).rock) rock else sand, x.tf, y.tf, 1F, 1F)
             }
         }
+        // TODO maybe I need a different shader for the background and moving things, or different projection..
         for (agent in g.agents) {
-            // TODO maybe I need a different shader for the background and moving things
             batch.draw(debug_img, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
         }
 
@@ -211,4 +212,5 @@ class GamePage(val c: ServerConnection) : Page() {
     }
 
 }
+
 

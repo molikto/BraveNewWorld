@@ -3,6 +3,9 @@ package org.snailya.base
 
 
 class StrictVector2(var x: Float, var y: Float) {
+    companion object {
+        val Zero = StrictVector2(0F, 0F)
+    }
 
     @Strictfp
     fun copy(): StrictVector2 {
@@ -22,6 +25,19 @@ class StrictVector2(var x: Float, var y: Float) {
             y /= len
         }
         return this
+    }
+
+    @Strictfp
+    inline fun ivec2() = IntVector2(x.toInt(), y.toInt())
+    @Strictfp
+    inline fun  set(position: StrictVector2) {
+        this.x = position.x
+        this.y = position.y
+    }
+    @Strictfp
+    inline fun  set(position: IntVector2) {
+        this.x = position.x.toFloat()
+        this.y = position.y.toFloat()
     }
 }
 

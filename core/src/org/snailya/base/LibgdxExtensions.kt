@@ -74,3 +74,5 @@ fun identityMatrix4() = Matrix4()
 inline fun  Vector2.svec2(): StrictVector2 = svec2(x, y)
 inline fun  StrictVector2.vec2(): Vector2 = vec2(x, y)
 
+inline fun  Vector2.ivec2(): IntVector2 = ivec2(x.toInt(), y.toInt())
+

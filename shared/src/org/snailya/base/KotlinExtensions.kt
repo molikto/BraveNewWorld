@@ -27,6 +27,9 @@ inline fun timet(str: String, b: () -> String) {
 }
 
 
-inline fun svec2(x: Float, y: Float) = StrictVector2(x, y)
+inline fun svec2(x: Float = 0F, y: Float = 0F) = StrictVector2(x, y)
+
+inline fun ivec2(x: Int = 0, y: Int = 0) = IntVector2(x, y)
+
 
 

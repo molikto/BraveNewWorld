@@ -8,8 +8,18 @@ import java.nio.ByteBuffer
 
 
 
+object IntVector2Adapter : KotlinSerializationAdapter<IntVector2>() {
+    override fun parse(b: ByteBuffer): IntVector2 {
+        return IntVector2(b.getInt(), b.getInt())
+    }
 
-object IVector2Adapter : KotlinSerializationAdapter<StrictVector2>() {
+    override fun serialize(b: ByteBuffer, t: IntVector2) {
+        b.putInt(t.x)
+        b.putInt(t.y)
+    }
+}
+
+object StrictVector2Adapter : KotlinSerializationAdapter<StrictVector2>() {
     override fun parse(b: ByteBuffer): StrictVector2 {
         return StrictVector2(b.getFloat(), b.getFloat())
     }

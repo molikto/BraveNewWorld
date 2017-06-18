@@ -24,16 +24,16 @@ data class StartGameMessage(
     }
 }
 data class PlayerCommand(
-        @JvmField val dest: StrictVector2?
+        @JvmField val dest: IntVector2
 ) {
     companion object : KotlinSerializationAdapter<PlayerCommand>() {
 
         override fun parse(b: ByteBuffer): PlayerCommand {
-            return PlayerCommand(IVector2Adapter.nullAdapter.parse(b))
+            return PlayerCommand(IntVector2Adapter.parse(b))
         }
 
         override fun serialize(b: ByteBuffer, t: PlayerCommand) {
-            IVector2Adapter.nullAdapter.serialize(b, t.dest)
+            IntVector2Adapter.serialize(b, t.dest)
         }
     }
 }
