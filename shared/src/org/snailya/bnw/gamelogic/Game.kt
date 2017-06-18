@@ -10,7 +10,7 @@ open class AgentConfig : WalkerConfig() {
 }
 
 open class WalkerConfig {
-    var speed: Float = 0.2F.ps
+    var speed: Float = 1F.ps
 }
 
 
@@ -221,8 +221,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
             return // no route
         }
 
-        val apos = svec2()
-        val bpos = svec2()
+        val hpos = ivec2()
 
         inline private fun util_tryAddRoute(next: MapTile, dt: MapTile, vec: IntVector2, cost: Float, h: Boolean) {
             val new = next.temp_visited != counter
@@ -230,10 +229,13 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 if (!new) pq.remove(next)
                 next.temp_cost = cost
                 val p = if (h) {
-                    dt.center(apos)
-                    next.center(bpos)
-                    apos - bpos
-                    val remainingDis = apos.len()
+                    hpos.set(next.position)
+                    hpos - dt.position
+                    val x = Math.abs(hpos.x)
+                    val y = Math.abs(hpos.y)
+                    val max = Math.max(x, y)
+                    val min = Math.min(x, y)
+                    val remainingDis = (max - min) + min * cornerCost
                     remainingDis
                 } else {
                     0F
