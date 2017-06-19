@@ -52,6 +52,6 @@ strictfp public class Point implements Comparable<Point> {
     }
 
     public float distanceTo(Point that) {
-        return (float) Math.sqrt((this.x - that.x)*(this.x - that.x) + (this.y - that.y)*(this.y - that.y));
+        return (float) StrictMath.sqrt((this.x - that.x)*(this.x - that.x) + (this.y - that.y)*(this.y - that.y));
     }
 }
