@@ -2,8 +2,6 @@ package org.snailya.base
 
 
 // TODO not thread safe
-val temp_dis = StrictVector2(0F, 0F)
-val temp_pointToLineDistance = StrictVector2(0F, 0F)
 
 data class StrictVector2(@JvmField var x: Float, @JvmField var y: Float) {
     companion object {
@@ -16,10 +14,11 @@ data class StrictVector2(@JvmField var x: Float, @JvmField var y: Float) {
     }
 
 
-    inline fun dis(a: StrictVector2): Float {
-        temp_dis.set(this)
-        temp_dis - a
-        return temp_dis.len()
+    @Strictfp
+    inline fun dis(that: StrictVector2): Float {
+        val dx = (this.x - that.x)
+        val dy = (this.y - that.y)
+        return StrictMath.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
     }
 
     @Strictfp
@@ -104,6 +103,7 @@ fun pointToLineDistance(A: StrictVector2, B: StrictVector2, P: StrictVector2): F
 }
 
 
+val temp_pointToLineDistance = StrictVector2(0F, 0F)
 @Strictfp
 fun pointToLineSegmentDistance(v: StrictVector2, w: StrictVector2, p: StrictVector2): Float {
     // https//stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
