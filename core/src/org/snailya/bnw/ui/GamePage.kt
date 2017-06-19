@@ -237,11 +237,11 @@ class GamePage(val c: ServerConnection) : Page() {
     val shapeRenderer = ShapeRenderer()
     private fun debug_renderVoronoiDiagram() {
         shapeRenderer.projectionMatrix = projection
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        for (e in g.map.debug_mapGen.debug_edges) shapeRenderer.line(e.p1.x, e.p1.y, e.p2.x, e.p2.y)
-        shapeRenderer.end()
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Point)
-        for (p in g.map.debug_mapGen.res) shapeRenderer.point(p.x, p.y, 0F)
+        shapeRenderer.setAutoShapeType(true)
+        shapeRenderer.begin()
+        val size = g.map.size
+        for (e in g.map.debug_mapGen.debug_edges) shapeRenderer.line(e.start.x * size, e.start.y * size, e.end.x * size, e.end.y * size)
+        for (p in g.map.debug_mapGen.res) shapeRenderer.circle(p.x, p.y, 0.2F)
         shapeRenderer.end()
     }
 

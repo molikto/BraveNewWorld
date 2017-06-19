@@ -14,10 +14,11 @@ var logger: (String) -> Unit = {}
 fun tif(s: String) = logger("${System.currentTimeMillis()}:  $s")
 
 
-inline fun time(str: String, b: () -> Unit) {
+inline fun <T> time(str: String, b: () -> T): T {
     val t = System.currentTimeMillis()
-    b.invoke()
+    val a = b.invoke()
     tif("timed ${System.currentTimeMillis() - t}: $str")
+    return a
 }
 
 inline fun timet(str: String, b: () -> String) {

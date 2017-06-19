@@ -1,10 +1,11 @@
 package org.snailya.bnw.gamelogic
 
-import org.ajwerner.voronoi.Point
-import org.ajwerner.voronoi.Voronoi
-import org.ajwerner.voronoi.VoronoiEdge
+import org.serenaz.Edge
+import org.serenaz.Point
+import org.serenaz.Voronoi
 import org.snailya.base.StrictVector2
 import org.snailya.base.svec2
+import org.snailya.base.time
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -15,39 +16,28 @@ import kotlin.collections.ArrayList
  */
 class MapGen(random: Random, size: Int) {
 
-    val debug_edges: List<VoronoiEdge>
+    val debug_edges: List<Edge>
     val res: List<StrictVector2>
     init {
-        Voronoi.MAX_DIM = size.toFloat()
-        Voronoi.MIN_DIM = 0F
         var randomDots = ArrayList<Point>()
         for (i in 0 .. size * 2) {
-            randomDots.add(Point(1 + random.nextFloat() * (size - 2), 1 + random.nextFloat() * (size - 2)))
+            randomDots.add(Point(random.nextFloat(), random.nextFloat()))
         }
         var voronoi: Voronoi? = null
-        voronoi = Voronoi(randomDots)
-//        for (i in 0 until 5) {
-//            randomDots = ArrayList()
-//        }
-        res = randomDots.map { svec2(it.x, it.y) }
-        debug_edges = voronoi.edgeList
+        for (i in 0 until 5) {
+            voronoi = time("generating Voronoi diagram") { Voronoi(randomDots) }
+            for (e in voronoi.edges) {
+                e.site_left.x += e.start.x
+            }
+            randomDots = ArrayList()
+            for (p in voronoi.sites) {
+                p.x = 0F
+                p.y = 0F
+            }
+        }
+        res = randomDots.map { svec2(it.x * size, it.y * size) }
+        debug_edges = voronoi!!.edges
     }
 }
 
 
-object MapGenTest {
-    @JvmStatic fun main(args: Array<String>) {
-        Voronoi.MAX_DIM = 10F
-        Voronoi.MIN_DIM = 0F
-        var randomDots = ArrayList<Point>()
-        // a vertical line
-//        randomDots.add(Point(1F, 5F))
-//        randomDots.add(Point(9F, 5F))
-
-        // a h line
-        randomDots.add(Point(5F, 1F))
-        randomDots.add(Point(5F, 9F))
-        val voronoi = Voronoi(randomDots)
-        val e = voronoi.edgeList;
-    }
-}
