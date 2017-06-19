@@ -10,7 +10,7 @@ import java.util.Random;
 
 strictfp public class Voronoi {
 	
-	public List <Point> sites;
+	public List <InputPoint> sites;
 	public List <Edge> edges; // edges on Voronoi diagram
 	PriorityQueue<Event> events; // priority queue represents sweep line
 	Parabola root; // binary search tree represents beach line
@@ -21,7 +21,7 @@ strictfp public class Voronoi {
 	
 	float ycurr; // current y-coord of sweep line
 	
-	public Voronoi (List <Point> sites) {
+	public Voronoi (List <InputPoint> sites) {
 		this.sites = sites;
 		edges = new ArrayList<Edge>();
 		generateVoronoi();
@@ -43,7 +43,7 @@ strictfp public class Voronoi {
 			count++;
 			if (e.type == Event.SITE_EVENT) {
 				//System.out.println(count + ". SITE_EVENT " + e.p);
-				handleSite(e.p);
+				handleSite((InputPoint) e.p);
 			}
 			else {
 				//System.out.println(count + ". CIRCLE_EVENT " + e.p);
@@ -82,7 +82,7 @@ strictfp public class Voronoi {
 	}
 
 	// processes site event
-	private void handleSite(Point p) {
+	private void handleSite(InputPoint p) {
 		// base case
 		if (root == null) {
 			root = new Parabola(p);

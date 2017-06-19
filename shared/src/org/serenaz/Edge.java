@@ -6,8 +6,8 @@ strictfp public class Edge {
 
 	public Point start;
 	public Point end;
-	public Point site_left;
-	public Point site_right;
+	public InputPoint site_left;
+	public InputPoint site_right;
 	public Point direction; // edge is really a vector normal to left and right points
 	
 	Edge neighbor; // the same edge, but pointing in the opposite direction
@@ -15,7 +15,7 @@ strictfp public class Edge {
 	float slope;
 	float yint;
 	
-	public Edge (Point first, Point left, Point right) {
+	public Edge (Point first, InputPoint left, InputPoint right) {
 		start = first;
 		site_left = left;
 		site_right = right;

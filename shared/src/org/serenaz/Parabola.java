@@ -10,7 +10,7 @@ strictfp public class Parabola {
 	public static int IS_VERTEX = 1;
 	
 	int type;
-	Point point; // if is focus
+	InputPoint point; // if is focus
 	Edge edge; // if is vertex
 	Event event; // a parabola with a focus can disappear in a circle event
 	
@@ -22,7 +22,7 @@ strictfp public class Parabola {
 		type = IS_VERTEX;
 	}
 	
-	public Parabola (Point p) {
+	public Parabola (InputPoint p) {
 		point = p;
 		type = IS_FOCUS;
 	}
