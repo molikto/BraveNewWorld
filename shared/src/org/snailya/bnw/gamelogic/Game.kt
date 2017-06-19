@@ -68,9 +68,10 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
     inner class Map {
         // tiles 0.... 99, metrics 0..1...100
-        val size = 10
+        val size = 100
         val map: Array<Array<MapTile>> = Array(size, { x ->  Array(size, { y -> configured(MapTile()) { rock = x == 0 || y == 0 || x == size - 1 || y == size - 1; position = ivec2(x, y) } })})
 
+        val debug_mapGen = MapGen(random, size)
 
         fun random() = map[random.nextInt(size)][random.nextInt(size)]
 

@@ -43,7 +43,7 @@ strictfp public class BreakPoint {
     }
 
     public Point getPoint() {
-        float l = v.getSweepLoc();
+        float l = v.sweepLoc;
         if (l == cacheSweepLoc) {
             return cachePoint;
         }

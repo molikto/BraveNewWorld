@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Label
@@ -15,7 +16,6 @@ import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
-import sun.management.resources.agent
 
 /**
  *
@@ -229,6 +229,20 @@ class GamePage(val c: ServerConnection) : Page() {
         }
 
         batch.end()
+
+        debug_renderVoronoiDiagram()
+    }
+
+
+    val shapeRenderer = ShapeRenderer()
+    private fun debug_renderVoronoiDiagram() {
+        shapeRenderer.projectionMatrix = projection
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        for (e in g.map.debug_mapGen.debug_edges) shapeRenderer.line(e.p1.x, e.p1.y, e.p2.x, e.p2.y)
+        shapeRenderer.end()
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Point)
+        for (p in g.map.debug_mapGen.res) shapeRenderer.point(p.x, p.y, 0F)
+        shapeRenderer.end()
     }
 
 

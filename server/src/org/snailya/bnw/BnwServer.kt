@@ -26,7 +26,7 @@ object BnwServer : (() -> Unit) {
 
 class BnwGameServer(val debug_onStop: () -> Unit): Listener() {
 
-    val gameSize = 2
+    val gameSize = 1
 
     var server = NetworkingShared.createServer()
     init {

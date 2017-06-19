@@ -3,17 +3,14 @@ package org.ajwerner.voronoi;
 import java.util.*;
 
 strictfp public class Voronoi {
-    private static final float MAX_DIM = 10;
-    private static final float MIN_DIM = -10;
-    private float sweepLoc;
-    private final ArrayList<VoronoiEdge> edgeList;
+    public static float MAX_DIM = 10;
+    public static float MIN_DIM = -10;
+    float sweepLoc;
+    public final ArrayList<VoronoiEdge> edgeList;
     private HashSet<BreakPoint> breakPoints;
     private TreeMap<ArcKey, CircleEvent> arcs;
     private TreeSet<Event> events;
 
-    public float getSweepLoc() {
-        return sweepLoc;
-    }
 
 
     public Voronoi(ArrayList<Point> sites) {
@@ -23,9 +20,9 @@ strictfp public class Voronoi {
         arcs = new TreeMap<>();
 
         for (Point site : sites) {
-            if ((site.x > MAX_DIM || site.x < MIN_DIM) || (site.y > MAX_DIM || site.y < MIN_DIM))
-                throw new RuntimeException(String.format(
-                    "Invalid site in input, sites must be between %f and %f", MIN_DIM, MAX_DIM ));
+//            if ((site.x > MAX_DIM || site.x < MIN_DIM) || (site.y > MAX_DIM || site.y < MIN_DIM))
+//                throw new RuntimeException(String.format(
+//                    "Invalid site in input, sites must be between %f and %f", MIN_DIM, MAX_DIM ));
             events.add(new Event(site));
         }
         sweepLoc = MAX_DIM;
