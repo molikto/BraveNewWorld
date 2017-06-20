@@ -6,7 +6,7 @@ package org.serenaz;
 public class InputPoint extends Point {
 
     public int edgeCount;
-    public InputPoint(float x0, float y0) {
+    public InputPoint(double x0, double y0) {
         super(x0, y0);
     }
 }

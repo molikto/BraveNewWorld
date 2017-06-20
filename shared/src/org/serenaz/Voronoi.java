@@ -16,13 +16,16 @@ strictfp public class Voronoi {
 	Parabola root; // binary search tree represents beach line
 	
 	// size of StdDraw window
-	float width = 1;
-	float height = 1;
+	double width = 1;
+	double height = 1;
 	
-	float ycurr; // current y-coord of sweep line
+	double ycurr; // current y-coord of sweep line
 	
 	public Voronoi (List <InputPoint> sites) {
 		this.sites = sites;
+		for (InputPoint p : sites) {
+			assert (p.x >= 0 && p.x <= 1 && p.y >= 0 && p.y <= 1);
+		}
 		edges = new ArrayList<Edge>();
 		generateVoronoi();
 	}
@@ -71,7 +74,7 @@ strictfp public class Voronoi {
 			return;
 		}
 
-		float x = getXofEdge(p);
+		double x = getXofEdge(p);
 		p.edge.end = new Point (x, p.edge.slope*x+p.edge.yint);
 		edges.add(p.edge);
 		
@@ -197,9 +200,9 @@ strictfp public class Voronoi {
 		if (start == null) return;
 		
 		// compute radius
-		float dx = b.point.x - start.x;
-		float dy = b.point.y - start.y;
-		float d = (float) StrictMath.sqrt((dx*dx) + (dy*dy));
+		double dx = b.point.x - start.x;
+		double dy = b.point.y - start.y;
+		double d = (double) StrictMath.sqrt((dx*dx) + (dy*dy));
 		if (start.y + d < ycurr) return; // must be after sweep line
 
 		Point ep = new Point(start.x, start.y + d);
@@ -214,7 +217,7 @@ strictfp public class Voronoi {
 
 	// first thing we learned in this class :P
 	public int ccw(Point a, Point b, Point c) {
-        float area2 = (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
+        double area2 = (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
         if (area2 < 0) return -1;
         else if (area2 > 0) return 1;
         else return  0;
@@ -225,14 +228,14 @@ strictfp public class Voronoi {
 
 		if (b.slope == a.slope && b.yint != a.yint) return null;
 
-		float x = (b.yint - a.yint)/(a.slope - b.slope);
-		float y = a.slope*x + a.yint;
+		double x = (b.yint - a.yint)/(a.slope - b.slope);
+		double y = a.slope*x + a.yint;
 
 		return new Point(x, y);
 	} 
 	
 	// returns current x-coordinate of an unfinished edge
-	private float getXofEdge (Parabola par) {
+	private double getXofEdge (Parabola par) {
 		//find intersection of two parabolas
 		
 		Parabola left = Parabola.getLeftChild(par);
@@ -241,25 +244,25 @@ strictfp public class Voronoi {
 		Point p = left.point;
 		Point r = right.point;
 		
-		float dp = 2*(p.y - ycurr);
-		float a1 = 1/dp;
-		float b1 = -2*p.x/dp;
-		float c1 = (p.x*p.x + p.y*p.y - ycurr*ycurr)/dp;
+		double dp = 2*(p.y - ycurr);
+		double a1 = 1/dp;
+		double b1 = -2*p.x/dp;
+		double c1 = (p.x*p.x + p.y*p.y - ycurr*ycurr)/dp;
 		
-		float dp2 = 2*(r.y - ycurr);
-		float a2 = 1/dp2;
-		float b2 = -2*r.x/dp2;
-		float c2 = (r.x*r.x + r.y*r.y - ycurr*ycurr)/dp2;
+		double dp2 = 2*(r.y - ycurr);
+		double a2 = 1/dp2;
+		double b2 = -2*r.x/dp2;
+		double c2 = (r.x*r.x + r.y*r.y - ycurr*ycurr)/dp2;
 		
-		float a = a1-a2;
-		float b = b1-b2;
-		float c = c1-c2;
+		double a = a1-a2;
+		double b = b1-b2;
+		double c = c1-c2;
 		
-		float disc = b*b - 4*a*c;
-		float x1 = (float) ((-b + StrictMath.sqrt(disc))/(2*a));
-		float x2 = (float) ((-b - StrictMath.sqrt(disc))/(2*a));
+		double disc = b*b - 4*a*c;
+		double x1 = (double) ((-b + StrictMath.sqrt(disc))/(2*a));
+		double x2 = (double) ((-b - StrictMath.sqrt(disc))/(2*a));
 		
-		float ry;
+		double ry;
 		if (p.y > r.y) ry = StrictMath.max(x1, x2);
 		else ry = StrictMath.min(x1, x2);
 		
@@ -267,9 +270,9 @@ strictfp public class Voronoi {
 	}
 	
 	// returns parabola above this x coordinate in the beach line
-	private Parabola getParabolaByX (float xx) {
+	private Parabola getParabolaByX (double xx) {
 		Parabola par = root;
-		float x = 0;
+		double x = 0;
 		while (par.type == Parabola.IS_VERTEX) {
 			x = getXofEdge(par);
 			if (x>xx) par = par.child_left;
@@ -279,12 +282,12 @@ strictfp public class Voronoi {
 	}
 	
 	// find corresponding y-coordinate to x on parabola with focus p
-	private float getY(Point p, float x) {
+	private double getY(Point p, double x) {
 		// determine equation for parabola around focus p
-		float dp = 2*(p.y - ycurr);
-		float a1 = 1/dp;
-		float b1 = -2*p.x/dp;
-		float c1 = (p.x*p.x + p.y*p.y - ycurr*ycurr)/dp;
+		double dp = 2*(p.y - ycurr);
+		double a1 = 1/dp;
+		double b1 = -2*p.x/dp;
+		double c1 = (p.x*p.x + p.y*p.y - ycurr*ycurr)/dp;
 		return (a1*x*x + b1*x + c1);
 	}
 }

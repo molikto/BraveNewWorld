@@ -4,10 +4,10 @@ package org.serenaz;
 // a point in 2D, sorted by y-coordinate
 strictfp public class Point implements Comparable <Point> {
 	
-	public float x;
-	public float y;
+	public double x;
+	public double y;
 	
-	public Point(float x0, float y0) {
+	public Point(double x0, double y0) {
 		x = x0;
 		y = y0;
 	}

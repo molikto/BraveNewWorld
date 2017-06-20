@@ -240,7 +240,7 @@ class GamePage(val c: ServerConnection) : Page() {
         shapeRenderer.setAutoShapeType(true)
         shapeRenderer.begin()
         val size = g.map.size
-        for (e in g.map.debug_mapGen.debug_edges) shapeRenderer.line(e.start.x * size, e.start.y * size, e.end.x * size, e.end.y * size)
+        for (e in g.map.debug_mapGen.debug_edges) shapeRenderer.line((e.start.x * size).toFloat(), (e.start.y * size).toFloat(), (e.end.x * size).toFloat(), (e.end.y * size).toFloat())
         for (p in g.map.debug_mapGen.res) shapeRenderer.circle(p.x, p.y, 0.2F)
         shapeRenderer.end()
     }

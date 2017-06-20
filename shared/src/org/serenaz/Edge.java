@@ -12,8 +12,8 @@ strictfp public class Edge {
 	
 	Edge neighbor; // the same edge, but pointing in the opposite direction
 	
-	float slope;
-	float yint;
+	double slope;
+	double yint;
 	
 	public Edge (Point first, InputPoint left, InputPoint right) {
 		start = first;
