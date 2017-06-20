@@ -1,8 +1,10 @@
 
 
+* PRINCIPLES
+    * DON'T TRY TO MAKE SOMETHING REALISTIC. make some thing fun
+
 * animal slavery to make power
     * trait to dislike this
-    
 * 3d
     * the good
         * gravity

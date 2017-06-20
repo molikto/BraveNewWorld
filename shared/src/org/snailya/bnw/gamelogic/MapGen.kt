@@ -21,7 +21,6 @@ class MapGen(val random: Random, val size: Int) {
     lateinit var debug_edges: List<Edge>
     lateinit var res: List<StrictVector2>
 
-    @Strictfp inline fun clamp(p: Double) = if (p < 0) 0.0 else if (p > 1.0) 1.0 else p
 
     @Strictfp
     fun gen() {
@@ -52,8 +51,27 @@ class MapGen(val random: Random, val size: Int) {
                 randomDots.add(InputPoint(p.x / p.edgeCount / 2, p.y / p.edgeCount / 2))
             }
         }
+        val v = voronoi!!
+        for (p in v.sites) {
+            p.attachment = InputPoint.Attachment()
+        }
+        // set all edge points to sea
+        for (e in v.edges) {
+            e.site_left.attachment.edges.add(e)
+            e.site_right.attachment.edges.add(e)
+            if (e.isSea()) {
+                e.site_left.attachment.isSea = true
+                e.site_right.attachment.isSea = true
+            }
+        }
+        // randomly set some beach points to sea
+        v.sites.filter { !it.attachment.isSea && it.attachment.nearSea() }
+                .forEach { if (random.nextInt(3) == 1) it.attachment.isSea = true }
+        v.sites.filter { !it.attachment.isSea && it.attachment.nearSea() }
+                .forEach { it.attachment.isBeach = true }
+        // generate biome
         res = randomDots.map { svec2((it.x * size).toFloat(), (it.y * size).toFloat()) }
-        debug_edges = voronoi!!.edges
+        debug_edges = v.edges
     }
 
     init {
@@ -61,4 +79,7 @@ class MapGen(val random: Random, val size: Int) {
     }
 }
 
+@Strictfp inline fun clamp(p: Double) = if (p < 0) 0.0 else if (p > 1.0) 1.0 else p
+@Strictfp inline fun outside(p: Point) = p.x <= 0 || p.y <= 0 || p.x >= 1 || p.y >= 1
 
+fun Edge.isSea() =  outside(this.start) || outside(this.end)
