@@ -68,12 +68,17 @@ class GamePage(val c: ServerConnection) : Page() {
      */
     var focus: Vector2 = g.agents[g.myIndex].position.vec2()
     var focusSpeed = 10F
-    var zoom = 48.dp
+    val maxZoom = 33.dp
+    val minZoom = 9.dp
+    var zoom = 20.dp
 
     init {
         inputProcessor = object : BaseInputProcessor() {
             override fun scrolled(amount: Int): Boolean {
                 zoom *= (1 + amount.dp / 50)
+                zoom = maxOf(minZoom, minOf(maxZoom, zoom))
+                // TODO focus speed, snapping
+                focusSpeed = (40F * Math.sqrt((minZoom / zoom).toDouble())).toFloat()
                 return true
             }
         }
@@ -106,8 +111,10 @@ class GamePage(val c: ServerConnection) : Page() {
         if (!c.gamePaused) {
             if (Gdx.input.justTouched()) {
                 val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
-                if (!g.map(dest).notWalk) {
-                    commands.add(PlayerCommand(dest))
+                if (g.map.inBound(dest)) {
+                    if (!g.map(dest).notWalk) {
+                        commands.add(PlayerCommand(dest))
+                    }
                 }
             }
         }
@@ -198,15 +205,19 @@ class GamePage(val c: ServerConnection) : Page() {
 
         batch.begin()
 
-        for (y in top until bottom) {
-            for (x in left until right) {
-                val tile = g.map(x, y)
-                batch.draw(groundTextures[tile.groundType.ordinal], x.tf, y.tf, 1F, 1F)
-                if (true) {
-                    if (g.findRoute.counter == tile.temp_visited) {
-                        batch.color = Color(1F, 1F, 1F, tile.temp_cost / 30)
-                        batch.draw(black, x.tf, y.tf, 1F, 1F)
-                        batch.color = Color.WHITE
+        for (t in GroundType.values()) {
+            for (y in top until bottom) {
+                for (x in left until right) {
+                    val tile = g.map(x, y)
+                    if (tile.groundType == t) {
+                        batch.draw(groundTextures[tile.groundType.ordinal], x.tf, y.tf, 1F, 1F)
+                        if (true) {
+                            if (g.findRoute.counter == tile.temp_visited) {
+                                batch.color = Color(1F, 1F, 1F, tile.temp_cost / 30)
+                                batch.draw(black, x.tf, y.tf, 1F, 1F)
+                                batch.color = Color.WHITE
+                            }
+                        }
                     }
                 }
             }
@@ -230,7 +241,7 @@ class GamePage(val c: ServerConnection) : Page() {
 
         batch.end()
 
-         debug_renderVoronoiDiagram()
+         //debug_renderVoronoiDiagram()
     }
 
 

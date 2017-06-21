@@ -77,7 +77,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
     inner class Map {
         // tiles 0.... 99, metrics 0..1...100
-        val size = 100
+        val size = 200
         val debug_mapGen = MapGen(random, size)
         val map: Array<Array<MapTile>> = debug_mapGen.gen()
 
@@ -90,6 +90,10 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
         inline operator fun invoke(x: Int, y: Int) = map[x][y]
         inline operator fun invoke(x: Float, y: Float) = map[x.toInt()][y.toInt()]
+
+        fun inBound(x: Int, y: Int) = x >= 0 && x < size && y >= 0 && y < size
+        fun inBound(a: IntVector2) = inBound(a.x, a.y)
+        fun inBound(s: StrictVector2) = inBound(s.x.toInt(), s.y.toInt())
 
 
         // TODO return the hit point

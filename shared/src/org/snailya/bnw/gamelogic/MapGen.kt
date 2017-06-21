@@ -38,7 +38,7 @@ class MapGen(val random: Random, val size: Int) {
             randomDots.add(InputPoint(nonZeroDouble(), nonZeroDouble()))
         }
         var voronoi: Voronoi? = null
-        for (i in 0 until 1) {
+        for (i in 0 until 2) {
             voronoi = time("generating Voronoi diagram") { Voronoi(randomDots) }
             for (p in voronoi.sites) {
                 p.x = 0.0
