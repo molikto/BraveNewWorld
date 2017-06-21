@@ -106,7 +106,7 @@ class GamePage(val c: ServerConnection) : Page() {
         if (!c.gamePaused) {
             if (Gdx.input.justTouched()) {
                 val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
-                if (!g.map(dest).walkable) {
+                if (!g.map(dest).notWalk) {
                     commands.add(PlayerCommand(dest))
                 }
             }
@@ -245,6 +245,7 @@ class GamePage(val c: ServerConnection) : Page() {
         }
         renderer.end()
         renderer.begin(ShapeRenderer.ShapeType.Filled)
+        val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
         for (p in g.map.debug_mapGen.debug_points) {
             if (p.attachment.isSea) {
                 renderer.color = Color.BLUE
@@ -259,7 +260,10 @@ class GamePage(val c: ServerConnection) : Page() {
             } else {
                 renderer.color = Color.WHITE
             }
-            renderer.circle((p.x / p.edgeCount / 2 * size).toFloat(), (p.y  / p.edgeCount / 2 * size).toFloat(), 1F)
+            if (g.map(dest).debug_inputPoint == p) {
+                renderer.color = Color.RED
+            }
+            renderer.circle(p.x.toFloat(), p.y.toFloat(), 1F)
         }
         renderer.end()
     }

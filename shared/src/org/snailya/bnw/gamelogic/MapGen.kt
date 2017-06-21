@@ -63,6 +63,8 @@ class MapGen(val random: Random, val size: Int) {
         val v = voronoi!!
         for (p in v.sites) {
             // again, another hack
+            p.x = p.x / p.edgeCount / 2
+            p.y = p.y / p.edgeCount / 2
             p.attachment = InputPoint.Attachment()
         }
         debug_edges = v.edges
@@ -124,7 +126,7 @@ class MapGen(val random: Random, val size: Int) {
             }
         }
 
-        return rasterize(v.sites)
+        return time ("rasterize") { rasterize(v.sites) }
     }
 
 
@@ -173,8 +175,12 @@ class MapGen(val random: Random, val size: Int) {
                 testPoint.x = i + 0.5
                 testPoint.y = j + 0.5
                 currentBest = Double.MAX_VALUE
+                currentPoint = null
                 search(root, testPoint, true)
-                map[i][j].groundType = groundTypeOf(currentPoint!!)
+                map[i][j].groundType =
+                        if (i == 0 || j == 0 || i == size - 1 || j == size - 1) GroundType.Ocean
+                        else groundTypeOf(currentPoint!!)
+                map[i][j].debug_inputPoint = currentPoint!!
             }
         }
         return map
@@ -182,26 +188,27 @@ class MapGen(val random: Random, val size: Int) {
 
 
     private fun  search(root: InputPoint, x: InputPoint, useX: Boolean) {
-        val res = (if (useX) xFirstComparator else yFirstComparator).compare(root, x)
-        if (res > 0) {
-            val can = root.attachment.right
-            val o = root.attachment.left
-            if (can != null) {
-                doRest(root, can, o, x, useX)
-            } else {
-                searchedLeaf(root, x)
-            }
-        } else if (res < 0) {
-            val can = root.attachment.left
-            val o = root.attachment.right
-            if (can != null) {
-                doRest(root, can, o, x, useX)
-            } else {
-                searchedLeaf(root, x)
-            }
-        } else {
+        val res = (if (useX) xFirstComparator else yFirstComparator).compare(x, root)
+        if (res == 0) {
             currentBest = 0.0
             currentPoint = root
+        } else {
+            val can: InputPoint?
+            val o: InputPoint?
+            if (res > 0) {
+                can = root.attachment.right
+                o = root.attachment.left
+            } else {
+                can = root.attachment.left
+                o = root.attachment.right
+            }
+            if (can != null) {
+                doRest(root, can, o, x, useX)
+            } else if (o != null) {
+                doRest(root, o, null, x, useX)
+            } else {
+                searchedLeaf(root, x)
+            }
         }
     }
 
@@ -212,16 +219,18 @@ class MapGen(val random: Random, val size: Int) {
             currentBest = dis2
             currentPoint = root
         }
-        val c = if (b) can.x - root.x else can.y - root.y
-        if (dis2 > c * c && o != null) {
+        val c = if (b) (x.x - root.x) else (x.y - root.y)
+        if (currentBest > c * c && o != null) {
             search(o, x, !b)
         }
-
     }
 
     private fun searchedLeaf(root: InputPoint, x: InputPoint) {
-        currentBest = dis2(root, x)
-        currentPoint = root
+        val dis2 = dis2(root, x)
+        if (currentBest > dis2) {
+            currentBest = dis2
+            currentPoint = root
+        }
     }
 
     private fun  dis2(root: InputPoint, x: InputPoint): Double {

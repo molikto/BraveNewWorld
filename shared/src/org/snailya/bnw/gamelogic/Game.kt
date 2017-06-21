@@ -1,5 +1,6 @@
 package org.snailya.bnw.gamelogic
 
+import org.serenaz.InputPoint
 import org.snailya.base.*
 import org.snailya.bnw.*
 import java.util.*
@@ -39,9 +40,10 @@ class MapTile {
         s.y = position.y + 0.5F
         return s
     }
-    val walkable: Boolean
-        get() = groundType == GroundType.Mountain || groundType == GroundType.Highland
+    val notWalk: Boolean
+        get() = groundType == GroundType.Mountain || groundType == GroundType.Highland || groundType == GroundType.Ocean
     lateinit var groundType: GroundType
+    lateinit var debug_inputPoint: InputPoint
 
     var temp_cost: Float = 0F
     var temp_priority: Float = 0F
@@ -94,7 +96,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
         @Strictfp
         fun hitWall(a: StrictVector2, b: StrictVector2): MapTile? {
             if (a.x < 0 || a.y < 0 || a.x >= size || a.y >= size) return null
-            if (this(a).walkable) return this(a)
+            if (this(a).notWalk) return this(a)
             val higher = if (a.y > b.y) a else b
             val lower = if (a.y > b.y) b else a
             val vertical = a.x == b.x
@@ -106,36 +108,36 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 if (x.toFloat() == fx) { // a exact value
                     if (slope > 0F) {
                         var can1 = this(x, y)
-                        if (can1.walkable) return can1
+                        if (can1.notWalk) return can1
                         can1 = this(x - 1, y - 1)
-                        if (can1.walkable) return can1
+                        if (can1.notWalk) return can1
                         can1 = this(x, y - 1)
                         val can2 = this(x - 1, y)
-                        if (can1.walkable && can2.walkable) return if (random.nextBoolean()) can1 else can2
+                        if (can1.notWalk && can2.notWalk) return if (random.nextBoolean()) can1 else can2
                     } else if (slope < 0F) {
                         var can1 = this(x - 1, y)
-                        if (can1.walkable) return can1
+                        if (can1.notWalk) return can1
                         can1 = this(x, y - 1)
-                        if (can1.walkable) return can1
+                        if (can1.notWalk) return can1
                         can1 = this(x, y)
                         val can2 = this(x - 1, y - 1)
-                        if (can1.walkable && can2.walkable) return if (random.nextBoolean()) can1 else can2
+                        if (can1.notWalk && can2.notWalk) return if (random.nextBoolean()) can1 else can2
                     } else {
                         // TODO... make it better, whatever
                         var can1 = this(x, y)
-                        if (can1.walkable) return can1
+                        if (can1.notWalk) return can1
                         can1 = this(x - 1, y - 1)
-                        if (can1.walkable) return can1
+                        if (can1.notWalk) return can1
                         can1 = this(x - 1, y)
-                        if (can1.walkable) return can1
+                        if (can1.notWalk) return can1
                         can1 = this(x, y - 1)
-                        if (can1.walkable) return can1
+                        if (can1.notWalk) return can1
                     }
                 } else {
                     var can1 = this(x, y)
-                    if (can1.walkable) return can1
+                    if (can1.notWalk) return can1
                     can1 = this(x, y - 1)
-                    if (can1.walkable) return can1
+                    if (can1.notWalk) return can1
                 }
             }
             return null
@@ -195,7 +197,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
         for (a in agents) {
             while (true) {
                 val t = map.random()
-                if (!t.walkable) {
+                if (!t.notWalk) {
                     t.center(a.position)
                     break
                 }
@@ -259,8 +261,8 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
         @Strictfp operator fun invoke(position: StrictVector2, dest: IntVector2, /* out */ route: MutableList<MapTile>) {
             val dt = map(dest)
-            if (dt.walkable) {
-                println("glitch: dest is walkable")
+            if (dt.notWalk) {
+                println("glitch: dest is notWalk")
                 return
             }
             route.clear()
@@ -277,7 +279,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 val next = map(ipos.x + vec.x, ipos.y + vec.y)
                 val next0 = map(ipos.x + vec.x, ipos.y)
                 val next1 = map(ipos.x, ipos.y + vec.y)
-                if (!next.walkable && !next0.walkable && !next1.walkable) {
+                if (!next.notWalk && !next0.notWalk && !next1.notWalk) {
                     next.center(tpos)
                     val cost = position.dis(tpos)
                     util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
@@ -285,7 +287,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
             }
             for (vec in relativeSides) {
                 val next = map(ipos.x + vec.x, ipos.y + vec.y)
-                if (!next.walkable) {
+                if (!next.notWalk) {
                     next.center(tpos)
                     val cost = position.dis(tpos)
                     util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
@@ -310,13 +312,13 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                     val next = map(ipos.x + vec.x, ipos.y + vec.y)
                     val next0 = map(ipos.x + vec.x, ipos.y)
                     val next1 = map(ipos.x, ipos.y + vec.y)
-                    if (!next.walkable && !next0.walkable && !next1.walkable) {
+                    if (!next.notWalk && !next0.notWalk && !next1.notWalk) {
                         util_tryAddRoute(next, dt, vec, nearest.temp_cost + cornerCost, true)
                     }
                 }
                 for (vec in relativeSides) {
                     val next = map(ipos.x + vec.x, ipos.y + vec.y)
-                    if (!next.walkable) {
+                    if (!next.notWalk) {
                         util_tryAddRoute(next, dt, vec, nearest.temp_cost + 1F, true)
                     }
                 }
