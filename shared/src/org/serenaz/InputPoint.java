@@ -1,5 +1,7 @@
 package org.serenaz;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 
 /**
@@ -12,6 +14,8 @@ public class InputPoint extends Point {
         public boolean isBeach = false;
         public int height = -1;
         public ArrayList<Edge> edges = new ArrayList<>();
+        @Nullable  public InputPoint left;
+        @Nullable  public InputPoint right;
 
         public boolean nearSea() {
             for (Edge e : edges) {

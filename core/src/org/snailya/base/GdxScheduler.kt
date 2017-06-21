@@ -26,7 +26,7 @@ object GdxScheduler : Scheduler() {
     }
 
     override fun scheduleDirect(run: Runnable, delay: Long, unit: TimeUnit?): Disposable {
-        if (delay != 0L) throw Error("Not supported")
+        assert(delay == 0L) {"Not supported"}
         return scheduleDirect(run)
     }
 

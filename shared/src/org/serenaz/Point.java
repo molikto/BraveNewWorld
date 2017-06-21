@@ -25,7 +25,15 @@ strictfp public class Point implements Comparable <Point> {
 			return -1;
 		}
 	}
-	
+
+	@Override
+	public boolean equals(Object obj) {
+	    if (obj instanceof Point) {
+	        return compareTo((Point) obj) == 0;
+		}
+		return false;
+	}
+
 	public String toString() {
 		return "(" + x + ", " + y + ")";
 	}

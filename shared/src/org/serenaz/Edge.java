@@ -18,6 +18,8 @@ strictfp public class Edge {
 	public double samplePointY;
 
 
+
+
 	/**
 	 * change the edge to region [0, 1], or return false, if the edge is entirely outside
 	 */
