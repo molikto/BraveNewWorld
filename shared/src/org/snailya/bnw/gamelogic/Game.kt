@@ -26,6 +26,28 @@ open class WalkerConfig {
 //
 //}
 
+enum class GroundType {
+    Ocean, Sand, Grassland, Highland, Mountain
+}
+
+
+class MapTile {
+    lateinit var position: IntVector2
+    @Strictfp
+    inline fun center(s: StrictVector2): StrictVector2 {
+        s.x = position.x + 0.5F
+        s.y = position.y + 0.5F
+        return s
+    }
+    val walkable: Boolean
+        get() = groundType == GroundType.Mountain || groundType == GroundType.Highland
+    lateinit var groundType: GroundType
+
+    var temp_cost: Float = 0F
+    var temp_priority: Float = 0F
+    var temp_visited: Int = -1
+    var temp_ttpo: IntVector2 = IntVector2.Zero // to the previous of
+}
 
 class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
@@ -49,29 +71,15 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
 
 
-    class MapTile {
-        lateinit var position: IntVector2
-        @Strictfp
-        inline fun center(s: StrictVector2): StrictVector2 {
-            s.x = position.x + 0.5F
-            s.y = position.y + 0.5F
-            return s
-        }
-        var rock = false
-
-        var temp_cost: Float = 0F
-        var temp_priority: Float = 0F
-        var temp_visited: Int = -1
-        var temp_ttpo: IntVector2 = IntVector2.Zero // to the previous of
-    }
 
 
     inner class Map {
         // tiles 0.... 99, metrics 0..1...100
         val size = 100
-        val map: Array<Array<MapTile>> = Array(size, { x ->  Array(size, { y -> configured(MapTile()) { rock = x == 0 || y == 0 || x == size - 1 || y == size - 1; position = ivec2(x, y) } })})
-
         val debug_mapGen = MapGen(random, size)
+        val map: Array<Array<MapTile>> = debug_mapGen.gen()
+
+
 
         fun random() = map[random.nextInt(size)][random.nextInt(size)]
 
@@ -81,16 +89,12 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
         inline operator fun invoke(x: Int, y: Int) = map[x][y]
         inline operator fun invoke(x: Float, y: Float) = map[x.toInt()][y.toInt()]
 
-        init { // temp generate map and players
-            val hasBlocks = (0 until size / 5).map { (0 until size / 5).map { random.nextInt(10) == 0 } }
-            for (i in 0 until size) for (j in 0 until size) map[i][j].rock = map[i][j].rock || hasBlocks[i / 5][j / 5];
-        }
 
         // TODO return the hit point
         @Strictfp
         fun hitWall(a: StrictVector2, b: StrictVector2): MapTile? {
             if (a.x < 0 || a.y < 0 || a.x >= size || a.y >= size) return null
-            if (this(a).rock) return this(a)
+            if (this(a).walkable) return this(a)
             val higher = if (a.y > b.y) a else b
             val lower = if (a.y > b.y) b else a
             val vertical = a.x == b.x
@@ -102,36 +106,36 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 if (x.toFloat() == fx) { // a exact value
                     if (slope > 0F) {
                         var can1 = this(x, y)
-                        if (can1.rock) return can1
+                        if (can1.walkable) return can1
                         can1 = this(x - 1, y - 1)
-                        if (can1.rock) return can1
+                        if (can1.walkable) return can1
                         can1 = this(x, y - 1)
                         val can2 = this(x - 1, y)
-                        if (can1.rock && can2.rock) return if (random.nextBoolean()) can1 else can2
+                        if (can1.walkable && can2.walkable) return if (random.nextBoolean()) can1 else can2
                     } else if (slope < 0F) {
                         var can1 = this(x - 1, y)
-                        if (can1.rock) return can1
+                        if (can1.walkable) return can1
                         can1 = this(x, y - 1)
-                        if (can1.rock) return can1
+                        if (can1.walkable) return can1
                         can1 = this(x, y)
                         val can2 = this(x - 1, y - 1)
-                        if (can1.rock && can2.rock) return if (random.nextBoolean()) can1 else can2
+                        if (can1.walkable && can2.walkable) return if (random.nextBoolean()) can1 else can2
                     } else {
                         // TODO... make it better, whatever
                         var can1 = this(x, y)
-                        if (can1.rock) return can1
+                        if (can1.walkable) return can1
                         can1 = this(x - 1, y - 1)
-                        if (can1.rock) return can1
+                        if (can1.walkable) return can1
                         can1 = this(x - 1, y)
-                        if (can1.rock) return can1
+                        if (can1.walkable) return can1
                         can1 = this(x, y - 1)
-                        if (can1.rock) return can1
+                        if (can1.walkable) return can1
                     }
                 } else {
                     var can1 = this(x, y)
-                    if (can1.rock) return can1
+                    if (can1.walkable) return can1
                     can1 = this(x, y - 1)
-                    if (can1.rock) return can1
+                    if (can1.walkable) return can1
                 }
             }
             return null
@@ -191,7 +195,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
         for (a in agents) {
             while (true) {
                 val t = map.random()
-                if (!t.rock) {
+                if (!t.walkable) {
                     t.center(a.position)
                     break
                 }
@@ -255,8 +259,8 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
         @Strictfp operator fun invoke(position: StrictVector2, dest: IntVector2, /* out */ route: MutableList<MapTile>) {
             val dt = map(dest)
-            if (dt.rock) {
-                println("glitch: dest is rock")
+            if (dt.walkable) {
+                println("glitch: dest is walkable")
                 return
             }
             route.clear()
@@ -273,7 +277,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 val next = map(ipos.x + vec.x, ipos.y + vec.y)
                 val next0 = map(ipos.x + vec.x, ipos.y)
                 val next1 = map(ipos.x, ipos.y + vec.y)
-                if (!next.rock && !next0.rock && !next1.rock) {
+                if (!next.walkable && !next0.walkable && !next1.walkable) {
                     next.center(tpos)
                     val cost = position.dis(tpos)
                     util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
@@ -281,7 +285,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
             }
             for (vec in relativeSides) {
                 val next = map(ipos.x + vec.x, ipos.y + vec.y)
-                if (!next.rock) {
+                if (!next.walkable) {
                     next.center(tpos)
                     val cost = position.dis(tpos)
                     util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
@@ -306,13 +310,13 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                     val next = map(ipos.x + vec.x, ipos.y + vec.y)
                     val next0 = map(ipos.x + vec.x, ipos.y)
                     val next1 = map(ipos.x, ipos.y + vec.y)
-                    if (!next.rock && !next0.rock && !next1.rock) {
+                    if (!next.walkable && !next0.walkable && !next1.walkable) {
                         util_tryAddRoute(next, dt, vec, nearest.temp_cost + cornerCost, true)
                     }
                 }
                 for (vec in relativeSides) {
                     val next = map(ipos.x + vec.x, ipos.y + vec.y)
-                    if (!next.rock) {
+                    if (!next.walkable) {
                         util_tryAddRoute(next, dt, vec, nearest.temp_cost + 1F, true)
                     }
                 }

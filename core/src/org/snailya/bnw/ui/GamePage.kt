@@ -13,6 +13,7 @@ import ktx.scene2d.*
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
+import org.snailya.bnw.gamelogic.GroundType
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
@@ -39,8 +40,7 @@ class GamePage(val c: ServerConnection) : Page() {
      * game textures should be later defined in data files, not here
      */
     val debug_img = Texture("badlogic.jpg")
-    val sand = Texture("sand.png")
-    val rock = Texture("rock.png")
+    val groundTextures = GroundType.values().map { Texture("GroundType/${it.name}.png") }
     val black= Texture("black.png")
     val white = Texture("white.png")
 
@@ -106,7 +106,7 @@ class GamePage(val c: ServerConnection) : Page() {
         if (!c.gamePaused) {
             if (Gdx.input.justTouched()) {
                 val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
-                if (!g.map(dest).rock) {
+                if (!g.map(dest).walkable) {
                     commands.add(PlayerCommand(dest))
                 }
             }
@@ -201,7 +201,7 @@ class GamePage(val c: ServerConnection) : Page() {
         for (y in top until bottom) {
             for (x in left until right) {
                 val tile = g.map(x, y)
-                batch.draw(if (tile.rock) rock else sand, x.tf, y.tf, 1F, 1F)
+                batch.draw(groundTextures[tile.groundType.ordinal], x.tf, y.tf, 1F, 1F)
                 if (true) {
                     if (g.findRoute.counter == tile.temp_visited) {
                         batch.color = Color(1F, 1F, 1F, tile.temp_cost / 30)
@@ -230,19 +230,38 @@ class GamePage(val c: ServerConnection) : Page() {
 
         batch.end()
 
-        debug_renderVoronoiDiagram()
+         debug_renderVoronoiDiagram()
     }
 
 
     val shapeRenderer = ShapeRenderer()
     private fun debug_renderVoronoiDiagram() {
-        shapeRenderer.projectionMatrix = projection
-        shapeRenderer.setAutoShapeType(true)
-        shapeRenderer.begin()
+        val renderer = shapeRenderer
+        renderer.projectionMatrix = projection
+        renderer.begin(ShapeRenderer.ShapeType.Line)
         val size = g.map.size
-        for (e in g.map.debug_mapGen.debug_edges) shapeRenderer.line((e.start.x * size).toFloat(), (e.start.y * size).toFloat(), (e.end.x * size).toFloat(), (e.end.y * size).toFloat())
-        for (p in g.map.debug_mapGen.res) shapeRenderer.circle(p.x, p.y, 0.2F)
-        shapeRenderer.end()
+        for (e in g.map.debug_mapGen.debug_edges) {
+            renderer.line((e.start.x * size).toFloat(), (e.start.y * size).toFloat(), (e.end.x * size).toFloat(), (e.end.y * size).toFloat())
+        }
+        renderer.end()
+        renderer.begin(ShapeRenderer.ShapeType.Filled)
+        for (p in g.map.debug_mapGen.debug_points) {
+            if (p.attachment.isSea) {
+                renderer.color = Color.BLUE
+            } else if (p.attachment.isBeach) {
+                renderer.color = Color.BROWN
+            } else if (p.attachment.height < 2) {
+                renderer.color = Color.GREEN
+            } else if (p.attachment.height < 3) {
+                renderer.color = Color.DARK_GRAY
+            } else if (p.attachment.height < 4) {
+                renderer.color = Color.GRAY
+            } else {
+                renderer.color = Color.WHITE
+            }
+            renderer.circle((p.x / p.edgeCount / 2 * size).toFloat(), (p.y  / p.edgeCount / 2 * size).toFloat(), 1F)
+        }
+        renderer.end()
     }
 
 

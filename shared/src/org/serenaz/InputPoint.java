@@ -10,6 +10,7 @@ public class InputPoint extends Point {
     public static class Attachment {
         public boolean isSea = false;
         public boolean isBeach = false;
+        public int height = -1;
         public ArrayList<Edge> edges = new ArrayList<>();
 
         public boolean nearSea() {
