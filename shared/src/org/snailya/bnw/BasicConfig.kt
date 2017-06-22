@@ -19,6 +19,8 @@ object GameConfigAsserts {
     }
 }
 
+private val debug_nothing = GameConfigAsserts.hashCode()
+
 // second value to per tick value
 val Float.ps
     get() = this / gameTickPerSecond

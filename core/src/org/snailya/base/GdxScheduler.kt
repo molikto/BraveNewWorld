@@ -6,11 +6,6 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
 import java.util.concurrent.TimeUnit
 import io.reactivex.plugins.RxJavaPlugins
-import com.sun.javafx.animation.TickCalculation.toMillis
-import io.reactivex.Completable
-import io.reactivex.Flowable
-import io.reactivex.functions.Function
-import ktx.log.info
 
 
 /**

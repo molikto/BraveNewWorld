@@ -1,6 +1,5 @@
 package org.snailya.bnw.ui
 
-import com.esotericsoftware.kryonet.Server
 import ktx.scene2d.*
 import org.snailya.base.*
 import org.snailya.bnw.bnw

@@ -22,13 +22,13 @@ open class WalkerConfig {
 //    Snow, Sand, Soil, SoilRich,
 ////    Snow, Tundra, Bare, Scorched,
 ////    Taiga, Shrubland, TemperateDesert,
-////    TemperateRainForest, TemperateDec, Grassland,
+////    TemperateRainForest, TemperateDec, Soil,
 ////    TropicalRainForest, TropicalSeasonalForest, SubtropicalDesert
 //
 //}
 
 enum class GroundType {
-    Ocean, Sand, Grassland, Highland, Mountain
+    Ocean, Sand, Soil, Gravel, TileStone
 }
 
 
@@ -41,7 +41,7 @@ class MapTile {
         return s
     }
     val notWalk: Boolean
-        get() = groundType == GroundType.Mountain || groundType == GroundType.Highland || groundType == GroundType.Ocean
+        get() = groundType == GroundType.TileStone || groundType == GroundType.Gravel || groundType == GroundType.Ocean
     lateinit var groundType: GroundType
     lateinit var debug_inputPoint: InputPoint
 

@@ -371,9 +371,9 @@ class MapGen(val random: Random, val size: Int) {
     fun groundTypeOf(top: InputPoint) : GroundType =
         if (top.attachment.isSea) GroundType.Ocean
         else if (top.attachment.isBeach) GroundType.Sand
-        else if (top.attachment.height < 2) GroundType.Grassland
-        else if (top.attachment.height < 3) GroundType.Highland
-        else GroundType.Mountain
+        else if (top.attachment.height < 2) GroundType.Soil
+        else if (top.attachment.height < 3) GroundType.Gravel
+        else GroundType.TileStone
 
 }
 

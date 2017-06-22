@@ -10,11 +10,6 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.utils.Scaling
-import com.badlogic.gdx.utils.viewport.ScalingViewport
-import com.badlogic.gdx.graphics.g2d.BitmapFont
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import ktx.scene2d.KTableWidget
 import ktx.log.*
@@ -104,7 +99,9 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
     fun backBufferWidth() = graphics.backBufferWidth
     fun backBufferHeight() = graphics.backBufferHeight
 
-    val batch = SpriteBatch(100, shaderOf("default"))
+    val shaderDefault = shaderOf("default")
+
+    val batch = SpriteBatch(100, shaderDefault)
 
     /**
      * these are calculated ourselves, seems good to NOT use LIBGDX's API

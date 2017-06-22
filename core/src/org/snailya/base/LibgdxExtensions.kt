@@ -2,6 +2,7 @@ package org.snailya.base
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.TextureArray
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
@@ -20,7 +21,6 @@ import ktx.scene2d.KTableWidget
 import ktx.scene2d.KWidget
 import ktx.scene2d.Scene2DSkin
 import ktx.scene2d.defaultStyle
-
 
 
 inline fun post(crossinline a: () -> Unit) = Gdx.app.postRunnable { a.invoke() }
@@ -51,7 +51,6 @@ fun Actor.onClick(action: (event: InputEvent, x: Float, y: Float) -> Unit) = thi
  */
 
 
-
 /**
  * Kotlin math functions
  */
@@ -77,10 +76,10 @@ val identityMatrix4 = Matrix4()
 fun identityMatrix4() = Matrix4()
 
 
-inline fun  Vector2.svec2(): StrictVector2 = svec2(x, y)
-inline fun  StrictVector2.vec2(): Vector2 = vec2(x, y)
+inline fun Vector2.svec2(): StrictVector2 = svec2(x, y)
+inline fun StrictVector2.vec2(): Vector2 = vec2(x, y)
 
-inline fun  Vector2.ivec2(): IntVector2 = ivec2(x.toInt(), y.toInt())
+inline fun Vector2.ivec2(): IntVector2 = ivec2(x.toInt(), y.toInt())
 
 
 /**
@@ -94,6 +93,14 @@ inline fun  Vector2.ivec2(): IntVector2 = ivec2(x.toInt(), y.toInt())
 
 inline fun textureOf(s: String, extension: String = "png") = Texture("textures/$s.$extension")
 
+inline fun textureArrayOf(s: List<String>, extension: String = "png") = textureArrayOf(s.toTypedArray(), extension)
+
+inline fun textureArrayOf(s: Array<String>, extension: String = "png"): TextureArray {
+    for (i in 0 until s.size) {
+        s[i] = "textures/$i.$extension"
+    }
+    return TextureArray(*s)
+}
 
 
 inline fun shaderOf(vertex: String, frag: String = vertex): ShaderProgram {

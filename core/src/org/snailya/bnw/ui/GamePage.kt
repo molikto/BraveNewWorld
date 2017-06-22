@@ -3,7 +3,9 @@ package org.snailya.bnw.ui
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.SpriteCache
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
@@ -39,9 +41,16 @@ class GamePage(val c: ServerConnection) : Page() {
      *
      * game textures should be later defined in data files, not here
      */
-    val groundTextures = GroundType.values().map { textureOf("GroundType/${it.name}") }
-    val black= textureOf("black")
-    val white = textureOf("white")
+    object textures {
+        val groundTypes = textureArrayOf(GroundType.values().map { "GroundType/${it.name}" })
+        val black= textureOf("black")
+        val white = textureOf("white")
+    }
+
+
+    object shaders {
+        val terrain = shaderOf("terrain")
+    }
 
 
 
@@ -91,6 +100,8 @@ class GamePage(val c: ServerConnection) : Page() {
     /**
      * rendering
      */
+
+
     val projection: Matrix4 = Matrix4()
     val inverseProjection : Matrix4 = Matrix4()
 
@@ -103,6 +114,7 @@ class GamePage(val c: ServerConnection) : Page() {
      */
     var gameTickedTime = c.gameStartTime
     var networkTickedTime: Long = c.gameStartTime
+
 
     override fun render() {
 
@@ -202,40 +214,47 @@ class GamePage(val c: ServerConnection) : Page() {
         val bottom = Math.min(gbr.y.toInt() + 1 + margin, g.map.size)
         val right = Math.min(gbr.x.toInt() + 1 + margin, g.map.size)
 
-        batch.begin()
 
-        for (t in GroundType.values()) {
-            for (y in top until bottom) {
-                for (x in left until right) {
-                    val tile = g.map(x, y)
-                    if (tile.groundType == t) {
-                        batch.draw(groundTextures[tile.groundType.ordinal], x.tf, y.tf, 1F, 1F)
-                        if (true) {
-                            if (g.findRoute.counter == tile.temp_visited) {
-                                batch.color = Color(1F, 1F, 1F, tile.temp_cost / 30)
-                                batch.draw(black, x.tf, y.tf, 1F, 1F)
-                                batch.color = Color.WHITE
-                            }
-                        }
-                    }
-                }
+        shaders.terrain.begin()
+        shaders.terrain.setUniformMatrix("u_projTrans", projection)
+        shaders.terrain.setUniformi("u_texture", 0)
+        textures.groundTypes.bind()
+
+        for (y in top until bottom) {
+            for (x in left until right) {
+                val tile = g.map(x, y)
+                batch.draw(textures.groundTypes, x.tf, y.tf, 1F, 1F)
             }
         }
+
+        shaders.terrain.end()
+
+//        if (false) {
+//            if (g.findRoute.counter == tile.temp_visited) {
+//                batch.color = Color(1F, 1F, 1F, tile.temp_cost / 30)
+//                batch.draw(textures.black, x.tf, y.tf, 1F, 1F)
+//                batch.color = Color.WHITE
+//            }
+//        }
+
+        batch.begin()
+
         // TODO maybe I need a different shader for the background and moving things, or different projection..
         for (agent in g.agents) {
-            batch.draw(black, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
+            batch.draw(textures.black, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
             if (agent.lockingOnTarget != null) {
                 val lockOnSize = agent.lockingOnTime / agent.totalLockOnTime
-                batch.draw(black, agent.position.x - lockOnSize/2, agent.position.y - lockOnSize/2, lockOnSize, lockOnSize)
+                batch.draw(textures.black, agent.position.x - lockOnSize/2, agent.position.y - lockOnSize/2, lockOnSize, lockOnSize)
             }
             if (agent.health != agent.maxHealth) {
                 batch.color = Color.RED
-                batch.draw(white, agent.position.x - 0.5F, agent.position.y - 0.5F, 0.1F, agent.health / agent.maxHealth)
+                batch.draw(textures.white, agent.position.x - 0.5F, agent.position.y - 0.5F, 0.1F, agent.health / agent.maxHealth)
+                GL20.GL_TEXTURE0
                 batch.color = Color.WHITE
             }
         }
         for (bullet in g.bullets) {
-            batch.draw(black, bullet.position.x - 0.1F, bullet.position.y - 0.1F, 0.2F, 0.2F)
+            batch.draw(textures.black, bullet.position.x - 0.1F, bullet.position.y - 0.1F, 0.2F, 0.2F)
         }
 
         batch.end()

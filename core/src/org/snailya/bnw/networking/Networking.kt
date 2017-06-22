@@ -12,7 +12,6 @@ import ktx.log.info
 import org.snailya.base.GdxScheduler
 import org.snailya.base.*
 import org.snailya.bnw.*
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 
 class ServerConnection(val ip: String) {
