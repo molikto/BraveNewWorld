@@ -104,7 +104,7 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
     fun backBufferWidth() = graphics.backBufferWidth
     fun backBufferHeight() = graphics.backBufferHeight
 
-    val batch = SpriteBatch()
+    val batch = SpriteBatch(100, shaderOf("default"))
 
     /**
      * these are calculated ourselves, seems good to NOT use LIBGDX's API

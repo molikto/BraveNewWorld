@@ -1,8 +1,10 @@
 package org.snailya.base
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.math.Matrix3
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
@@ -19,9 +21,6 @@ import ktx.scene2d.KWidget
 import ktx.scene2d.Scene2DSkin
 import ktx.scene2d.defaultStyle
 
-/**
- * Created by molikto on 07/06/2017.
- */
 
 
 inline fun post(crossinline a: () -> Unit) = Gdx.app.postRunnable { a.invoke() }
@@ -44,6 +43,13 @@ fun Actor.onClick(action: (x: Float, y: Float) -> Unit) = this.addListener(objec
 fun Actor.onClick(action: (event: InputEvent, x: Float, y: Float) -> Unit) = this.addListener(object : ClickListener() {
     override fun clicked(event: InputEvent, x: Float, y: Float) = action.invoke(event, x, y)
 })
+
+/**
+ *
+ * create shader
+ *
+ */
+
 
 
 /**
@@ -76,3 +82,22 @@ inline fun  StrictVector2.vec2(): Vector2 = vec2(x, y)
 
 inline fun  Vector2.ivec2(): IntVector2 = ivec2(x.toInt(), y.toInt())
 
+
+/**
+ *
+ * helper functions
+ *
+ *
+ * convention over configuration
+ */
+
+
+inline fun textureOf(s: String, extension: String = "png") = Texture("textures/$s.$extension")
+
+
+
+inline fun shaderOf(vertex: String, frag: String = vertex): ShaderProgram {
+    val shader = ShaderProgram(Gdx.files.internal("shaders/$vertex.vert"), Gdx.files.internal("shaders/$frag.frag"))
+    if (!shader.isCompiled()) throw IllegalArgumentException("Error compiling shader: " + shader.getLog())
+    return shader
+}

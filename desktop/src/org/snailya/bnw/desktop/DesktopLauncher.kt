@@ -12,6 +12,7 @@ object DesktopLauncher {
         logger = {s -> info{s}}
         val config = Lwjgl3ApplicationConfiguration()
         config.setTitle("Brave New World")
+        config.useOpenGL3(true, 3, 3)
         //config.setIdleFPS(120)
         val width = 736
         val height = 410

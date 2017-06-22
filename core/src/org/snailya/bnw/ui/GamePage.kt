@@ -39,10 +39,9 @@ class GamePage(val c: ServerConnection) : Page() {
      *
      * game textures should be later defined in data files, not here
      */
-    val debug_img = Texture("badlogic.jpg")
-    val groundTextures = GroundType.values().map { Texture("GroundType/${it.name}.png") }
-    val black= Texture("black.png")
-    val white = Texture("white.png")
+    val groundTextures = GroundType.values().map { textureOf("GroundType/${it.name}") }
+    val black= textureOf("black")
+    val white = textureOf("white")
 
 
 
@@ -59,7 +58,7 @@ class GamePage(val c: ServerConnection) : Page() {
         ui = table {
             debug_info = label("")
             row()
-            debug = true
+            //debug = true
         }
     }
 
@@ -224,7 +223,7 @@ class GamePage(val c: ServerConnection) : Page() {
         }
         // TODO maybe I need a different shader for the background and moving things, or different projection..
         for (agent in g.agents) {
-            batch.draw(debug_img, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
+            batch.draw(black, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
             if (agent.lockingOnTarget != null) {
                 val lockOnSize = agent.lockingOnTime / agent.totalLockOnTime
                 batch.draw(black, agent.position.x - lockOnSize/2, agent.position.y - lockOnSize/2, lockOnSize, lockOnSize)
@@ -281,7 +280,7 @@ class GamePage(val c: ServerConnection) : Page() {
 
 
     override fun dispose() {
-        debug_img.dispose()
+        // TODO textures
     }
 
 }
