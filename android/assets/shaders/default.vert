@@ -1,16 +1,18 @@
 #version 330 core
 
-in vec4 a_position;
-in vec4 a_color;
-in vec2 a_texCoord0;
-uniform mat4 u_projTrans;
-out vec4 v_color;
-out vec2 v_texCoords;
+uniform mat4 u_projTrans; // DON'T CHANGE! LibGDX used
+
+in vec4 a_position; // DON'T CHANGE! LibGDX used
+in vec4 a_color; // DON'T CHANGE! LibGDX used
+in vec2 a_texCoord0; // DON'T CHANGE! LibGDX used
+
+out vec4 color;
+out vec2 texCoords;
 
 void main()
 {
-   v_color = a_color;
-   v_color.a = v_color.a * (255.0/254.0);
-   v_texCoords = a_texCoord0;
+   color = a_color;
+   color.a = color.a * (255.0/254.0);
+   texCoords = a_texCoord0;
    gl_Position =  u_projTrans * a_position;
 }
