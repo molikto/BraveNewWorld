@@ -3,7 +3,6 @@ package org.snailya.bnw.ui
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Matrix4
@@ -11,6 +10,8 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import ktx.math.*
 import ktx.scene2d.*
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL20
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
@@ -231,16 +232,17 @@ class GamePage(val c: ServerConnection) : Page() {
 
         run {
             val shader = shaders.terrain
-            val textures = textures.groundTypes
+            val textureArray = textures.groundTypes
             shader.begin()
+            textureArray.bind()
             shader.setUniformMatrix("projection", projection)
             shader.setUniformi("texture", 0)
-            textures.bind()
+            GL11.glPointSize()
 
             for (y in top until bottom) {
                 for (x in left until right) {
                     val tile = g.map(x, y)
-                    //batch.draw(textures, x.tf, y.tf, 1F, 1F)
+                    //batch.draw(textureArray, x.tf, y.tf, 1F, 1F)
                 }
             }
 
@@ -267,7 +269,6 @@ class GamePage(val c: ServerConnection) : Page() {
             if (agent.health != agent.maxHealth) {
                 batch.color = Color.RED
                 batch.draw(textures.white, agent.position.x - 0.5F, agent.position.y - 0.5F, 0.1F, agent.health / agent.maxHealth)
-                GL20.GL_TEXTURE0
                 batch.color = Color.WHITE
             }
         }
