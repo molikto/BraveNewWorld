@@ -5,7 +5,6 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.SpriteCache
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
@@ -19,6 +18,7 @@ import org.snailya.bnw.gamelogic.GroundType
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
+import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 /**
  *
@@ -42,6 +42,9 @@ class GamePage(val c: ServerConnection) : Page() {
      * game textures should be later defined in data files, not here
      */
     object textures {
+        /**
+         * currently a texture contains 16 tiles...
+         */
         val groundTypes = textureArrayOf(GroundType.values().map { "GroundType/${it.name}" })
         val black= textureOf("black")
         val white = textureOf("white")
@@ -52,12 +55,10 @@ class GamePage(val c: ServerConnection) : Page() {
         val terrain = shaderOf("terrain")
     }
 
+    object meshes {
 
+    }
 
-    /**
-     * game simulation
-     */
-    val g = BnwGame(c.myIndex, c.playerSize, c.serverGameStartTime)
 
     /**
      * ui
@@ -70,6 +71,24 @@ class GamePage(val c: ServerConnection) : Page() {
             //debug = true
         }
     }
+
+    /**
+     * game simulation
+     */
+    val g = BnwGame(c.myIndex, c.playerSize, c.serverGameStartTime)
+
+    /**
+     * commands buffer
+     */
+    val commands = mutableListOf<PlayerCommand>()
+
+
+    /**
+     * ticks
+     */
+    var gameTickedTime = c.gameStartTime
+    var networkTickedTime: Long = c.gameStartTime
+
 
     /**
      * game ui
@@ -92,16 +111,10 @@ class GamePage(val c: ServerConnection) : Page() {
         }
     }
 
-    /**
-     * commands
-     */
-    val commands = mutableListOf<PlayerCommand>()
 
     /**
      * rendering
      */
-
-
     val projection: Matrix4 = Matrix4()
     val inverseProjection : Matrix4 = Matrix4()
 
@@ -109,16 +122,12 @@ class GamePage(val c: ServerConnection) : Page() {
             vec2(x.tf * 2 / game.backBufferWidth() - 1, 1 - y.tf * 2 / game.backBufferHeight()).extends().mul(inverseProjection).lose()
 
 
-    /**
-     * ticks
-     */
-    var gameTickedTime = c.gameStartTime
-    var networkTickedTime: Long = c.gameStartTime
-
 
     override fun render() {
 
-        // if not paused - enqueue game input
+        /**
+         * command buffer
+         */
         if (!c.gamePaused) {
             if (Gdx.input.justTouched()) {
                 val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
@@ -136,7 +145,9 @@ class GamePage(val c: ServerConnection) : Page() {
 //        }
 
 
-        // tick the network and game - maybe causing a pause
+        /**
+         * tick the network and game - maybe causing a pause
+         */
         val time = System.currentTimeMillis()
         if (c.gamePaused && c.received != null) {
             gameTickedTime = c.receivedTime - timePerGameTick
@@ -169,15 +180,18 @@ class GamePage(val c: ServerConnection) : Page() {
         }
         // info { "game tick $gameTicks, net tick $netTicks" }
 
-        // game paused UI, just return
+        /**
+         * game paused UI, just return
+         */
         if (c.gamePaused) {
             debug_info.setText("PAUSED")
             return
         }
 
 
-        // local input
-
+        /**
+        * local input
+        */
         run {
             val delta = Gdx.graphics.deltaTime
             val direction = vec2(0F, 0F)
@@ -215,19 +229,23 @@ class GamePage(val c: ServerConnection) : Page() {
         val right = Math.min(gbr.x.toInt() + 1 + margin, g.map.size)
 
 
-        shaders.terrain.begin()
-        shaders.terrain.setUniformMatrix("u_projTrans", projection)
-        shaders.terrain.setUniformi("u_texture", 0)
-        textures.groundTypes.bind()
+        run {
+            val shader = shaders.terrain
+            val textures = textures.groundTypes
+            shader.begin()
+            shader.setUniformMatrix("projection", projection)
+            shader.setUniformi("texture", 0)
+            textures.bind()
 
-        for (y in top until bottom) {
-            for (x in left until right) {
-                val tile = g.map(x, y)
-                batch.draw(textures.groundTypes, x.tf, y.tf, 1F, 1F)
+            for (y in top until bottom) {
+                for (x in left until right) {
+                    val tile = g.map(x, y)
+                    //batch.draw(textures, x.tf, y.tf, 1F, 1F)
+                }
             }
-        }
 
-        shaders.terrain.end()
+            shader.end()
+        }
 
 //        if (false) {
 //            if (g.findRoute.counter == tile.temp_visited) {
