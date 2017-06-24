@@ -10,17 +10,23 @@ use point primitive
 one tile = one vertex = (game position, tile type)
 
 
+one texture = 16 tile, so position.toInt % 16
+texture size is got from textureSize function
 */
 
 uniform mat4 projection; // map -> framebuffer
+uniform sampler2DArray texture; // DON'T CHANGE!
 
-in vec4 position; // actually vec2 of the center of tile, in map coordinate
+ // TODO change all of them to integers
+in vec2 position;
 in float v_groundType;
-flat out float f_groundType;
-flat out vec2 texturePosition;
+flat out int f_groundType;
+flat out ivec2 tileTextureIndex; // the texture index of the center of the point
+
 
 void main()
 {
-   gl_Position = projection * position;
-   f_groundType = v_groundType;
+   gl_Position = projection * vec4(position, 0, 0);
+   f_groundType = int(v_groundType);
+   tileTextureIndex = ivec2(int(position.x) % 16, int(position.y) % 16);
 }
