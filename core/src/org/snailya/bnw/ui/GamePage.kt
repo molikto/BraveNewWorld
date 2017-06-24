@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import ktx.math.*
 import ktx.scene2d.*
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.glTexParameteri
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
@@ -131,7 +132,6 @@ class GamePage(val c: ServerConnection) : Page() {
             vec2(x.tf * 2 / game.backBufferWidth() - 1, 1 - y.tf * 2 / game.backBufferHeight()).extends().mul(inverseProjection).lose()
 
 
-
     override fun render() {
 
         /**
@@ -239,15 +239,20 @@ class GamePage(val c: ServerConnection) : Page() {
 
 
         run {
+            // constants
+            val paddingSize = 0.2F // in game coordinate
+            val pointSize = 1 + paddingSize * 2
+
             val shader = gl.terrain.shader
             val textureArray = gl.terrain.textureArray
             val mesh = gl.terrain.mesh
             val cache = gl.terrain.cache
 
-            val paddingSize = 0.1F // in game coordinate
-            val pointSize = zoom * (1 + paddingSize * 2)
-
-            GL11.glPointSize(pointSize)
+            GL11.glPointSize(zoom * pointSize)
+            gl20.glEnable(GL20.GL_BLEND)
+            gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+//            gl20.glClearColor(0F, 0F, 0F, 0F)
+//            gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_BLEND_SRC_ALPHA)
             shader.begin()
             textureArray.bind()
             shader.setUniformMatrix("projection", projection)
