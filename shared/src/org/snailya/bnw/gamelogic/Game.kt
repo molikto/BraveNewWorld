@@ -28,7 +28,8 @@ open class WalkerConfig {
 //}
 
 enum class GroundType {
-    Ocean, Sand, Soil, Gravel, TileStone
+    // TODO Ocean is changed to Ice for texture array
+    Ice, Sand, Soil, Gravel, TileStone
 }
 
 
@@ -41,7 +42,7 @@ class MapTile {
         return s
     }
     val notWalk: Boolean
-        get() = groundType == GroundType.TileStone || groundType == GroundType.Gravel || groundType == GroundType.Ocean
+        get() = groundType == GroundType.TileStone || groundType == GroundType.Gravel || groundType == GroundType.Ice
     lateinit var groundType: GroundType
     lateinit var debug_inputPoint: InputPoint
 

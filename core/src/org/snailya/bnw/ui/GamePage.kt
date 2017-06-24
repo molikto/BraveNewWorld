@@ -1,17 +1,19 @@
 package org.snailya.bnw.ui
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Gdx.gl
+import com.badlogic.gdx.Gdx.gl20
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.*
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.graphics.glutils.VertexBufferObjectWithVAO
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import ktx.math.*
 import ktx.scene2d.*
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL20
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
@@ -19,7 +21,6 @@ import org.snailya.bnw.gamelogic.GroundType
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 /**
  *
@@ -46,19 +47,25 @@ class GamePage(val c: ServerConnection) : Page() {
         /**
          * currently a texture contains 16 tiles...
          */
-        val groundTypes = textureArrayOf(GroundType.values().map { "GroundType/${it.name}" })
-        val black= textureOf("black")
+        val black = textureOf("black")
         val white = textureOf("white")
     }
 
 
-    object shaders {
-        val terrain = shaderOf("terrain")
+    object gl {
+        object terrain {
+            val shader = shaderOf("terrain")
+
+            val textureArray = textureArrayOf(GroundType.values().map { "GroundType/${it.name}" })
+
+            val cache = FloatArray(3000)
+            val mesh = Mesh(false, 1000, 0, VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
+                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_groundType"))
+
+        }
     }
 
-    object meshes {
 
-    }
 
 
     /**
@@ -98,7 +105,7 @@ class GamePage(val c: ServerConnection) : Page() {
     var focusSpeed = 10F
     val maxZoom = 33.dp
     val minZoom = 9.dp
-    var zoom = 20.dp
+    var zoom = 20.dp // how many back buffer width is 1 game meter?
 
     init {
         inputProcessor = object : BaseInputProcessor() {
@@ -110,6 +117,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 return true
             }
         }
+
     }
 
 
@@ -231,20 +239,37 @@ class GamePage(val c: ServerConnection) : Page() {
 
 
         run {
-            val shader = shaders.terrain
-            val textureArray = textures.groundTypes
+            val shader = gl.terrain.shader
+            val textureArray = gl.terrain.textureArray
+            val mesh = gl.terrain.mesh
+            val cache = gl.terrain.cache
+
+            val paddingSize = 0.1F // in game coordinate
+            val pointSize = zoom * (1 + paddingSize * 2)
+
+            GL11.glPointSize(pointSize)
             shader.begin()
             textureArray.bind()
             shader.setUniformMatrix("projection", projection)
             shader.setUniformi("texture", 0)
-            GL11.glPointSize()
 
+            var index = 0
             for (y in top until bottom) {
                 for (x in left until right) {
                     val tile = g.map(x, y)
-                    //batch.draw(textureArray, x.tf, y.tf, 1F, 1F)
+                    cache[index++] = tile.position.x + 0.5F
+                    cache[index++] = tile.position.y + 0.5F
+                    cache[index++] = tile.groundType.ordinal.toFloat()
+                    if (index == cache.size)  {
+                        mesh.setVertices(cache, 0, index)
+                        mesh.render(shader, GL20.GL_POINTS)
+                        index = 0
+                    }
                 }
             }
+            mesh.setVertices(cache, 0, index)
+            mesh.render(shader, GL20.GL_POINTS)
+            index = 0
 
             shader.end()
         }

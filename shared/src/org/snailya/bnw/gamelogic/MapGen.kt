@@ -178,7 +178,7 @@ class MapGen(val random: Random, val size: Int) {
                 currentPoint = null
                 search(root, testPoint, true)
                 map[i][j].groundType =
-                        if (i == 0 || j == 0 || i == size - 1 || j == size - 1) GroundType.Ocean
+                        if (i == 0 || j == 0 || i == size - 1 || j == size - 1) GroundType.Ice
                         else groundTypeOf(currentPoint!!)
                 map[i][j].debug_inputPoint = currentPoint!!
             }
@@ -369,7 +369,7 @@ class MapGen(val random: Random, val size: Int) {
     */
 
     fun groundTypeOf(top: InputPoint) : GroundType =
-        if (top.attachment.isSea) GroundType.Ocean
+        if (top.attachment.isSea) GroundType.Ice
         else if (top.attachment.isBeach) GroundType.Sand
         else if (top.attachment.height < 2) GroundType.Soil
         else if (top.attachment.height < 3) GroundType.Gravel

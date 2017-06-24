@@ -1,13 +1,12 @@
 #version 330 core
 
 // not actually used, using other textures now
-uniform sampler2DArray u_texture; // DON'T CHANGE!
+uniform sampler2DArray texture; // DON'T CHANGE!
 
-in vec4 color;
-in vec2 texCoords;
+flat in float f_groundType;
 
 out vec4 fragColor;
 
 void main() {
-  fragColor = color * texture(u_texture, texCoords);
+  fragColor = texture(texture, vec3(gl_PointCoord, f_groundType));
 }

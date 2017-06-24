@@ -70,6 +70,31 @@ project(":desktop") {
     }
 }
 
+
+project(":core") {
+    apply plugin: "java"
+    apply plugin: "kotlin"
+
+
+    dependencies {
+        compile project(":shared")
+
+        compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+        compile "io.github.libktx:ktx-math:$ktxVersion"
+        compile "io.github.libktx:ktx-style:$ktxVersion"
+        compile "io.github.libktx:ktx-scene2d:$ktxVersion"
+        compile "io.github.libktx:ktx-log:$ktxVersion"
+        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+        compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+
+        // we are using desktop API here, if we are not, these should be in DESKTOP project
+        compile "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+        compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+        compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+    }
+}
+
 //project(":android") {
 //    apply plugin: "android"
 //    apply plugin: "kotlin-android"
@@ -114,22 +139,4 @@ project(":desktop") {
 //        compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-ios"
 //    }
 //}
-
-project(":core") {
-    apply plugin: "java"
-    apply plugin: "kotlin"
-
-
-    dependencies {
-        compile project(":shared")
-
-        compile "com.badlogicgames.gdx:gdx:$gdxVersion"
-        compile "io.github.libktx:ktx-math:$ktxVersion"
-        compile "io.github.libktx:ktx-style:$ktxVersion"
-        compile "io.github.libktx:ktx-scene2d:$ktxVersion"
-        compile "io.github.libktx:ktx-log:$ktxVersion"
-        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
-        compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
-    }
-}
 
