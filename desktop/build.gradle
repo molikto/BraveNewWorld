@@ -4,7 +4,7 @@ apply plugin: 'kotlin'
 sourceSets.main.java.srcDirs = [ "src/" ]
 
 project.ext.mainClassName = "org.snailya.bnw.desktop.DesktopLauncher"
-project.ext.assetsDir = new File("../android/assets");
+project.ext.assetsDir = new File("../assets");
 
 task run(dependsOn: classes, type: JavaExec) {
     main = project.mainClassName
