@@ -1,8 +1,7 @@
 package org.snailya.bnw.ui
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Gdx.gl20
-import com.badlogic.gdx.Gdx.graphics
+import com.badlogic.gdx.Gdx.*
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -10,6 +9,8 @@ import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
+import com.badlogic.gdx.utils.Align.*
+import com.sun.corba.se.impl.util.RepositoryId.cache
 import ktx.math.*
 import ktx.scene2d.*
 import org.lwjgl.opengl.GL11
@@ -48,21 +49,6 @@ class GamePage(val c: ServerConnection) : Page() {
          */
         val black = textureOf("black")
         val white = textureOf("white")
-    }
-
-
-    object gl {
-        object terrain {
-            val shader = shaderOf("terrain")
-
-            val textureArray = textureArrayOf(Terrain.values().map { "Terrain/${it.name}" })
-
-            val cache = FloatArray(3000)
-            val mesh = Mesh(false, 1000, 0,
-                    VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
-                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain"))
-
-        }
     }
 
     override fun dispose() {
@@ -156,7 +142,7 @@ class GamePage(val c: ServerConnection) : Page() {
         if (c.gamePaused) return
         render_processLocalInput()
         render_setupProjection()
-        render_terrain()
+        terrain.render()
         //debug_renderPathFindingResult()
         render_sprites()
         //debug_renderVoronoiDiagram()
@@ -276,45 +262,38 @@ class GamePage(val c: ServerConnection) : Page() {
         batch.end()
     }
 
-    private fun render_terrain() {
+
+
+    val terrain = object : Batched(
+            shaderOf("terrain"),
+            attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
+                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
+            maxVertices = 4000,
+            texture = textureArrayOf(Terrain.values().map { "Terrain/${it.name}" }),
+            primitiveType = GL20.GL_POINTS
+            ) {
+
         // constants
         val paddingSize = 0.2F // in game coordinate
         val pointSize = 1 + paddingSize * 2
 
-        val shader = gl.terrain.shader
-        val textureArray = gl.terrain.textureArray
-        val mesh = gl.terrain.mesh
-        val cache = gl.terrain.cache
-
-        GL11.glPointSize(zoom * pointSize)
-        gl20.glEnable(GL20.GL_BLEND)
-        gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
-//            gl20.glClearColor(0F, 0F, 0F, 0F)
-//            gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_BLEND_SRC_ALPHA)
-        shader.begin()
-        textureArray.bind()
-        shader.setUniformMatrix("projection", projection)
-        shader.setUniformi("texture", 0)
-
-        var index = 0
-        for (y in top until bottom) {
-            for (x in left until right) {
-                val tile = g.map(x, y)
-                cache[index++] = tile.position.x + 0.5F
-                cache[index++] = tile.position.y + 0.5F
-                cache[index++] = tile.terrain.ordinal.toFloat()
-                if (index == cache.size)  {
-                    mesh.setVertices(cache, 0, index)
-                    mesh.render(shader, GL20.GL_POINTS)
-                    index = 0
+        override fun render() {
+            GL11.glPointSize(zoom * pointSize)
+            gl20.glEnable(GL20.GL_BLEND)
+            gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+            begin()
+            shader.setUniformMatrix("projection", projection)
+            shader.setUniformi("texture", 0)
+            for (y in top until bottom) {
+                for (x in left until right) {
+                    val tile = g.map(x, y)
+                    put(tile.position.x + 0.5F)
+                    put(tile.position.y + 0.5F)
+                    put(tile.terrain.ordinal.toFloat())
                 }
             }
+            end()
         }
-        mesh.setVertices(cache, 0, index)
-        mesh.render(shader, GL20.GL_POINTS)
-        index = 0
-
-        shader.end()
     }
 
 

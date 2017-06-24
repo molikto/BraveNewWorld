@@ -3,6 +3,8 @@ package org.snailya.base
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.TextureArray
+import com.badlogic.gdx.graphics.VertexAttribute
+import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
@@ -111,3 +113,5 @@ inline fun shaderOf(vertex: String, frag: String = vertex): ShaderProgram {
     if (!shader.isCompiled()) throw IllegalArgumentException("Error compiling shader: " + shader.getLog())
     return shader
 }
+
+inline fun attrs(vararg attrs: VertexAttribute) = VertexAttributes(*attrs)
