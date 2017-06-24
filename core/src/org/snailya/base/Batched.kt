@@ -7,10 +7,8 @@ import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.glutils.IndexBufferObject
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.VertexBufferObjectWithVAO
-import com.sun.corba.se.impl.util.RepositoryId.cache
-import com.sun.deploy.trace.Trace.flush
+import ktx.log.info
 import org.joor.Reflect
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 
 open class Batched(
@@ -20,20 +18,13 @@ open class Batched(
         val texture: GLTexture,
         val primitiveType: Int = GL20.GL_TRIANGLES,
         //val textures: Array<GLTexture> = emptyArray(),
-        staticVertices: Boolean = false,
         staticIndices: Boolean = false,
-        maxIndices: Int = 0
+        maxIndices: Int = 0,
+        staticVertices: Boolean = false
 ) {
-
-    val vbo = VertexBufferObjectWithVAO(staticVertices, maxVertices, attrs)
-    val vboBuffer = vbo.buffer
-    val ibo = IndexBufferObject(staticIndices, maxIndices)
-    val mesh: Mesh =  Reflect.on(Mesh::class.java).create(vbo, ibo, false).get<Mesh>()
+    val mesh: Mesh = Mesh(staticVertices, staticIndices, maxVertices, maxIndices, attrs)
 
     val bufferSize = attrs.vertexSize * maxVertices
-    init {
-        vbo.buffer
-    }
 
 
     fun begin() {
@@ -45,7 +36,7 @@ open class Batched(
     }
 
     fun end() {
-        flush()
+        _flush()
         shader.end()
     }
 
@@ -54,14 +45,30 @@ open class Batched(
     val _cache  = FloatArray(bufferSize)
 
     inline fun put(a: Float) {
-        if (_index >= _cache.size) {
-            flush()
+        if (_index == _cache.size) {
+            _flush()
         }
         val index = _index
         _cache[index + 0] = a
         _index += 1
     }
 
+
+    // TODO why cache??
+    inline fun put(
+            a0: Float,
+            a1: Float,
+            a2: Float
+    ) {
+        if (_index == _cache.size) {
+            _flush()
+        }
+        val index = _index
+        _cache[index + 0] = a0
+        _cache[index + 1] = a1
+        _cache[index + 2] = a2
+        _index += 3
+    }
 
 
     inline fun put(
@@ -75,8 +82,8 @@ open class Batched(
             a7: Float,
             a8: Float
     ) {
-        if (_index >= _cache.size) {
-            flush()
+        if (_index == _cache.size) {
+            _flush()
         }
         val index = _index
         _cache[index + 0] = a0
@@ -92,7 +99,7 @@ open class Batched(
     }
 
 
-    fun flush() {
+    fun _flush() {
         mesh.setVertices(_cache, 0, _index)
         _index = 0
         mesh.render(shader, primitiveType)

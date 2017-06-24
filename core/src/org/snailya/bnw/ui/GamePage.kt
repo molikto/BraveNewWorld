@@ -287,9 +287,9 @@ class GamePage(val c: ServerConnection) : Page() {
             for (y in top until bottom) {
                 for (x in left until right) {
                     val tile = g.map(x, y)
-                    put(tile.position.x + 0.5F)
-                    put(tile.position.y + 0.5F)
-                    put(tile.terrain.ordinal.toFloat())
+                    put(tile.position.x + 0.5F,
+                            tile.position.y + 0.5F,
+                            tile.terrain.ordinal.toFloat())
                 }
             }
             end()
