@@ -21,10 +21,10 @@ class AndroidLauncher : AndroidApplication() {
         try {
             wrapper?.dispose()
         } catch (e: Exception) {
-            // TODO why this throws exception???
+            // LATER why this throws exception???
             // ignore
         }
-        // TODO why this??
+        // LATER why this??
         // we do this because we used singletons in our app...
         android.os.Process.killProcess(android.os.Process.myPid())
     }

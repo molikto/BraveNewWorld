@@ -257,7 +257,6 @@ class GamePage(val c: ServerConnection) : Page() {
         batch.projectionMatrix = projection
         batch.begin()
 
-        // TODO maybe I need a different shader for the background and moving things, or different projection..
         for (agent in g.agents) {
             batch.draw(textures.black, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
             if (agent.lockingOnTarget != null) {
