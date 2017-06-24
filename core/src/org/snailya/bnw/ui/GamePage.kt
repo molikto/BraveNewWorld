@@ -2,6 +2,7 @@ package org.snailya.bnw.ui
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Gdx.gl20
+import com.badlogic.gdx.Gdx.graphics
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -64,17 +65,30 @@ class GamePage(val c: ServerConnection) : Page() {
         }
     }
 
+    override fun dispose() {
+        // TODO textures
+    }
+
 
 
 
     /**
      * ui
      */
-    lateinit  var debug_info: Label
+
+    object widgets {
+        lateinit var paused: Label
+        lateinit var debug_info: Label
+    }
     init {
         ui = table {
-            align(Align.topLeft)
-            debug_info = label("").cell(align = Align.topLeft)
+            table {
+                widgets.paused = label("paused")
+            }
+            table {
+                align(Align.topLeft)
+                widgets.debug_info = label("").cell(align = Align.topLeft)
+            }
         }
     }
 
@@ -124,36 +138,47 @@ class GamePage(val c: ServerConnection) : Page() {
      */
     val projection: Matrix4 = Matrix4()
     val inverseProjection : Matrix4 = Matrix4()
+    var top = 0
+    var bottom = 0
+    var left = 0
+    var right = 0
 
     fun inputGameCoor(x: Int, y: Int) =
             vec2(x.tf * 2 / game.backBufferWidth() - 1, 1 - y.tf * 2 / game.backBufferHeight()).extends().mul(inverseProjection).lose()
 
 
     override fun render() {
+        // all these functions SHOULD know when they are called
+        debug_renderDebugUi()
+        if (!c.gamePaused) render_gatherCommands()
+        render_tickGameAndNetwork()
+        render_updateGameUi()
+        if (c.gamePaused) return
+        render_processLocalInput()
+        render_setupProjection()
+        render_groundType()
+        //debug_renderPathFindingResult()
+        render_sprites()
+        //debug_renderVoronoiDiagram()
+    }
 
-        /**
-         * command buffer
-         */
-        if (!c.gamePaused) {
-            if (Gdx.input.justTouched()) {
-                val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
-                if (g.map.inBound(dest)) {
-                    if (!g.map(dest).notWalk) {
-                        commands.add(PlayerCommand(dest))
-                    }
+
+
+    private fun render_gatherCommands() {
+        if (Gdx.input.justTouched()) {
+            val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
+            if (g.map.inBound(dest)) {
+                if (!g.map(dest).notWalk) {
+                    commands.add(PlayerCommand(dest))
                 }
             }
         }
+    }
 
-//        run {
-//            val dest = g.map(inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2())
-//            debug_info.setText(dest.temp_cost.toString())
-//        }
-
-
-        /**
-         * tick the network and game - maybe causing a pause
-         */
+    /**
+     * probably will pause the game
+     */
+    private fun render_tickGameAndNetwork() {
         val time = System.currentTimeMillis()
         if (c.gamePaused && c.received != null) {
             gameTickedTime = c.receivedTime - timePerGameTick
@@ -185,21 +210,15 @@ class GamePage(val c: ServerConnection) : Page() {
             }
         }
         // info { "game tick $gameTicks, net tick $netTicks" }
-
-        /**
-         * game paused UI, just return
-         */
-        if (c.gamePaused) {
-            debug_info.setText("PAUSED")
-            return
-        }
-
-        debug_info.setText("FPS: ${Gdx.graphics.framesPerSecond}\nrender time: ${game.renderTime}")
+    }
 
 
-        /**
-        * local input
-        */
+    private fun render_updateGameUi() {
+        widgets.paused.isVisible = c.gamePaused
+    }
+
+
+    private fun render_processLocalInput() {
         run {
             val delta = Gdx.graphics.deltaTime
             val direction = vec2(0F, 0F)
@@ -213,79 +232,29 @@ class GamePage(val c: ServerConnection) : Page() {
             }
             focus + (direction * (focusSpeed * delta))
         }
+    }
 
-
-        /**
-         * game rendering
-         */
+    private fun render_setupProjection() {
 
         projection.setToOrtho2DCentered(focus.x, focus.y, game.backBufferWidth() / zoom, game.backBufferHeight() / zoom)
 
         inverseProjection.set(projection)
         inverseProjection.inv()
 
-
         val gtl = vec3(-1F, -1F, 0F) * inverseProjection
         val gbr = vec3(1F, 1F, 0F) * inverseProjection
 
-        batch.projectionMatrix = projection
 
         val margin = 0
-        val top = Math.max(gtl.y.toInt() - margin, 0)
-        val left = Math.max(gtl.x.toInt() - margin, 0)
-        val bottom = Math.min(gbr.y.toInt() + 1 + margin, g.map.size)
-        val right = Math.min(gbr.x.toInt() + 1 + margin, g.map.size)
+        top = Math.max(gtl.y.toInt() - margin, 0)
+        left = Math.max(gtl.x.toInt() - margin, 0)
+        bottom = Math.min(gbr.y.toInt() + 1 + margin, g.map.size)
+        right = Math.min(gbr.x.toInt() + 1 + margin, g.map.size)
 
+    }
 
-        run {
-            // constants
-            val paddingSize = 0.2F // in game coordinate
-            val pointSize = 1 + paddingSize * 2
-
-            val shader = gl.terrain.shader
-            val textureArray = gl.terrain.textureArray
-            val mesh = gl.terrain.mesh
-            val cache = gl.terrain.cache
-
-            GL11.glPointSize(zoom * pointSize)
-            gl20.glEnable(GL20.GL_BLEND)
-            gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
-//            gl20.glClearColor(0F, 0F, 0F, 0F)
-//            gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_BLEND_SRC_ALPHA)
-            shader.begin()
-            textureArray.bind()
-            shader.setUniformMatrix("projection", projection)
-            shader.setUniformi("texture", 0)
-
-            var index = 0
-            for (y in top until bottom) {
-                for (x in left until right) {
-                    val tile = g.map(x, y)
-                    cache[index++] = tile.position.x + 0.5F
-                    cache[index++] = tile.position.y + 0.5F
-                    cache[index++] = tile.groundType.ordinal.toFloat()
-                    if (index == cache.size)  {
-                        mesh.setVertices(cache, 0, index)
-                        mesh.render(shader, GL20.GL_POINTS)
-                        index = 0
-                    }
-                }
-            }
-            mesh.setVertices(cache, 0, index)
-            mesh.render(shader, GL20.GL_POINTS)
-            index = 0
-
-            shader.end()
-        }
-
-//        if (false) {
-//            if (g.findRoute.counter == tile.temp_visited) {
-//                batch.color = Color(1F, 1F, 1F, tile.temp_cost / 30)
-//                batch.draw(textures.black, x.tf, y.tf, 1F, 1F)
-//                batch.color = Color.WHITE
-//            }
-//        }
-
+    private fun render_sprites() {
+        batch.projectionMatrix = projection
         batch.begin()
 
         // TODO maybe I need a different shader for the background and moving things, or different projection..
@@ -306,10 +275,66 @@ class GamePage(val c: ServerConnection) : Page() {
         }
 
         batch.end()
-
-         //debug_renderVoronoiDiagram()
     }
 
+    private fun render_groundType() {
+        // constants
+        val paddingSize = 0.2F // in game coordinate
+        val pointSize = 1 + paddingSize * 2
+
+        val shader = gl.terrain.shader
+        val textureArray = gl.terrain.textureArray
+        val mesh = gl.terrain.mesh
+        val cache = gl.terrain.cache
+
+        GL11.glPointSize(zoom * pointSize)
+        gl20.glEnable(GL20.GL_BLEND)
+        gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+//            gl20.glClearColor(0F, 0F, 0F, 0F)
+//            gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_BLEND_SRC_ALPHA)
+        shader.begin()
+        textureArray.bind()
+        shader.setUniformMatrix("projection", projection)
+        shader.setUniformi("texture", 0)
+
+        var index = 0
+        for (y in top until bottom) {
+            for (x in left until right) {
+                val tile = g.map(x, y)
+                cache[index++] = tile.position.x + 0.5F
+                cache[index++] = tile.position.y + 0.5F
+                cache[index++] = tile.groundType.ordinal.toFloat()
+                if (index == cache.size)  {
+                    mesh.setVertices(cache, 0, index)
+                    mesh.render(shader, GL20.GL_POINTS)
+                    index = 0
+                }
+            }
+        }
+        mesh.setVertices(cache, 0, index)
+        mesh.render(shader, GL20.GL_POINTS)
+        index = 0
+
+        shader.end()
+    }
+
+
+    /**
+     *
+     *
+     *
+     *
+     * debug methods
+     *
+     *
+     *
+     *
+     *
+     */
+
+    private fun debug_renderDebugUi() {
+        widgets.debug_info.setText("FPS: ${graphics.framesPerSecond}\nrender time: ${game.renderTime}")
+    }
 
     val shapeRenderer = ShapeRenderer()
     private fun debug_renderVoronoiDiagram() {
@@ -346,8 +371,18 @@ class GamePage(val c: ServerConnection) : Page() {
     }
 
 
-    override fun dispose() {
-        // TODO textures
+    fun debug_renderPathFindingResult() {
+
+        for (y in top until bottom) {
+            for (x in left until right) {
+                val tile = g.map(x, y)
+                if (g.findRoute.counter == tile.temp_visited) {
+                    batch.color = Color(1F, 1F, 1F, tile.temp_cost / 30)
+                    batch.draw(textures.black, x.tf, y.tf, 1F, 1F)
+                    batch.color = Color.WHITE
+                }
+            }
+        }
     }
 
 }
