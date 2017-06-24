@@ -177,9 +177,9 @@ class MapGen(val random: Random, val size: Int) {
                 currentBest = Double.MAX_VALUE
                 currentPoint = null
                 search(root, testPoint, true)
-                map[i][j].groundType =
-                        if (i == 0 || j == 0 || i == size - 1 || j == size - 1) GroundType.Ice
-                        else groundTypeOf(currentPoint!!)
+                map[i][j].terrain =
+                        if (i == 0 || j == 0 || i == size - 1 || j == size - 1) Terrain.Ice
+                        else terrainOf(currentPoint!!)
                 map[i][j].debug_inputPoint = currentPoint!!
             }
         }
@@ -339,10 +339,10 @@ class MapGen(val random: Random, val size: Int) {
                                 //if (end < pendingX) throw IllegalStateException("what ${pendingX} $e")
                                 val top = if (e.site_left.y > e.site_right.y) e.site_right else e.site_left
                                 bottom = if (e.site_left.y > e.site_right.y) e.site_left else e.site_right
-                                val groundType = groundTypeOf(top)
+                                val terrain = terrainOf(top)
                                 while (y < size && y <= e.samplePointY) {
                                     val tile = toAdd[y.toInt()]
-                                    tile.groundType = groundType
+                                    tile.terrain = terrain
                                     y += 1
                                 }
                             }
@@ -350,10 +350,10 @@ class MapGen(val random: Random, val size: Int) {
                         // we will just assume we will have a edge pointed to the left side,
                         // this is statistically very possible
                         assert(bottom != null)
-                        val groundType = groundTypeOf(bottom!!)
+                        val terrain = terrainOf(bottom!!)
                         while (y < size) {
                             val tile = toAdd[y.toInt()]
-                            tile.groundType = groundType
+                            tile.terrain = terrain
                             y += 1
                         }
                         bottom = null
@@ -368,12 +368,12 @@ class MapGen(val random: Random, val size: Int) {
 
     */
 
-    fun groundTypeOf(top: InputPoint) : GroundType =
-        if (top.attachment.isSea) GroundType.Ice
-        else if (top.attachment.isBeach) GroundType.Sand
-        else if (top.attachment.height < 2) GroundType.Soil
-        else if (top.attachment.height < 3) GroundType.Gravel
-        else GroundType.TileStone
+    fun terrainOf(top: InputPoint) : Terrain =
+        if (top.attachment.isSea) Terrain.Ice
+        else if (top.attachment.isBeach) Terrain.Sand
+        else if (top.attachment.height < 2) Terrain.Soil
+        else if (top.attachment.height < 3) Terrain.Gravel
+        else Terrain.TileStone
 
 }
 

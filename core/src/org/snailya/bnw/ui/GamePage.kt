@@ -16,7 +16,7 @@ import org.lwjgl.opengl.GL11
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
-import org.snailya.bnw.gamelogic.GroundType
+import org.snailya.bnw.gamelogic.Terrain
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
@@ -55,12 +55,12 @@ class GamePage(val c: ServerConnection) : Page() {
         object terrain {
             val shader = shaderOf("terrain")
 
-            val textureArray = textureArrayOf(GroundType.values().map { "GroundType/${it.name}" })
+            val textureArray = textureArrayOf(Terrain.values().map { "Terrain/${it.name}" })
 
             val cache = FloatArray(3000)
             val mesh = Mesh(false, 1000, 0,
                     VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
-                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_groundType"))
+                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain"))
 
         }
     }
@@ -81,7 +81,7 @@ class GamePage(val c: ServerConnection) : Page() {
         lateinit var debug_info: Label
     }
     init {
-        ui = table {
+        ui = stack {
             table {
                 widgets.paused = label("paused")
             }
@@ -156,7 +156,7 @@ class GamePage(val c: ServerConnection) : Page() {
         if (c.gamePaused) return
         render_processLocalInput()
         render_setupProjection()
-        render_groundType()
+        render_terrain()
         //debug_renderPathFindingResult()
         render_sprites()
         //debug_renderVoronoiDiagram()
@@ -277,7 +277,7 @@ class GamePage(val c: ServerConnection) : Page() {
         batch.end()
     }
 
-    private fun render_groundType() {
+    private fun render_terrain() {
         // constants
         val paddingSize = 0.2F // in game coordinate
         val pointSize = 1 + paddingSize * 2
@@ -303,7 +303,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 val tile = g.map(x, y)
                 cache[index++] = tile.position.x + 0.5F
                 cache[index++] = tile.position.y + 0.5F
-                cache[index++] = tile.groundType.ordinal.toFloat()
+                cache[index++] = tile.terrain.ordinal.toFloat()
                 if (index == cache.size)  {
                     mesh.setVertices(cache, 0, index)
                     mesh.render(shader, GL20.GL_POINTS)

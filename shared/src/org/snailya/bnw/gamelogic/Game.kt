@@ -18,7 +18,7 @@ open class WalkerConfig {
 /**
  * https://en.wikipedia.org/wiki/Soil
  */
-//enum class GroundType {
+//enum class Terrain {
 //    Snow, Sand, Soil, SoilRich,
 ////    Snow, Tundra, Bare, Scorched,
 ////    Taiga, Shrubland, TemperateDesert,
@@ -27,7 +27,7 @@ open class WalkerConfig {
 //
 //}
 
-enum class GroundType {
+enum class Terrain {
     // TODO Ocean is changed to Ice for texture array
     Ice, Sand, Soil, Gravel, TileStone
 }
@@ -42,8 +42,8 @@ class MapTile {
         return s
     }
     val notWalk: Boolean
-        get() = groundType == GroundType.TileStone || groundType == GroundType.Gravel || groundType == GroundType.Ice
-    lateinit var groundType: GroundType
+        get() = terrain == Terrain.TileStone || terrain == Terrain.Gravel || terrain == Terrain.Ice
+    lateinit var terrain: Terrain
     lateinit var debug_inputPoint: InputPoint
 
     var temp_cost: Float = 0F

@@ -19,16 +19,16 @@ uniform sampler2DArray texture;
 
 in vec2 position;
  // TODO change to integers
-in float v_groundType;
+in float v_terrain;
 
-flat out int f_groundType;
+flat out int f_terrain;
 flat out ivec2 tileTextureIndex; // the texture index of the center of the point
 
 
 void main()
 {
    gl_Position = projection * vec4(position, 0, 1);
-   f_groundType = int(v_groundType);
+   f_terrain = int(v_terrain);
    // every texture covers 16 tiles
    tileTextureIndex = ivec2(int(position.x) % 16, 15 - int(position.y) % 16);
 }

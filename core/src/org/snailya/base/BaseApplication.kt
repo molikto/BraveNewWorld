@@ -9,10 +9,14 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import ktx.scene2d.KTableWidget
 import ktx.log.*
+import ktx.scene2d.KStack
+import ktx.scene2d.KTable
+import ktx.scene2d.KWidget
 
 
 var _game: ApplicationInner? = null
@@ -48,11 +52,16 @@ abstract class Page {
     var clearColor = Color.BLACK
     val batch = game.batch
 
-    var ui : KTableWidget? = null
+    var ui : KWidget<*>? = null
         set(value) {
             if (value != null) {
-                value.setFillParent(true)
-                uiStage.addActor(value)
+                if (value is KTableWidget) {
+                    value.setFillParent(true)
+                }
+                if (value is KStack) {
+                    value.setFillParent(true)
+                }
+                uiStage.addActor(value as Actor)
             } else {
                 uiStage.clear()
             }
