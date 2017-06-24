@@ -14,14 +14,21 @@ var logger: (String) -> Unit = {}
 fun tif(s: String) = logger("${System.currentTimeMillis()}:  $s")
 
 
-inline fun <T> time(str: String, b: () -> T): T {
+inline fun <T> timed(str: String, b: () -> T): T {
     val t = System.currentTimeMillis()
     val a = b.invoke()
     tif("timed ${System.currentTimeMillis() - t}: $str")
     return a
 }
 
-inline fun timet(str: String, b: () -> String) {
+inline fun <T> nanoTimed(str: String, b: () -> T): T {
+    val t = System.nanoTime()
+    val a = b.invoke()
+    tif("timed ${System.nanoTime() - t}: $str")
+    return a
+}
+
+inline fun timedResult(str: String, b: () -> String) {
     val t = System.currentTimeMillis()
     var res = b.invoke()
     if (!res.isEmpty()) res = ", " + res

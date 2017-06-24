@@ -173,7 +173,14 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
         page.disposeInner()
         batch.dispose()
     }
-    open fun render() = page.renderInner()
+
+    var renderTime = 0L
+
+    open fun render() {
+        val a = System.currentTimeMillis()
+        page.renderInner()
+        renderTime = (System.currentTimeMillis() - a)
+    }
 
     fun resize(width: Int, height: Int) = page.resizeInner(width, height)
 }

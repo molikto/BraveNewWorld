@@ -1,20 +1,17 @@
 package org.snailya.bnw.ui
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Gdx.gl
 import com.badlogic.gdx.Gdx.gl20
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.*
-import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.badlogic.gdx.graphics.glutils.VertexBufferObjectWithVAO
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.utils.Align
 import ktx.math.*
 import ktx.scene2d.*
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL11.glTexParameteri
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
@@ -60,7 +57,8 @@ class GamePage(val c: ServerConnection) : Page() {
             val textureArray = textureArrayOf(GroundType.values().map { "GroundType/${it.name}" })
 
             val cache = FloatArray(3000)
-            val mesh = Mesh(false, 1000, 0, VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
+            val mesh = Mesh(false, 1000, 0,
+                    VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
                     VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_groundType"))
 
         }
@@ -75,9 +73,8 @@ class GamePage(val c: ServerConnection) : Page() {
     lateinit  var debug_info: Label
     init {
         ui = table {
-            debug_info = label("")
-            row()
-            //debug = true
+            align(Align.topLeft)
+            debug_info = label("").cell(align = Align.topLeft)
         }
     }
 
@@ -174,7 +171,7 @@ class GamePage(val c: ServerConnection) : Page() {
                     confirmedCommands = c.tick(commands, g.debug_hash())
                     networkTickedTime += timePerTick
                     if (c.gamePaused) {
-                        // we schedule a resend at next tick time
+                        // we schedule a resend at next tick timed
                         gameTickedTime += timePerTick
                         break
                     } else {
@@ -196,6 +193,8 @@ class GamePage(val c: ServerConnection) : Page() {
             debug_info.setText("PAUSED")
             return
         }
+
+        debug_info.setText("FPS: ${Gdx.graphics.framesPerSecond}\nrender time: ${game.renderTime}")
 
 
         /**

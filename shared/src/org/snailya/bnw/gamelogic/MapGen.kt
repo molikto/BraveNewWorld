@@ -39,7 +39,7 @@ class MapGen(val random: Random, val size: Int) {
         }
         var voronoi: Voronoi? = null
         for (i in 0 until 2) {
-            voronoi = time("generating Voronoi diagram") { Voronoi(randomDots) }
+            voronoi = timed("generating Voronoi diagram") { Voronoi(randomDots) }
             for (p in voronoi.sites) {
                 p.x = 0.0
                 p.y = 0.0
@@ -126,7 +126,7 @@ class MapGen(val random: Random, val size: Int) {
             }
         }
 
-        return time ("rasterize") { rasterize(v.sites) }
+        return timed("rasterize") { rasterize(v.sites) }
     }
 
 

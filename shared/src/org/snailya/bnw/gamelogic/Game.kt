@@ -464,7 +464,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
             get() = !route.isEmpty()
 
         fun findRoute(dest: IntVector2) {
-          time("finding route") { findRoute(position, dest, route) }
+          timed("finding route") { findRoute(position, dest, route) }
         }
 
         val temp_pos = svec2()

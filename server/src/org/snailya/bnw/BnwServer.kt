@@ -3,13 +3,8 @@ package org.snailya.bnw
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.FrameworkMessage
 import com.esotericsoftware.kryonet.Listener
-import com.esotericsoftware.kryonet.Server
-import com.esotericsoftware.minlog.Log
-import org.joor.Reflect
 import org.snailya.base.tif
-import org.snailya.base.timet
-import java.lang.reflect.AccessibleObject.setAccessible
-import java.lang.reflect.Field
+import org.snailya.base.timedResult
 
 
 object BnwServer : (() -> Unit) {
@@ -58,7 +53,7 @@ class BnwGameServer(val debug_onStop: () -> Unit): Listener() {
 
 
     override fun received(c: Connection, p: Any) {
-        timet("received form ${c.id} $p") {
+        timedResult("received form ${c.id} $p") {
             when (p) {
                 is FrameworkMessage.Ping -> {
                     if (p.isReply) {

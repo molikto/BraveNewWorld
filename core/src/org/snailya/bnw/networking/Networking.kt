@@ -53,7 +53,7 @@ class ServerConnection(val ip: String) {
             previousCommands = message.copy(debug_resend = true)
             debug_previousSendTime = System.currentTimeMillis()
             debug_previousSendTick = tick
-            time("sending message $tick") { client.sendUDP(message) }
+            timed("sending message $tick") { client.sendUDP(message) }
             gamePaused = false
             continuousPausedFrames = 0
             tick += 1
@@ -69,7 +69,7 @@ class ServerConnection(val ip: String) {
             val tick = previousCommands!!.tick
             debug_previousSendTime = System.currentTimeMillis()
             debug_previousSendTick = tick
-            time("resending message $tick") { client.sendUDP(previousCommands) }
+            timed("resending message $tick") { client.sendUDP(previousCommands) }
             gamePaused = true
             pausedFrames += 1
             continuousPausedFrames += 1
