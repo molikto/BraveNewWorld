@@ -26,14 +26,10 @@ open class Batched(
 ) {
 
     val vbo = VertexBufferObjectWithVAO(staticVertices, maxVertices, attrs)
-    val vboBuffer = vbo.buffer
+    @JvmField val vboBuffer = vbo.buffer!!
     val ibo = IndexBufferObject(staticIndices, maxIndices)
     val mesh: Mesh =  Reflect.on(Mesh::class.java).create(vbo, ibo, false).get<Mesh>()
 
-    val bufferSize = attrs.vertexSize * maxVertices
-    init {
-        vbo.buffer
-    }
 
 
     fun begin() {
@@ -49,53 +45,17 @@ open class Batched(
         shader.end()
     }
 
-    // private inlined
-    var _index = 0
-    val _cache  = FloatArray(bufferSize)
 
     inline fun put(a: Float) {
-        if (_index >= _cache.size) {
-            flush()
-        }
-        val index = _index
-        _cache[index + 0] = a
-        _index += 1
-    }
-
-
-
-    inline fun put(
-            a0: Float,
-            a1: Float,
-            a2: Float,
-            a3: Float,
-            a4: Float,
-            a5: Float,
-            a6: Float,
-            a7: Float,
-            a8: Float
-    ) {
-        if (_index >= _cache.size) {
-            flush()
-        }
-        val index = _index
-        _cache[index + 0] = a0
-        _cache[index + 1] = a1
-        _cache[index + 2] = a2
-        _cache[index + 3] = a3
-        _cache[index + 4] = a4
-        _cache[index + 5] = a5
-        _cache[index + 6] = a6
-        _cache[index + 7] = a7
-        _cache[index + 8] = a8
-        _index += 9
+        if (!vboBuffer.hasRemaining()) flush()
+        vboBuffer.put(a)
     }
 
 
     fun flush() {
-        mesh.setVertices(_cache, 0, _index)
-        _index = 0
         mesh.render(shader, primitiveType)
+        vboBuffer.position(0)
+        vboBuffer.limit(vboBuffer.capacity())
     }
 
     open fun render() {
