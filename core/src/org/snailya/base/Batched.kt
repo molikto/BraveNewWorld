@@ -24,9 +24,6 @@ open class Batched(
 ) {
     val mesh: Mesh = Mesh(staticVertices, staticIndices, maxVertices, maxIndices, attrs)
 
-    val bufferSize = attrs.vertexSize * maxVertices
-
-
     fun begin() {
         shader.begin()
         texture.bind()
@@ -42,7 +39,7 @@ open class Batched(
 
     // private inlined
     var _index = 0
-    val _cache  = FloatArray(bufferSize)
+    val _cache  = FloatArray(attrs.vertexSize / 4 * maxVertices)
 
     inline fun put(a: Float) {
         if (_index == _cache.size) {

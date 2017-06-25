@@ -277,6 +277,7 @@ class GamePage(val c: ServerConnection) : Page() {
         val paddingSize = 0.2F // in game coordinate
         val pointSize = 1 + paddingSize * 2
 
+        // TODO beautiful rendering with coverage of different types
         override fun render() {
             GL11.glPointSize(zoom * pointSize)
             gl20.glEnable(GL20.GL_BLEND)
