@@ -102,6 +102,7 @@ open class Batched(
         mesh.render(shader, primitiveType)
     }
 
+
     open fun render() {
 
     }

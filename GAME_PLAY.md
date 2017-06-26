@@ -5,6 +5,13 @@
 
 * animal slavery to make power
     * trait to dislike this
+    
+* surface
+    * TODO what is surface?
+    * parameter construction
+        * g
+    
+### aspects that don't want know
 * 3d
     * the good
         * gravity

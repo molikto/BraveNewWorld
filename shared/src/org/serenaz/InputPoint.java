@@ -10,8 +10,12 @@ import java.util.ArrayList;
 public class InputPoint extends Point {
 
     public static class Attachment {
-        public boolean isSea = false;
+        public boolean isDeepSea = false;
+        public boolean isShallowSea = false;
         public boolean isBeach = false;
+        public boolean isSea() {
+            return isDeepSea || isShallowSea;
+        }
         public int height = -1;
         public ArrayList<Edge> edges = new ArrayList<>();
         @Nullable  public InputPoint left;
@@ -19,7 +23,9 @@ public class InputPoint extends Point {
 
         public boolean nearSea() {
             for (Edge e : edges) {
-                if (e.site_left.attachment.isSea || e.site_right.attachment.isSea) {
+                if (
+                        e.site_left.attachment.isSea() || e.site_right.attachment.isSea()
+                        ) {
                     return true;
                 }
             }

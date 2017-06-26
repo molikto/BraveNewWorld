@@ -71,25 +71,31 @@ class MapGen(val random: Random, val size: Int) {
         debug_points = v.sites
 
         /**
-         * set all edge points to sea
+         * set all edge points to deep sea
          */
         for (e in v.edges) {
             e.site_left.attachment.edges.add(e)
             e.site_right.attachment.edges.add(e)
             if (e.isSea()) {
-                e.site_left.attachment.isSea = true
-                e.site_right.attachment.isSea = true
+                e.site_left.attachment.isDeepSea = true
+                e.site_right.attachment.isDeepSea = true
             }
         }
 
         /**
          * make the sea not that square
          *
-         * randomly set some beach points to sea
+         * randomly set some beach points to deep sea
          * // TODO more interesting
          */
+        v.sites.filter { !it.attachment.isDeepSea && it.attachment.nearSea() }
+                .forEach { if (random.nextInt(5) == 1) it.attachment.isDeepSea = true }
+
+        /**
+         * shallow sea
+         */
         v.sites.filter { !it.attachment.isSea && it.attachment.nearSea() }
-                .forEach { if (random.nextInt(3) == 1) it.attachment.isSea = true }
+                .map { it.attachment.isShallowSea = true; it }
 
         /**
          * beach line
@@ -163,7 +169,7 @@ class MapGen(val random: Random, val size: Int) {
 
     @Strictfp
     private fun rasterize(sites: MutableList<InputPoint>): Array<Array<MapTile>> {
-        val map: Array<Array<MapTile>> = Array(size, { x -> Array(size, { y -> configured(MapTile()) { position = ivec2(x, y) } }) })
+        val map: Array<Array<MapTile>> = Array(size, { x -> Array(size, { y -> MapTile(ivec2(x, y)) }) })
         for (s in sites) {
             s.x *= size
             s.y *= size
@@ -177,8 +183,8 @@ class MapGen(val random: Random, val size: Int) {
                 currentBest = Double.MAX_VALUE
                 currentPoint = null
                 search(root, testPoint, true)
-                map[i][j].terrain =
-                        if (i == 0 || j == 0 || i == size - 1 || j == size - 1) Terrain.Ice
+                map[i][j].surface =
+                        if (i == 0 || j == 0 || i == size - 1 || j == size - 1) DeepWater
                         else terrainOf(currentPoint!!)
                 map[i][j].debug_inputPoint = currentPoint!!
             }
@@ -339,10 +345,10 @@ class MapGen(val random: Random, val size: Int) {
                                 //if (end < pendingX) throw IllegalStateException("what ${pendingX} $e")
                                 val top = if (e.site_left.y > e.site_right.y) e.site_right else e.site_left
                                 bottom = if (e.site_left.y > e.site_right.y) e.site_left else e.site_right
-                                val terrain = terrainOf(top)
+                                val surface = terrainOf(top)
                                 while (y < size && y <= e.samplePointY) {
                                     val tile = toAdd[y.toInt()]
-                                    tile.terrain = terrain
+                                    tile.surface = surface
                                     y += 1
                                 }
                             }
@@ -350,10 +356,10 @@ class MapGen(val random: Random, val size: Int) {
                         // we will just assume we will have a edge pointed to the left side,
                         // this is statistically very possible
                         assert(bottom != null)
-                        val terrain = terrainOf(bottom!!)
+                        val surface = terrainOf(bottom!!)
                         while (y < size) {
                             val tile = toAdd[y.toInt()]
-                            tile.terrain = terrain
+                            tile.surface = surface
                             y += 1
                         }
                         bottom = null
@@ -368,12 +374,13 @@ class MapGen(val random: Random, val size: Int) {
 
     */
 
-    fun terrainOf(top: InputPoint) : Terrain =
-        if (top.attachment.isSea) Terrain.Ice
-        else if (top.attachment.isBeach) Terrain.Sand
-        else if (top.attachment.height < 2) Terrain.Soil
-        else if (top.attachment.height < 3) Terrain.Gravel
-        else Terrain.TileStone
+    fun terrainOf(top: InputPoint) : WorldSurface =
+        if (top.attachment.isDeepSea) DeepWater
+        else if (top.attachment.isShallowSea) ShallowWater
+        else if (top.attachment.isBeach) Sand
+        else if (top.attachment.height < 2) Soil
+        else if (top.attachment.height < 3) Gravel
+        else SandstoneHewnRock
 
 }
 
