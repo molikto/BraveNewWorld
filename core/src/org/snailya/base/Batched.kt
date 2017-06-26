@@ -7,10 +7,8 @@ import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.glutils.IndexBufferObject
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.VertexBufferObjectWithVAO
-import com.sun.corba.se.impl.util.RepositoryId.cache
-import com.sun.deploy.trace.Trace.flush
+import ktx.log.info
 import org.joor.Reflect
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 
 open class Batched(
@@ -20,17 +18,11 @@ open class Batched(
         val texture: GLTexture,
         val primitiveType: Int = GL20.GL_TRIANGLES,
         //val textures: Array<GLTexture> = emptyArray(),
-        staticVertices: Boolean = false,
         staticIndices: Boolean = false,
-        maxIndices: Int = 0
+        maxIndices: Int = 0,
+        staticVertices: Boolean = false
 ) {
-
-    val vbo = VertexBufferObjectWithVAO(staticVertices, maxVertices, attrs)
-    @JvmField val vboBuffer = vbo.buffer!!
-    val ibo = IndexBufferObject(staticIndices, maxIndices)
-    val mesh: Mesh =  Reflect.on(Mesh::class.java).create(vbo, ibo, false).get<Mesh>()
-
-
+    val mesh: Mesh = Mesh(staticVertices, staticIndices, maxVertices, maxIndices, attrs)
 
     fun begin() {
         shader.begin()
@@ -41,22 +33,75 @@ open class Batched(
     }
 
     fun end() {
-        flush()
+        _flush()
         shader.end()
     }
 
+    // private inlined
+    var _index = 0
+    val _cache  = FloatArray(attrs.vertexSize / 4 * maxVertices)
 
     inline fun put(a: Float) {
-        if (!vboBuffer.hasRemaining()) flush()
-        vboBuffer.put(a)
+        if (_index == _cache.size) {
+            _flush()
+        }
+        val index = _index
+        _cache[index + 0] = a
+        _index += 1
     }
 
 
-    fun flush() {
+    // TODO why cache??
+    inline fun put(
+            a0: Float,
+            a1: Float,
+            a2: Float
+    ) {
+        if (_index == _cache.size) {
+            _flush()
+        }
+        val index = _index
+        _cache[index + 0] = a0
+        _cache[index + 1] = a1
+        _cache[index + 2] = a2
+        _index += 3
+    }
+
+
+    inline fun put(
+            a0: Float,
+            a1: Float,
+            a2: Float,
+            a3: Float,
+            a4: Float,
+            a5: Float,
+            a6: Float,
+            a7: Float,
+            a8: Float
+    ) {
+        if (_index == _cache.size) {
+            _flush()
+        }
+        val index = _index
+        _cache[index + 0] = a0
+        _cache[index + 1] = a1
+        _cache[index + 2] = a2
+        _cache[index + 3] = a3
+        _cache[index + 4] = a4
+        _cache[index + 5] = a5
+        _cache[index + 6] = a6
+        _cache[index + 7] = a7
+        _cache[index + 8] = a8
+        _index += 9
+    }
+
+
+    fun _flush() {
+        mesh.setVertices(_cache, 0, _index)
+        _index = 0
         mesh.render(shader, primitiveType)
-        vboBuffer.position(0)
-        vboBuffer.limit(vboBuffer.capacity())
     }
+
 
     open fun render() {
 

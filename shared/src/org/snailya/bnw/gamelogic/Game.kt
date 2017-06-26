@@ -7,6 +7,90 @@ import java.util.*
 import kotlin.Comparator
 
 
+/**
+ *
+ *
+ *
+ * data
+ *
+ *
+ */
+
+/**
+ * TextureRef
+ *
+ * texture element needed for rendering
+ * render method is defined totally in rendering code, not here
+ *
+ * the name is a relative defined thing mostly...
+ */
+
+sealed class TextureRef(open val name: String)
+data class SimpleTextureRef(override val name: String) : TextureRef(name)
+data class TintedTextureRef(override val name: String, val color: Int /* rgba8888 */) : TextureRef(name)
+
+/**
+ * RockType
+ */
+enum class RockType(val tintColor: Int) {
+    Sandstone(0xa020f0ff.toInt()), Marble(0xc380f0ff.toInt())
+}
+
+/**
+ * World Surface
+ */
+
+abstract class WorldSurface(
+        val baseWalkSpeed: Float
+) {
+    val walkable = baseWalkSpeed > 0
+}
+
+class Water(
+        val texture: TextureRef,
+        val depth: Int // a
+) : WorldSurface(if (depth == 0) 1F else 0F)
+
+val DeepWater = Water(SimpleTextureRef("DeepWater"), 1)
+val ShallowWater = Water(SimpleTextureRef("ShallowWater"), 0)
+
+open class NaturalTerrain(
+        val texture: TextureRef,
+        val grainSize: Int
+): WorldSurface(1F)
+
+
+val Sand = NaturalTerrain(SimpleTextureRef("Sand"), 1)
+
+val Soil = NaturalTerrain(SimpleTextureRef("Soil"), 2)
+
+val Gravel = NaturalTerrain(SimpleTextureRef("Gravel"), 3)
+
+class HewnRock(
+        val rockType: RockType
+) : NaturalTerrain(TintedTextureRef("HewnRock", rockType.tintColor), 10)
+
+val SandstoneHewnRock = HewnRock(RockType.Sandstone)
+
+
+// TODO what to do with spreadsheet data??
+val NaturalTerrains = listOf(Sand, Soil, Gravel, SandstoneHewnRock)
+val NaturalTerrainsByGrainSize = NaturalTerrains.sortedBy { -it.grainSize }
+
+class Stone(
+        val rockType: RockType
+) : NaturalTerrain(TintedTextureRef("Stone", rockType.tintColor), 10)
+
+
+/**
+ * ConstructedFloor
+ */
+data class ConstructedFloor(
+        val texture: String
+)
+
+
+
 open class AgentConfig : WalkerConfig() {
 }
 
@@ -15,41 +99,36 @@ open class WalkerConfig {
 }
 
 
-/**
- * https://en.wikipedia.org/wiki/Soil
- */
-//enum class Terrain {
-//    Snow, Sand, Soil, SoilRich,
-////    Snow, Tundra, Bare, Scorched,
-////    Taiga, Shrubland, TemperateDesert,
-////    TemperateRainForest, TemperateDec, Soil,
-////    TropicalRainForest, TropicalSeasonalForest, SubtropicalDesert
-//
-//}
-
-enum class Terrain {
-    // TODO Ocean is changed to Ice for texture array
-    Ice, Sand, Soil, Gravel, TileStone
-}
 
 
-class MapTile {
-    lateinit var position: IntVector2
+
+
+class MapTile(val position: IntVector2) {
+    lateinit var surface: WorldSurface
+    var floor: ConstructedFloor? = null
+    val wall: Unit? = null
+    val walled = wall != null
+
+    val walkable
+            get() = if (walled) false else if (floor == null) surface.walkable else true
+    val notWalkable
+            get() = !walkable
+
+
     @Strictfp
     inline fun center(s: StrictVector2): StrictVector2 {
         s.x = position.x + 0.5F
         s.y = position.y + 0.5F
         return s
     }
-    val notWalk: Boolean
-        get() = terrain == Terrain.TileStone || terrain == Terrain.Gravel || terrain == Terrain.Ice
-    lateinit var terrain: Terrain
-    lateinit var debug_inputPoint: InputPoint
+
 
     var temp_cost: Float = 0F
     var temp_priority: Float = 0F
     var temp_visited: Int = -1
     var temp_ttpo: IntVector2 = IntVector2.Zero // to the previous of
+
+    lateinit var debug_inputPoint: InputPoint
 }
 
 class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
@@ -68,13 +147,9 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
      * the map will have unwalk-able areas around it now, so no need to check pointer over-bound
      */
 
-    val relativeCorners = arrayOf(ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1))
-    val cornerCost = StrictMath.sqrt(2.0).toFloat()
-    val relativeSides =  arrayOf(ivec2(-1, 0), ivec2(1, 0), ivec2(0, 1), ivec2(0, -1))
-
-
-
-
+    val RelativeCorners = arrayOf(ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1))
+    val CornerCost = StrictMath.sqrt(2.0).toFloat()
+    val RelativeSides =  arrayOf(ivec2(-1, 0), ivec2(1, 0), ivec2(0, 1), ivec2(0, -1))
 
     inner class Map {
         // tiles 0.... 99, metrics 0..1...100
@@ -101,7 +176,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
         @Strictfp
         fun hitWall(a: StrictVector2, b: StrictVector2): MapTile? {
             if (a.x < 0 || a.y < 0 || a.x >= size || a.y >= size) return null
-            if (this(a).notWalk) return this(a)
+            if (this(a).walled) return this(a)
             val higher = if (a.y > b.y) a else b
             val lower = if (a.y > b.y) b else a
             val vertical = a.x == b.x
@@ -113,36 +188,36 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 if (x.toFloat() == fx) { // a exact value
                     if (slope > 0F) {
                         var can1 = this(x, y)
-                        if (can1.notWalk) return can1
+                        if (can1.walled) return can1
                         can1 = this(x - 1, y - 1)
-                        if (can1.notWalk) return can1
+                        if (can1.walled) return can1
                         can1 = this(x, y - 1)
                         val can2 = this(x - 1, y)
-                        if (can1.notWalk && can2.notWalk) return if (random.nextBoolean()) can1 else can2
+                        if (can1.walled && can2.walled) return if (random.nextBoolean()) can1 else can2
                     } else if (slope < 0F) {
                         var can1 = this(x - 1, y)
-                        if (can1.notWalk) return can1
+                        if (can1.walled) return can1
                         can1 = this(x, y - 1)
-                        if (can1.notWalk) return can1
+                        if (can1.walled) return can1
                         can1 = this(x, y)
                         val can2 = this(x - 1, y - 1)
-                        if (can1.notWalk && can2.notWalk) return if (random.nextBoolean()) can1 else can2
+                        if (can1.walled && can2.walled) return if (random.nextBoolean()) can1 else can2
                     } else {
                         // TODO... make it better, whatever
                         var can1 = this(x, y)
-                        if (can1.notWalk) return can1
+                        if (can1.walled) return can1
                         can1 = this(x - 1, y - 1)
-                        if (can1.notWalk) return can1
+                        if (can1.walled) return can1
                         can1 = this(x - 1, y)
-                        if (can1.notWalk) return can1
+                        if (can1.walled) return can1
                         can1 = this(x, y - 1)
-                        if (can1.notWalk) return can1
+                        if (can1.walled) return can1
                     }
                 } else {
                     var can1 = this(x, y)
-                    if (can1.notWalk) return can1
+                    if (can1.walled) return can1
                     can1 = this(x, y - 1)
-                    if (can1.notWalk) return can1
+                    if (can1.walled) return can1
                 }
             }
             return null
@@ -202,7 +277,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
         for (a in agents) {
             while (true) {
                 val t = map.random()
-                if (!t.notWalk) {
+                if (!t.notWalkable) {
                     t.center(a.position)
                     break
                 }
@@ -266,8 +341,8 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
         @Strictfp operator fun invoke(position: StrictVector2, dest: IntVector2, /* out */ route: MutableList<MapTile>) {
             val dt = map(dest)
-            if (dt.notWalk) {
-                println("glitch: dest is notWalk")
+            if (dt.notWalkable) {
+                println("glitch: dest is notWalkable")
                 return
             }
             route.clear()
@@ -280,19 +355,19 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                 val cost = position.dis(tpos)
                 util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
             }
-            for (vec in relativeCorners) {
+            for (vec in RelativeCorners) {
                 val next = map(ipos.x + vec.x, ipos.y + vec.y)
                 val next0 = map(ipos.x + vec.x, ipos.y)
                 val next1 = map(ipos.x, ipos.y + vec.y)
-                if (!next.notWalk && !next0.notWalk && !next1.notWalk) {
+                if (!next.notWalkable && !next0.notWalkable && !next1.notWalkable) {
                     next.center(tpos)
                     val cost = position.dis(tpos)
                     util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
                 }
             }
-            for (vec in relativeSides) {
+            for (vec in RelativeSides) {
                 val next = map(ipos.x + vec.x, ipos.y + vec.y)
-                if (!next.notWalk) {
+                if (!next.notWalkable) {
                     next.center(tpos)
                     val cost = position.dis(tpos)
                     util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
@@ -313,17 +388,17 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                     return
                 }
                 ipos.set(nearest.position)
-                for (vec in relativeCorners) {
+                for (vec in RelativeCorners) {
                     val next = map(ipos.x + vec.x, ipos.y + vec.y)
                     val next0 = map(ipos.x + vec.x, ipos.y)
                     val next1 = map(ipos.x, ipos.y + vec.y)
-                    if (!next.notWalk && !next0.notWalk && !next1.notWalk) {
-                        util_tryAddRoute(next, dt, vec, nearest.temp_cost + cornerCost, true)
+                    if (!next.notWalkable && !next0.notWalkable && !next1.notWalkable) {
+                        util_tryAddRoute(next, dt, vec, nearest.temp_cost + CornerCost, true)
                     }
                 }
-                for (vec in relativeSides) {
+                for (vec in RelativeSides) {
                     val next = map(ipos.x + vec.x, ipos.y + vec.y)
-                    if (!next.notWalk) {
+                    if (!next.notWalkable) {
                         util_tryAddRoute(next, dt, vec, nearest.temp_cost + 1F, true)
                     }
                 }
@@ -345,7 +420,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                     val y = Math.abs(hpos.y)
                     val max = Math.max(x, y)
                     val min = Math.min(x, y)
-                    val remainingDis = (max - min) + min * cornerCost
+                    val remainingDis = (max - min) + min * CornerCost
                     remainingDis
                 } else {
                     0F

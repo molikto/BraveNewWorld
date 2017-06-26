@@ -96,7 +96,6 @@ inline fun Vector2.ivec2(): IntVector2 = ivec2(x.toInt(), y.toInt())
 inline fun textureOf(s: String, extension: String = "png") = Texture("textures/$s.$extension")
 
 inline fun textureArrayOf(s: List<String>, extension: String = "png"): TextureArray {
-    println(s)
     return textureArrayOf(s.toTypedArray(), extension)
 }
 

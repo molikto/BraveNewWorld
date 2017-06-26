@@ -9,15 +9,13 @@ import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.utils.Align
-import com.badlogic.gdx.utils.Align.*
-import com.sun.corba.se.impl.util.RepositoryId.cache
 import ktx.math.*
 import ktx.scene2d.*
 import org.lwjgl.opengl.GL11
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
-import org.snailya.bnw.gamelogic.Terrain
+import org.snailya.bnw.gamelogic.NaturalTerrainsByGrainSize
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
@@ -154,7 +152,7 @@ class GamePage(val c: ServerConnection) : Page() {
         if (Gdx.input.justTouched()) {
             val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
             if (g.map.inBound(dest)) {
-                if (!g.map(dest).notWalk) {
+                if (!g.map(dest).notWalkable) {
                     commands.add(PlayerCommand(dest))
                 }
             }
@@ -264,12 +262,13 @@ class GamePage(val c: ServerConnection) : Page() {
 
 
 
+    // TODO how to animate ocean?
     val terrain = object : Batched(
             shaderOf("terrain"),
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
                     VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
             maxVertices = 4000,
-            texture = textureArrayOf(Terrain.values().map { "Terrain/${it.name}" }),
+            texture = textureArrayOf(NaturalTerrainsByGrainSize.map { "WorldSurface/${it.texture.name}" }),
             primitiveType = GL20.GL_POINTS
             ) {
 
@@ -284,12 +283,17 @@ class GamePage(val c: ServerConnection) : Page() {
             begin()
             shader.setUniformMatrix("projection", projection)
             shader.setUniformi("texture", 0)
-            for (y in top until bottom) {
-                for (x in left until right) {
-                    val tile = g.map(x, y)
-                    put(tile.position.x + 0.5F)
-                    put(tile.position.y + 0.5F)
-                    put(tile.terrain.ordinal.toFloat())
+            for (i in 0 until NaturalTerrainsByGrainSize.size) {
+                val t = NaturalTerrainsByGrainSize[i]
+                for (y in top until bottom) {
+                    for (x in left until right) {
+                        val tile = g.map(x, y)
+                        if (tile.surface == t) {
+                            put(tile.position.x + 0.5F,
+                                    tile.position.y + 0.5F,
+                                    i.toFloat())
+                        }
+                    }
                 }
             }
             end()
