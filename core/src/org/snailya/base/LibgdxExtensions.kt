@@ -1,10 +1,8 @@
 package org.snailya.base
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.TextureArray
-import com.badlogic.gdx.graphics.VertexAttribute
-import com.badlogic.gdx.graphics.VertexAttributes
+import com.badlogic.gdx.Gdx.gl20
+import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
@@ -114,3 +112,14 @@ inline fun shaderOf(vertex: String, frag: String = vertex): ShaderProgram {
 }
 
 inline fun attrs(vararg attrs: VertexAttribute) = VertexAttributes(*attrs)
+
+/**
+ * graphic help
+ */
+
+fun glEnableBlend() {
+    gl20.glEnable(GL20.GL_BLEND)
+    gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+}
+
+

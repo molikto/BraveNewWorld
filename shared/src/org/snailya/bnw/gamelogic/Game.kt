@@ -54,6 +54,9 @@ class Water(
 val DeepWater = Water(SimpleTextureRef("DeepWater"), 1)
 val ShallowWater = Water(SimpleTextureRef("ShallowWater"), 0)
 
+val Waters = listOf(DeepWater, ShallowWater)
+val WatersByDepth = Waters.sortedBy { it.depth }
+
 open class NaturalTerrain(
         val texture: TextureRef,
         val grainSize: Int
@@ -75,7 +78,8 @@ val SandstoneHewnRock = HewnRock(RockType.Sandstone)
 
 // TODO what to do with spreadsheet data??
 val NaturalTerrains = listOf(Sand, Soil, Gravel, SandstoneHewnRock)
-val NaturalTerrainsByGrainSize = NaturalTerrains.sortedBy { -it.grainSize }
+val NaturalTerrainsByGrainSize = NaturalTerrains.sortedBy { it.grainSize }
+val NaturalTerrainsByGrainSizeInverse = NaturalTerrains.sortedBy { -it.grainSize }
 
 class Stone(
         val rockType: RockType

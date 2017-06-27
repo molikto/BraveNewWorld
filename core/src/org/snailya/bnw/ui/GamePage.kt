@@ -16,6 +16,8 @@ import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.gamelogic.NaturalTerrainsByGrainSize
+import org.snailya.bnw.gamelogic.NaturalTerrainsByGrainSizeInverse
+import org.snailya.bnw.gamelogic.WatersByDepth
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
@@ -141,6 +143,7 @@ class GamePage(val c: ServerConnection) : Page() {
         render_processLocalInput()
         render_setupProjection()
         terrain.render()
+        ocean.render()
         //debug_renderPathFindingResult()
         render_sprites()
         //debug_renderVoronoiDiagram()
@@ -262,13 +265,51 @@ class GamePage(val c: ServerConnection) : Page() {
 
 
 
-    // TODO how to animate ocean?
+    val ocean = object : Batched(
+            // TODO how to animate ocean?
+            shaderOf("terrain"),
+            attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
+                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
+            maxVertices = 4000,
+            texture = textureArrayOf(WatersByDepth.map { "WorldSurface/${it.texture.name}" }),
+            primitiveType = GL20.GL_POINTS
+    ) {
+
+
+        // constants
+        val paddingSize = 0.2F // in game coordinate
+        val pointSize = 1 + paddingSize * 2
+
+        override fun render() {
+            GL11.glPointSize(zoom * pointSize)
+            glEnableBlend()
+            begin()
+            shader.setUniformMatrix("projection", projection)
+            shader.setUniformi("texture", 0)
+            for (i in 0 until WatersByDepth.size) {
+                val t = WatersByDepth[i]
+                for (y in top until bottom) {
+                    for (x in left until right) {
+                        val tile = g.map(x, y)
+                        if (tile.surface == t) {
+                            put(tile.position.x + 0.5F,
+                                    tile.position.y + 0.5F,
+                                    i.toFloat())
+                        }
+                    }
+                }
+            }
+            end()
+        }
+
+    }
+
     val terrain = object : Batched(
             shaderOf("terrain"),
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
                     VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
             maxVertices = 4000,
-            texture = textureArrayOf(NaturalTerrainsByGrainSize.map { "WorldSurface/${it.texture.name}" }),
+            texture = textureArrayOf(NaturalTerrainsByGrainSizeInverse.map { "WorldSurface/${it.texture.name}" }),
             primitiveType = GL20.GL_POINTS
             ) {
 
@@ -278,13 +319,12 @@ class GamePage(val c: ServerConnection) : Page() {
 
         override fun render() {
             GL11.glPointSize(zoom * pointSize)
-            gl20.glEnable(GL20.GL_BLEND)
-            gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+            glEnableBlend()
             begin()
             shader.setUniformMatrix("projection", projection)
             shader.setUniformi("texture", 0)
-            for (i in 0 until NaturalTerrainsByGrainSize.size) {
-                val t = NaturalTerrainsByGrainSize[i]
+            for (i in 0 until NaturalTerrainsByGrainSizeInverse.size) {
+                val t = NaturalTerrainsByGrainSizeInverse[i]
                 for (y in top until bottom) {
                     for (x in left until right) {
                         val tile = g.map(x, y)

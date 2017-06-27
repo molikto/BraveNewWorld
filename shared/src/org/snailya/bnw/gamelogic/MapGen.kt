@@ -183,10 +183,11 @@ class MapGen(val random: Random, val size: Int) {
                 currentBest = Double.MAX_VALUE
                 currentPoint = null
                 search(root, testPoint, true)
+                val result = currentPoint!!
                 map[i][j].surface =
                         if (i == 0 || j == 0 || i == size - 1 || j == size - 1) DeepWater
-                        else terrainOf(currentPoint!!)
-                map[i][j].debug_inputPoint = currentPoint!!
+                        else terrainOf(result)
+                map[i][j].debug_inputPoint = result
             }
         }
         return map
