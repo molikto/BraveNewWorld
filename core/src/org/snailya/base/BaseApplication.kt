@@ -18,8 +18,7 @@ import ktx.scene2d.KStack
 import ktx.scene2d.KTable
 import ktx.scene2d.KWidget
 
-
-lateinit var _game: ApplicationInner
+private var _game: ApplicationInner? = null
 val game by lazy { _game }
 
 inline val Int.dp: Float
@@ -34,7 +33,6 @@ inline val Float.dp: Float
  * the reason we do this is because we want to be consistent with https://material.io/devices/
  */
 class PlatformDependentInfo(val iOSScale: Float?, val logicalWidth: Int?)
-
 
 fun simplePage(uip: () -> KTableWidget?): Page = object : Page() {
    init {
@@ -53,16 +51,10 @@ abstract class Page {
 
     var ui : KWidget<*>? = null
         set(value) {
-            if (value != null) {
-                if (value is KTableWidget) {
-                    value.setFillParent(true)
-                }
-                if (value is KStack) {
-                    value.setFillParent(true)
-                }
-                uiStage.addActor(value as Actor)
-            } else {
-                uiStage.clear()
+            when (value) {
+                null -> uiStage.clear()
+                is KStack -> uiStage.addActor(value.apply { setFillParent(true) } as Actor)
+                is KTableWidget -> uiStage.addActor(value.apply { setFillParent(true) } as Actor)
             }
         }
 
@@ -127,21 +119,18 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
                 " rw: ${backBufferWidth()}, rh: ${backBufferHeight()}" }
     }
 
-
-
-
     lateinit var page: Page
 
     fun change(p: () -> Page) {
         page.dispose()
-        page = p.invoke()
+        page = p()
     }
 
     fun postCreate() {
         input.inputProcessor = object : InputProcessor {
             override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean =
                     page.uiStage.touchUp(screenX, screenY, pointer, button) ||
-                            page.inputProcessor?.touchUp(screenX, screenY, pointer, button)?: false
+                            page.inputProcessor?.touchUp(screenX, screenY, pointer, button) ?: false
 
             override fun mouseMoved(screenX: Int, screenY: Int): Boolean =
                     page.uiStage.mouseMoved(screenX, screenY) ||
