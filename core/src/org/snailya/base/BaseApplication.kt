@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import ktx.scene2d.KTableWidget
 import ktx.log.*
@@ -19,7 +20,7 @@ import ktx.scene2d.KTable
 import ktx.scene2d.KWidget
 
 private var _game: ApplicationInner? = null
-val game by lazy { _game }
+val game by lazy { _game!! }
 
 inline val Int.dp: Float
     inline get() = game.dpiPixel * this
@@ -35,26 +36,28 @@ inline val Float.dp: Float
 class PlatformDependentInfo(val iOSScale: Float?, val logicalWidth: Int?)
 
 fun simplePage(uip: () -> KTableWidget?): Page = object : Page() {
-   init {
-       ui = uip()
-   }
+    init {
+        ui = uip()
+    }
 }
 
 abstract class Page {
 
     //fun uiViewport() = ScalingViewport(Scaling.stretch, game.backBufferWidth().toFloat(), game.backBufferHeight().toFloat(), OrthographicCamera())
     fun uiViewport() = ScreenViewport(OrthographicCamera())
+
     val uiStage = Stage(uiViewport(), game.batch)
     var inputProcessor: InputProcessor? = null
     var clearColor = Color.BLACK
     val batch = game.batch
 
-    var ui : KWidget<*>? = null
+    var ui: KWidget<*>? = null
         set(value) {
-            when (value) {
-                null -> uiStage.clear()
-                is KStack -> uiStage.addActor(value.apply { setFillParent(true) } as Actor)
-                is KTableWidget -> uiStage.addActor(value.apply { setFillParent(true) } as Actor)
+            if (value != null) {
+                if (value is WidgetGroup) value.setFillParent(true)
+                uiStage.addActor(value as Actor)
+            } else {
+                uiStage.clear()
             }
         }
 
@@ -107,16 +110,19 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
      * these are calculated ourselves, seems good to NOT use LIBGDX's API
      */
     val dpiPixel: Float = pdi.iOSScale ?: (if (pdi.logicalWidth != null) (backBufferWidth().toFloat() / pdi.logicalWidth) else graphics.density)
+
     fun width(): Float = backBufferWidth() / dpiPixel
     fun height(): Float = backBufferHeight() / dpiPixel
 
     // TODO logical size image loader
 
     init {
-        info { "Pixel density: $dpiPixel," +
-                " w0: ${graphics.width}, h0: ${graphics.height}," +
-                " w: ${width()}, h: ${height()}," +
-                " rw: ${backBufferWidth()}, rh: ${backBufferHeight()}" }
+        info {
+            "Pixel density: $dpiPixel," +
+                    " w0: ${graphics.width}, h0: ${graphics.height}," +
+                    " w: ${width()}, h: ${height()}," +
+                    " rw: ${backBufferWidth()}, rh: ${backBufferHeight()}"
+        }
     }
 
     lateinit var page: Page
@@ -165,6 +171,7 @@ abstract class ApplicationInner(pdi: PlatformDependentInfo) {
 
     // maybe good place to stop/start game logic??
     open fun resume() = page.resume()
+
     open fun pause() = page.pause()
     open fun dispose() {
         page.disposeInner()
