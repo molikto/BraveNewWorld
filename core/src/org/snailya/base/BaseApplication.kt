@@ -19,8 +19,8 @@ import ktx.scene2d.KTable
 import ktx.scene2d.KWidget
 
 
-var _game: ApplicationInner? = null
-val game by lazy { _game!! }
+lateinit var _game: ApplicationInner
+val game by lazy { _game }
 
 inline val Int.dp: Float
     inline get() = game.dpiPixel * this
@@ -36,10 +36,9 @@ inline val Float.dp: Float
 class PlatformDependentInfo(val iOSScale: Float?, val logicalWidth: Int?)
 
 
-
 fun simplePage(uip: () -> KTableWidget?): Page = object : Page() {
    init {
-       ui = uip.invoke()
+       ui = uip()
    }
 }
 
