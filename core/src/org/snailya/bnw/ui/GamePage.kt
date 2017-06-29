@@ -15,7 +15,6 @@ import org.lwjgl.opengl.GL11
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
-import org.snailya.bnw.gamelogic.NaturalTerrainsByGrainSize
 import org.snailya.bnw.gamelogic.NaturalTerrainsByGrainSizeInverse
 import org.snailya.bnw.gamelogic.WatersByDepth
 import org.snailya.bnw.networking.ServerConnection
@@ -33,7 +32,6 @@ import org.snailya.bnw.timePerTick
  * a networked game loop will be:
  *
  */
-
 
 
 class GamePage(val c: ServerConnection) : Page() {
@@ -56,8 +54,6 @@ class GamePage(val c: ServerConnection) : Page() {
     }
 
 
-
-
     /**
      * ui
      */
@@ -66,6 +62,7 @@ class GamePage(val c: ServerConnection) : Page() {
         lateinit var paused: Label
         lateinit var debug_info: Label
     }
+
     init {
         ui = stack {
             table {
@@ -123,7 +120,7 @@ class GamePage(val c: ServerConnection) : Page() {
      * rendering
      */
     val projection: Matrix4 = Matrix4()
-    val inverseProjection : Matrix4 = Matrix4()
+    val inverseProjection: Matrix4 = Matrix4()
     var top = 0
     var bottom = 0
     var left = 0
@@ -136,22 +133,21 @@ class GamePage(val c: ServerConnection) : Page() {
     override fun render() {
         // all these functions SHOULD know when they are called
         debug_renderDebugUi()
-        if (!c.gamePaused) render_gatherCommands()
-        render_tickGameAndNetwork()
-        render_updateGameUi()
+        if (!c.gamePaused) gatherCommands()
+        tickGameAndNetwork()
+        updateGameUi()
         if (c.gamePaused) return
-        render_processLocalInput()
-        render_setupProjection()
+        processLocalInput()
+        setupProjection()
         terrain.render()
         ocean.render()
         //debug_renderPathFindingResult()
-        render_sprites()
+        renderSprites()
         //debug_renderVoronoiDiagram()
     }
 
 
-
-    private fun render_gatherCommands() {
+    private fun gatherCommands() {
         if (Gdx.input.justTouched()) {
             val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
             if (g.map.inBound(dest)) {
@@ -165,7 +161,7 @@ class GamePage(val c: ServerConnection) : Page() {
     /**
      * probably will pause the game
      */
-    private fun render_tickGameAndNetwork() {
+    private fun tickGameAndNetwork() {
         val time = System.currentTimeMillis()
         if (c.gamePaused && c.received != null) {
             gameTickedTime = c.receivedTime - timePerGameTick
@@ -200,12 +196,12 @@ class GamePage(val c: ServerConnection) : Page() {
     }
 
 
-    private fun render_updateGameUi() {
+    private fun updateGameUi() {
         widgets.paused.isVisible = c.gamePaused
     }
 
 
-    private fun render_processLocalInput() {
+    private fun processLocalInput() {
         run {
             val delta = Gdx.graphics.deltaTime
             val direction = vec2(0F, 0F)
@@ -221,7 +217,7 @@ class GamePage(val c: ServerConnection) : Page() {
         }
     }
 
-    private fun render_setupProjection() {
+    private fun setupProjection() {
 
         projection.setToOrtho2DCentered(focus.x, focus.y, game.backBufferWidth() / zoom, game.backBufferHeight() / zoom)
 
@@ -240,7 +236,7 @@ class GamePage(val c: ServerConnection) : Page() {
 
     }
 
-    private fun render_sprites() {
+    private fun renderSprites() {
         batch.projectionMatrix = projection
         batch.begin()
 
@@ -248,7 +244,7 @@ class GamePage(val c: ServerConnection) : Page() {
             batch.draw(textures.black, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
             if (agent.lockingOnTarget != null) {
                 val lockOnSize = agent.lockingOnTime / agent.totalLockOnTime
-                batch.draw(textures.black, agent.position.x - lockOnSize/2, agent.position.y - lockOnSize/2, lockOnSize, lockOnSize)
+                batch.draw(textures.black, agent.position.x - lockOnSize / 2, agent.position.y - lockOnSize / 2, lockOnSize, lockOnSize)
             }
             if (agent.health != agent.maxHealth) {
                 batch.color = Color.RED
@@ -262,7 +258,6 @@ class GamePage(val c: ServerConnection) : Page() {
 
         batch.end()
     }
-
 
 
     val ocean = object : Batched(
@@ -311,7 +306,7 @@ class GamePage(val c: ServerConnection) : Page() {
             maxVertices = 4000,
             texture = textureArrayOf(NaturalTerrainsByGrainSizeInverse.map { "WorldSurface/${it.texture.name}" }),
             primitiveType = GL20.GL_POINTS
-            ) {
+    ) {
 
         // constants
         val paddingSize = 0.2F // in game coordinate
