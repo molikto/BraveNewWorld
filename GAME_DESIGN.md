@@ -29,7 +29,9 @@ the world can be seen as a 2d grid (X, Y) of "world surface"
                 * can build roofs on top of it, creating a level 2
             * -0.1: where shallow water flows
                 * can be changed to level 0 by some machine
+                * freezable
         * deep water level, level -1, not walkable
+            * not freezable
         * so... this means the world is ALWAYS covered with water when level < 0
     * the above is represented as
         * roof height: how high is the roof above level 1
@@ -39,15 +41,36 @@ the world can be seen as a 2d grid (X, Y) of "world surface"
 
 ### molecular level
 
-the world has some type of elements
+generally the functionality & logic of the game is grounded in some kind of physics (temperature, cold weapon, etc.) & chemistry (magic...) & biology rules. they should have some similarity to science, but not exactly, we don't have the computation power, also changing the rules for the sake of fun game play
 
-water: 
+the main reason of having this level is create stories that are logical, but surprising
 
+
+
+* systems
+    * thermodynamics for temperature
+
+* elements
+    * liquid
+        * water
+    * solid
+        * mineral
+    * air
+        * O2
+        * poison gas
+        
+* magic: this is some black box to simulate the complex system of biology. for example all animal have the magic power of walking, but when it is killed and decomposed into meet, they lose the magic power
+    
+    
 ## IDEAS
 
 * animal slavery to make power
     * trait to dislike this
     
+    
+* construction chain
+    * simple: RTS, RimWorld
+    * complex: Factorio
     
 ## aspects that don't want know
 * 3d
