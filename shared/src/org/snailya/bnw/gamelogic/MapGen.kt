@@ -21,7 +21,7 @@ class MapGen(val random: Random, val size: Int) {
     lateinit var debug_points: List<InputPoint>
 
 
-    fun nonZeroDouble(): Double {
+    fun randomNonZeroDouble(): Double {
         val a = 0.001
         val b = (1 - a * 2)
         return a + b * random.nextDouble()
@@ -35,7 +35,7 @@ class MapGen(val random: Random, val size: Int) {
         var randomDots = ArrayList<InputPoint>()
         val nPoints = size * size / 10
         for (i in 0 .. nPoints) {
-            randomDots.add(InputPoint(nonZeroDouble(), nonZeroDouble()))
+            randomDots.add(InputPoint(randomNonZeroDouble(), randomNonZeroDouble()))
         }
         var voronoi: Voronoi? = null
         for (i in 0 until 2) {
@@ -76,7 +76,7 @@ class MapGen(val random: Random, val size: Int) {
         for (e in v.edges) {
             e.site_left.attachment.edges.add(e)
             e.site_right.attachment.edges.add(e)
-            if (e.isSea()) {
+            if (e.touchMapBoundary()) {
                 e.site_left.attachment.isDeepSea = true
                 e.site_right.attachment.isDeepSea = true
             }
@@ -387,4 +387,4 @@ class MapGen(val random: Random, val size: Int) {
 
 @Strictfp inline fun outside(p: Point) = p.x <= 0 || p.y <= 0 || p.x >= 1 || p.y >= 1
 
-fun Edge.isSea() =  outside(this.start) || outside(this.end)
+fun Edge.touchMapBoundary() =  outside(this.start) || outside(this.end)

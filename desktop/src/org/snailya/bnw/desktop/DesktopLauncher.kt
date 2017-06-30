@@ -9,6 +9,7 @@ import org.snailya.bnw.BraveNewWorldWrapper
 
 object DesktopLauncher {
     @JvmStatic fun main(arg: Array<String>) {
+        // TODO this should be in every launcher, but we currently only using desktop...
         logger = {s -> info{s}}
         val config = Lwjgl3ApplicationConfiguration()
         config.setTitle("Brave New World")
