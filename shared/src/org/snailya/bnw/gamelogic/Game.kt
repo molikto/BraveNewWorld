@@ -17,6 +17,13 @@ import kotlin.Comparator
  */
 
 /**
+ *
+ *
+ *
+ *
+ * graphical data
+ *
+ *
  * TextureRef
  *
  * texture element needed for rendering
@@ -30,9 +37,9 @@ data class SimpleTextureRef(override val name: String) : TextureRef(name)
 data class TintedTextureRef(override val name: String, val color: Int /* rgba8888 */) : TextureRef(name)
 
 /**
- * RockType
+ *
  */
-enum class RockType(val tintColor: Int) {
+enum class MineralType(val tintColor: Int) {
     Sandstone(0xa020f0ff.toInt()), Marble(0xc380f0ff.toInt())
 }
 
@@ -70,10 +77,10 @@ val Soil = NaturalTerrain(SimpleTextureRef("Soil"), 2)
 val Gravel = NaturalTerrain(SimpleTextureRef("Gravel"), 3)
 
 class HewnRock(
-        val rockType: RockType
+        val rockType: MineralType
 ) : NaturalTerrain(TintedTextureRef("HewnRock", rockType.tintColor), 10)
 
-val SandstoneHewnRock = HewnRock(RockType.Sandstone)
+val SandstoneHewnRock = HewnRock(MineralType.Sandstone)
 
 
 // TODO what to do with spreadsheet data??
@@ -82,7 +89,7 @@ val NaturalTerrainsByGrainSize = NaturalTerrains.sortedBy { it.grainSize }
 val NaturalTerrainsByGrainSizeInverse = NaturalTerrains.sortedBy { -it.grainSize }
 
 class Stone(
-        val rockType: RockType
+        val rockType: MineralType
 ) : NaturalTerrain(TintedTextureRef("Stone", rockType.tintColor), 10)
 
 
