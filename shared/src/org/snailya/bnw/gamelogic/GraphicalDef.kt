@@ -2,7 +2,6 @@ package org.snailya.bnw.gamelogic
 
 
 /**
- *
  * TextureRef
  *
  * texture element needed for rendering

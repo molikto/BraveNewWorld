@@ -64,15 +64,27 @@ the main reason of having this level is create stories that are logical, but sur
     
 ## IDEAS
 
+### win condition
+
+* don't have a single player win
+* not necessary combat
+    * limited resource, like in real world
+
+### simulation
+
 * animal slavery to make power
     * trait to dislike this
     
-    
+* a chain of events can lead to someone write a song (pre-defined and downloaded when possible)
+    * then this can be played by a music player, if you don't have one, you will not be able to play it
+
+### construction
+
 * construction chain
     * simple: RTS, RimWorld
     * complex: Factorio
     
-## aspects that don't want know
+## aspects that don't want now
 * 3d
     * the good
         * gravity

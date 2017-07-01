@@ -5,10 +5,6 @@ import org.snailya.base.*
 import org.snailya.bnw.bnw
 import org.snailya.bnw.networking.ServerConnection
 
-/**
- * Created by molikto on 14/06/2017.
- */
-
 class JoinServerPage : Page() {
 
     init {

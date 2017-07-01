@@ -78,7 +78,7 @@ class GamePage(val c: ServerConnection) : Page() {
     /**
      * game simulation
      */
-    val g = BnwGame(c.myIndex, c.playerSize, c.serverGameStartTime)
+    val g = BnwGame(c.myIndex, c.playerSize, seed = c.serverGameStartTime)
 
     /**
      * commands buffer
@@ -107,7 +107,7 @@ class GamePage(val c: ServerConnection) : Page() {
             override fun scrolled(amount: Int): Boolean {
                 zoom *= (1 + amount.dp / 50)
                 zoom = maxOf(minZoom, minOf(maxZoom, zoom))
-                // TODO focus speed, snapping
+                // TODO focus speed, slow out when input is gone
                 focusSpeed = (40F * Math.sqrt((minZoom / zoom).toDouble())).toFloat()
                 return true
             }
