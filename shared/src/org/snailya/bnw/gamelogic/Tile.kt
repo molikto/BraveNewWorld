@@ -7,7 +7,7 @@ import org.snailya.base.StrictVector2
 class Tile(
         val position: IntVector2
 ) {
-    lateinit var terrain: NaturalTerrain
+    lateinit var terrain: Terrain
     var waterSurface: WaterSurface? = null
     var floor: ConstructedFloor? = null
     val wall: Unit? = null

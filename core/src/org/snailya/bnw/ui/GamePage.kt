@@ -15,6 +15,7 @@ import org.lwjgl.opengl.GL11
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
+import org.snailya.bnw.gamelogic.DeepWater
 import org.snailya.bnw.gamelogic.NaturalTerrainsByGrainSizeInverse
 import org.snailya.bnw.gamelogic.WatersByDepth
 import org.snailya.bnw.networking.ServerConnection
@@ -140,7 +141,7 @@ class GamePage(val c: ServerConnection) : Page() {
         processLocalInput()
         setupProjection()
         terrain.render()
-        ocean.render()
+        waterSurface.render()
         //debug_renderPathFindingResult()
         renderSprites()
         //debug_renderVoronoiDiagram()
@@ -260,13 +261,13 @@ class GamePage(val c: ServerConnection) : Page() {
     }
 
 
-    val ocean = object : Batched(
-            // TODO how to animate ocean?
+    val waterSurface = object : Batched(
+            // TODO how to animate waterSurface?
             shaderOf("terrain"),
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
                     VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
             maxVertices = 4000,
-            texture = textureArrayOf(WatersByDepth.map { "WaterSurface/${it.texture.name}" }),
+            texture = textureArrayOf(WatersByDepth.map { it.texture.name }),
             primitiveType = GL20.GL_POINTS
     ) {
 
@@ -304,7 +305,7 @@ class GamePage(val c: ServerConnection) : Page() {
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
                     VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
             maxVertices = 4000,
-            texture = textureArrayOf(NaturalTerrainsByGrainSizeInverse.map { "Terrain/${it.texture.name}" }),
+            texture = textureArrayOf(NaturalTerrainsByGrainSizeInverse.map { it.texture.name }),
             primitiveType = GL20.GL_POINTS
     ) {
 
@@ -323,7 +324,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 for (y in top until bottom) {
                     for (x in left until right) {
                         val tile = g.map(x, y)
-                        if (tile.terrain == t) {
+                        if (tile.terrain == t && tile.waterSurface != DeepWater) {
                             put(tile.position.x + 0.5F,
                                     tile.position.y + 0.5F,
                                     i.toFloat())
@@ -353,9 +354,9 @@ class GamePage(val c: ServerConnection) : Page() {
         widgets.debug_info.setText("FPS: ${graphics.framesPerSecond}\nrender time: ${game.renderTime}")
     }
 
-    val shapeRenderer = ShapeRenderer()
+    val debug_shapeRenderer = ShapeRenderer()
     private fun debug_renderVoronoiDiagram() {
-        val renderer = shapeRenderer
+        val renderer = debug_shapeRenderer
         renderer.projectionMatrix = projection
         renderer.begin(ShapeRenderer.ShapeType.Line)
         val size = g.map.size

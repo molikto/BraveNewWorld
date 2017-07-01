@@ -1,22 +1,20 @@
 package org.snailya.bnw.gamelogic
 
-import org.snailya.bnw.ps
 
-
-open class NaturalTerrain(
+open class Terrain(
         val texture: TextureRef,
         val grainSize: Int
 ) {
         val baseWalkSpeed = 1F
 }
 
-val Sand = NaturalTerrain(SimpleTextureRef("Sand"), 1)
-val Soil = NaturalTerrain(SimpleTextureRef("Soil"), 2)
-val Gravel = NaturalTerrain(SimpleTextureRef("Gravel"), 3)
+val Sand = Terrain(SimpleTextureRef("Terrain/Sand"), 1)
+val Soil = Terrain(SimpleTextureRef("Terrain/Soil"), 2)
+val Gravel = Terrain(SimpleTextureRef("Terrain/Gravel"), 3)
 
 class HewnRock(
         val rock: Mineral
-) : NaturalTerrain(TintedTextureRef("HewnRock", rock.tintColor), 10)
+) : Terrain(TintedTextureRef("Terrain/HewnRock", rock.tintColor), 10)
 
 val SandstoneHewnRock = HewnRock(SandstoneMineral)
 
@@ -28,6 +26,6 @@ val NaturalTerrainsByGrainSizeInverse = NaturalTerrains.sortedBy { -it.grainSize
 
 class StoneTerrain(
         val mineral: Mineral
-) : NaturalTerrain(TintedTextureRef("Stone", mineral.tintColor), 10)
+) : Terrain(TintedTextureRef("Terrain/Stone", mineral.tintColor), 10)
 
 
