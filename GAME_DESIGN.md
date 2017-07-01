@@ -13,7 +13,7 @@
 
 ### spacial specification
 
-the world can be seen as a 2d grid (X, Y) of "world surface"
+the world can be seen as a 2d grid (X, Y) of "tile"
 
 * additionally, Z-level. discrete, even more discrete than X, Y
     * there is 3 kind of Z-level
@@ -22,7 +22,7 @@ the world can be seen as a 2d grid (X, Y) of "world surface"
             * protect things bellow from molars, if thick enough
         * constructed level, level 1: this is base level + the elevation of constructions on base level
             * low mountain and walls, but not roofs, always destructible
-        * base level: the level of the surface, with constructed level removed
+        * base level: the level of the terrain, with constructed level removed
             * normal walkable Z-level
             * level 0
                 * can build things on top of it, creating a level 1

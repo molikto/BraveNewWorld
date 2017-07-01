@@ -1,50 +1,11 @@
 package org.snailya.bnw.gamelogic
 
-import org.serenaz.InputPoint
 import org.snailya.base.*
 import org.snailya.bnw.*
 import java.util.*
 import kotlin.Comparator
 
 
-
-open class AgentConfig : WalkerConfig() {
-}
-
-open class WalkerConfig {
-    var speed: Float = 1F.ps
-}
-
-
-
-
-class MapTile(val position: IntVector2) {
-    lateinit var surface: WorldSurface
-    var floor: ConstructedFloor? = null
-    val wall: Unit? = null
-    val walled = wall != null
-
-    val walkable
-            get() = if (walled) false else if (floor == null) surface.walkable else true
-    val notWalkable
-            get() = !walkable
-
-
-    @Strictfp
-    inline fun center(s: StrictVector2): StrictVector2 {
-        s.x = position.x + 0.5F
-        s.y = position.y + 0.5F
-        return s
-    }
-
-
-    var temp_cost: Float = 0F
-    var temp_priority: Float = 0F
-    var temp_visited: Int = -1
-    var temp_ttpo: IntVector2 = IntVector2.Zero // to the previous of
-
-    lateinit var debug_inputPoint: InputPoint
-}
 
 class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
@@ -70,7 +31,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
         // tiles 0.... 99, metrics 0..1...100
         val size = 200
         val debug_mapGen = MapGen(random, size)
-        val map: Array<Array<MapTile>> = debug_mapGen.gen()
+        val map: Array<Array<Tile>> = debug_mapGen.gen()
 
 
 
@@ -89,7 +50,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
         // TODO return the hit point
         @Strictfp
-        fun hitWall(a: StrictVector2, b: StrictVector2): MapTile? {
+        fun hitWall(a: StrictVector2, b: StrictVector2): Tile? {
             if (a.x < 0 || a.y < 0 || a.x >= size || a.y >= size) return null
             if (this(a).walled) return this(a)
             val higher = if (a.y > b.y) a else b
@@ -167,7 +128,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                     } else {
                         val inter = a.intersects(temp_pos, position)
                         if (inter != null) {
-                            a.injured((1 - inter) * 2F)
+                            a.takeDamage((1 - inter) * 2F)
                             lifetime = 0F
                         }
                     }
@@ -182,9 +143,8 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
     /**
      * agents
      */
-    val agentConfig = configured(AgentConfig()) {  }
     val agents = (0 until playerSize).map { index ->
-        configured(Agent()) { faction = index; config =  agentConfig; position = svec2(0.5F, 0.5F) }
+        configured(Agent()) { faction = index; position = svec2(0.5F, 0.5F) }
     }
 
 
@@ -238,10 +198,10 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
     // all variables is temp
     inner class FindRouteWrapper {
         var counter = -1
-        val pq = PriorityQueue<MapTile>(30, object : Comparator<MapTile> {
+        val pq = PriorityQueue<Tile>(30, object : Comparator<Tile> {
 
             @Strictfp
-            override fun compare(o1: MapTile, o2: MapTile): Int {
+            override fun compare(o1: Tile, o2: Tile): Int {
                 if (o1.temp_priority > o2.temp_priority) {
                     return 1
                 } else if (o1.temp_priority < o2.temp_priority) {
@@ -254,7 +214,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
         var ipos = ivec2()
 
 
-        @Strictfp operator fun invoke(position: StrictVector2, dest: IntVector2, /* out */ route: MutableList<MapTile>) {
+        @Strictfp operator fun invoke(position: StrictVector2, dest: IntVector2, /* out */ route: MutableList<Tile>) {
             val dt = map(dest)
             if (dt.notWalkable) {
                 println("glitch: dest is notWalkable")
@@ -323,7 +283,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
         val hpos = ivec2()
 
-        inline private fun util_tryAddRoute(next: MapTile, dt: MapTile, vec: IntVector2, cost: Float, h: Boolean) {
+        inline private fun util_tryAddRoute(next: Tile, dt: Tile, vec: IntVector2, cost: Float, h: Boolean) {
             val new = next.temp_visited != counter
             if (new || cost < next.temp_cost) {
                 if (!new) pq.remove(next)
@@ -353,14 +313,14 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
 
         // temp
         val pos = svec2()
-        @Strictfp operator fun invoke(walker: Walker, /* in-out */ route: MutableList<MapTile>, /* in-out */ position: StrictVector2) {
+        @Strictfp operator fun invoke(walker: Walker, /* in-out */ route: MutableList<Tile>, /* in-out */ position: StrictVector2) {
             // TODO re-plan when game structure changes
             if (!route.isEmpty()) {
                 val id = route.last()
                 id.center(pos)
                 pos - position
                 val dis = pos.len()
-                val time = dis / walker.config.speed
+                val time = dis / walker.speed
                 if (time < 1) { // we can finish this dis
                     // move the player to id
                     id.center(position)
@@ -371,10 +331,10 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
                         val nid = route.last()
                         nid.center(pos)
                         pos - position
-                        position + pos.nor() * walker.config.speed * (1 - time)
+                        position + pos.nor() * walker.speed * (1 - time)
                     }
                 } else {
-                    position + pos.nor() * walker.config.speed
+                    position + pos.nor() * walker.speed
                 }
             }
         }
@@ -439,17 +399,17 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
             }
         }
 
-        fun  injured(fl: Float) {
+        fun takeDamage(fl: Float) {
             health -= fl
         }
     }
 
     inner open class Walker {
-        lateinit var config: WalkerConfig
+        var speed = 1F.ps
 
         lateinit var position: StrictVector2
         val size = 0.5F // TODO now all stuff is actually round!
-        val route = mutableListOf<MapTile>()
+        val route = mutableListOf<Tile>()
         inline val walking: Boolean
             get() = !route.isEmpty()
 

@@ -28,7 +28,7 @@ class MapGen(val random: Random, val size: Int) {
     }
 
     @Strictfp
-    fun gen(): Array<Array<MapTile>> {
+    fun gen(): Array<Array<Tile>> {
         /**
          * generate the Voronoi polygons
          */
@@ -168,8 +168,8 @@ class MapGen(val random: Random, val size: Int) {
     }
 
     @Strictfp
-    private fun rasterize(sites: MutableList<InputPoint>): Array<Array<MapTile>> {
-        val map: Array<Array<MapTile>> = Array(size, { x -> Array(size, { y -> MapTile(ivec2(x, y)) }) })
+    private fun rasterize(sites: MutableList<InputPoint>): Array<Array<Tile>> {
+        val map: Array<Array<Tile>> = Array(size, { x -> Array(size, { y -> Tile(ivec2(x, y)) }) })
         for (s in sites) {
             s.x *= size
             s.y *= size
@@ -184,9 +184,11 @@ class MapGen(val random: Random, val size: Int) {
                 currentPoint = null
                 search(root, testPoint, true)
                 val result = currentPoint!!
-                map[i][j].surface =
-                        if (i == 0 || j == 0 || i == size - 1 || j == size - 1) DeepWater
-                        else terrainOf(result)
+                val tile = map[i][j]
+                tile.terrain = terrainOf(result)
+                if (result.attachment.isDeepSea || i == 0 || j == 0 || i == size - 1 || j == size - 1)
+                    tile.waterSurface = DeepWater
+                else if (result.attachment.isShallowSea) tile.waterSurface = ShallowWater
                 map[i][j].debug_inputPoint = result
             }
         }
@@ -259,8 +261,8 @@ class MapGen(val random: Random, val size: Int) {
 
     // THIS IS NOT WORKING YET....
     @Strictfp
-    private fun rasterize2(edges: List<Edge>): Array<Array<MapTile>> {
-        val map: Array<Array<MapTile>> = Array(size, { x ->  Array(size, { y -> configured(MapTile()) { position = ivec2(x, y) } })})
+    private fun rasterize2(edges: List<Edge>): Array<Array<Tile>> {
+        val map: Array<Array<Tile>> = Array(size, { x ->  Array(size, { y -> configured(Tile()) { position = ivec2(x, y) } })})
 
         fun <T> add(a: TreeMap<Double, ArrayList<T>>, d: Double,  t: T) {
             var l = a[d]
@@ -346,10 +348,10 @@ class MapGen(val random: Random, val size: Int) {
                                 //if (end < pendingX) throw IllegalStateException("what ${pendingX} $e")
                                 val top = if (e.site_left.y > e.site_right.y) e.site_right else e.site_left
                                 bottom = if (e.site_left.y > e.site_right.y) e.site_left else e.site_right
-                                val surface = terrainOf(top)
+                                val terrain = terrainOf(top)
                                 while (y < size && y <= e.samplePointY) {
                                     val tile = toAdd[y.toInt()]
-                                    tile.surface = surface
+                                    tile.terrain = terrain
                                     y += 1
                                 }
                             }
@@ -357,10 +359,10 @@ class MapGen(val random: Random, val size: Int) {
                         // we will just assume we will have a edge pointed to the left side,
                         // this is statistically very possible
                         assert(bottom != null)
-                        val surface = terrainOf(bottom!!)
+                        val terrain = terrainOf(bottom!!)
                         while (y < size) {
                             val tile = toAdd[y.toInt()]
-                            tile.surface = surface
+                            tile.terrain = terrain
                             y += 1
                         }
                         bottom = null
@@ -375,9 +377,9 @@ class MapGen(val random: Random, val size: Int) {
 
     */
 
-    fun terrainOf(top: InputPoint) : WorldSurface =
-        if (top.attachment.isDeepSea) DeepWater
-        else if (top.attachment.isShallowSea) ShallowWater
+    fun terrainOf(top: InputPoint) : NaturalTerrain =
+        if (top.attachment.isDeepSea) SandstoneHewnRock // TODO mineral under sea
+        else if (top.attachment.isShallowSea) Sand
         else if (top.attachment.isBeach) Sand
         else if (top.attachment.height < 2) Soil
         else if (top.attachment.height < 3) Gravel

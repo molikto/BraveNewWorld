@@ -266,7 +266,7 @@ class GamePage(val c: ServerConnection) : Page() {
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
                     VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
             maxVertices = 4000,
-            texture = textureArrayOf(WatersByDepth.map { "WorldSurface/${it.texture.name}" }),
+            texture = textureArrayOf(WatersByDepth.map { "WaterSurface/${it.texture.name}" }),
             primitiveType = GL20.GL_POINTS
     ) {
 
@@ -286,7 +286,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 for (y in top until bottom) {
                     for (x in left until right) {
                         val tile = g.map(x, y)
-                        if (tile.surface == t) {
+                        if (tile.waterSurface == t) {
                             put(tile.position.x + 0.5F,
                                     tile.position.y + 0.5F,
                                     i.toFloat())
@@ -304,7 +304,7 @@ class GamePage(val c: ServerConnection) : Page() {
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
                     VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
             maxVertices = 4000,
-            texture = textureArrayOf(NaturalTerrainsByGrainSizeInverse.map { "WorldSurface/${it.texture.name}" }),
+            texture = textureArrayOf(NaturalTerrainsByGrainSizeInverse.map { "Terrain/${it.texture.name}" }),
             primitiveType = GL20.GL_POINTS
     ) {
 
@@ -323,7 +323,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 for (y in top until bottom) {
                     for (x in left until right) {
                         val tile = g.map(x, y)
-                        if (tile.surface == t) {
+                        if (tile.terrain == t) {
                             put(tile.position.x + 0.5F,
                                     tile.position.y + 0.5F,
                                     i.toFloat())
