@@ -2,11 +2,8 @@ package org.snailya.bnw.gamelogic
 
 import org.serenaz.InputPoint
 import org.snailya.base.IntVector2
-import org.snailya.base.StrictVector2
-import org.snailya.bnw.gamelogic.stateless.ConstructedFloor
-import org.snailya.bnw.gamelogic.stateless.DeepWater
-import org.snailya.bnw.gamelogic.stateless.Terrain
-import org.snailya.bnw.gamelogic.stateless.WaterSurface
+import org.snailya.base.SVector2
+import org.snailya.bnw.gamelogic.stateless.*
 
 
 // stateful
@@ -14,22 +11,29 @@ import org.snailya.bnw.gamelogic.stateless.WaterSurface
 class Tile(
         val position: IntVector2
 ) {
-    lateinit var terrain: Terrain
+    var roof: Roof? = null
     var waterSurface: WaterSurface? = null
+    var itemPack: ItemPack? = null
+
+    var blockage: Blockage? = null
     var floor: ConstructedFloor? = null
+    lateinit var terrain: Terrain
 
-    // TODO these are temp
-    val wall: Unit? = null
-    val walled = wall != null
+    fun assertValid() {
+        assert(waterSurface == null || (blockage == null && floor == null))
+    }
 
-    val walkable
-        get() = !(walled || waterSurface == DeepWater)
-    val notWalkable
-        get() = !walkable
+    init {
+        assertValid()
+    }
+
+    val blocked get() = blockage != null
+    val walkable get() = !(blocked || waterSurface?.isDeep ?: false)
+    val nonWalkable get() = !walkable
 
 
     @Strictfp
-    inline fun center(s: StrictVector2): StrictVector2 {
+    inline fun center(s: SVector2): SVector2 {
         s.x = position.x + 0.5F
         s.y = position.y + 0.5F
         return s

@@ -9,7 +9,7 @@ data class IntVector2(@JvmField var x: Int, @JvmField var y: Int) {
     companion object {
         val Zero = ivec2()
     }
-    fun svec() = StrictVector2(x.toFloat(), y.toFloat())
+    fun svec() = SVector2(x.toFloat(), y.toFloat())
 
     fun len(): Float = StrictMath.sqrt((x * x + y * y).toDouble()).toFloat()
 
@@ -17,7 +17,7 @@ data class IntVector2(@JvmField var x: Int, @JvmField var y: Int) {
         this.x = position.x
         this.y = position.y
     }
-    fun  set(position: StrictVector2) {
+    fun  set(position: SVector2) {
         this.x = position.x.toInt()
         this.y = position.y.toInt()
     }

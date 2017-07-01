@@ -2,19 +2,22 @@ package org.snailya.base
 
 
 // TODO not thread safe
-data class StrictVector2(@JvmField var x: Float, @JvmField var y: Float) {
+/**
+ * Strict Vector
+ */
+data class SVector2(@JvmField var x: Float, @JvmField var y: Float) {
     companion object {
-        val Zero = StrictVector2(0F, 0F)
+        val Zero = SVector2(0F, 0F)
     }
 
     @Strictfp
-    inline fun copy(): StrictVector2 {
-        return StrictVector2(x, y)
+    inline fun copy(): SVector2 {
+        return SVector2(x, y)
     }
 
 
     @Strictfp
-    inline fun dis(that: StrictVector2): Float {
+    inline fun dis(that: SVector2): Float {
         val dx = (this.x - that.x)
         val dy = (this.y - that.y)
         return StrictMath.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
@@ -28,7 +31,7 @@ data class StrictVector2(@JvmField var x: Float, @JvmField var y: Float) {
     }
 
     @Strictfp
-    inline fun nor(): StrictVector2 {
+    inline fun nor(): SVector2 {
         val len = len()
         if (len != 0f) {
             x /= len
@@ -40,7 +43,7 @@ data class StrictVector2(@JvmField var x: Float, @JvmField var y: Float) {
     @Strictfp
     inline fun ivec2() = IntVector2(x.toInt(), y.toInt())
     @Strictfp
-    inline fun  set(position: StrictVector2) {
+    inline fun  set(position: SVector2) {
         this.x = position.x
         this.y = position.y
     }
@@ -52,28 +55,28 @@ data class StrictVector2(@JvmField var x: Float, @JvmField var y: Float) {
 }
 
 @Strictfp
-inline operator fun  StrictVector2.plus(position: StrictVector2): StrictVector2 {
+inline operator fun SVector2.plus(position: SVector2): SVector2 {
     this.x += position.x
     this.y += position.y
     return this
 }
 
 @Strictfp
-inline operator fun StrictVector2.minus(position: StrictVector2): StrictVector2 {
+inline operator fun SVector2.minus(position: SVector2): SVector2 {
     this.x -= position.x
     this.y -= position.y
     return this
 }
 
 @Strictfp
-inline operator fun  StrictVector2.times(p: Int): StrictVector2 {
+inline operator fun SVector2.times(p: Int): SVector2 {
     this.x *= p
     this.y *= p
     return this
 }
 
 @Strictfp
-inline operator fun  StrictVector2.div(p: Int): StrictVector2 {
+inline operator fun SVector2.div(p: Int): SVector2 {
     this.x /= p
     this.y /= p
     return this
@@ -81,14 +84,14 @@ inline operator fun  StrictVector2.div(p: Int): StrictVector2 {
 
 
 @Strictfp
-inline operator fun  StrictVector2.times(p: Float): StrictVector2 {
+inline operator fun SVector2.times(p: Float): SVector2 {
     this.x *= p
     this.y *= p
     return this
 }
 
 @Strictfp
-inline operator fun  StrictVector2.div(p: Float): StrictVector2 {
+inline operator fun SVector2.div(p: Float): SVector2 {
     this.x /= p
     this.y /= p
     return this
@@ -96,15 +99,15 @@ inline operator fun  StrictVector2.div(p: Float): StrictVector2 {
 
 
 @Strictfp
-fun pointToLineDistance(A: StrictVector2, B: StrictVector2, P: StrictVector2): Float {
+fun pointToLineDistance(A: SVector2, B: SVector2, P: SVector2): Float {
     val normalLength = StrictMath.sqrt((B.x - A.x) * (B.x - A.x) + (B.y - A.y) * (B.y - A.y).toDouble())
     return (Math.abs((P.x - A.x) * (B.y - A.y) - (P.y - A.y) * (B.x - A.x)) / normalLength).toFloat()
 }
 
 
-val temp_pointToLineDistance = StrictVector2(0F, 0F)
+val temp_pointToLineDistance = SVector2(0F, 0F)
 @Strictfp
-fun pointToLineSegmentDistance(v: StrictVector2, w: StrictVector2, p: StrictVector2): Float {
+fun pointToLineSegmentDistance(v: SVector2, w: SVector2, p: SVector2): Float {
     // https//stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
     // Return minimum distance between line segment vw and point p
     temp_pointToLineDistance.set(v)

@@ -4,12 +4,12 @@ import org.snailya.base.*
 import org.snailya.bnw.ps
 
 
-class Bullet(val shooterFaction: Int, val initial: StrictVector2, to: StrictVector2) {
-    val temp_pos: StrictVector2 = svec2()
+class Bullet(val shooterFaction: Int, val initial: SVector2, to: SVector2) {
+    val temp_pos: SVector2 = svec2()
     val maxLifetime = 1F
     var lifetime = maxLifetime
     val speed = 10F.ps
-    val position: StrictVector2 = initial.copy()
+    val position: SVector2 = initial.copy()
     val tick = (to.copy() - initial).nor() * speed
 
     @Strictfp

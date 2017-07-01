@@ -15,8 +15,6 @@ val bnw by lazy { app as BraveNewWorld }
 /**
  * REAL THING
  */
-
-
 class BraveNewWorld(pdi: PlatformDependentInfo) : ApplicationInner(pdi) {
 
     val ui = GeneralUi()

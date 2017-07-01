@@ -13,10 +13,10 @@ import ktx.math.*
 import ktx.scene2d.*
 import org.lwjgl.opengl.GL11
 import org.snailya.base.*
+import org.snailya.base.app
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.gamelogic.game
-import org.snailya.bnw.gamelogic.stateless.DeepWater
 import org.snailya.bnw.gamelogic.stateless.NaturalTerrainsByGrainSizeInverse
 import org.snailya.bnw.gamelogic.stateless.WatersByDepth
 import org.snailya.bnw.networking.ServerConnection
@@ -132,7 +132,7 @@ class GamePage(val c: ServerConnection) : Page() {
     var right = 0
 
     fun inputGameCoor(x: Int, y: Int) =
-            vec2(x.tf * 2 / org.snailya.base.app.backBufferWidth() - 1, 1 - y.tf * 2 / org.snailya.base.app.backBufferHeight()).extends().mul(inverseProjection).lose()
+            vec2(x.tf * 2 / app.backBufferWidth() - 1, 1 - y.tf * 2 / app.backBufferHeight()).extends().mul(inverseProjection).lose()
 
 
     override fun render() {
@@ -156,7 +156,7 @@ class GamePage(val c: ServerConnection) : Page() {
         if (Gdx.input.justTouched()) {
             val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
             if (game.map.inBound(dest)) {
-                if (!game.map(dest).notWalkable) {
+                if (!game.map(dest).nonWalkable) {
                     commands.add(PlayerCommand(dest))
                 }
             }
@@ -224,7 +224,7 @@ class GamePage(val c: ServerConnection) : Page() {
 
     private fun setupProjection() {
 
-        projection.setToOrtho2DCentered(focus.x, focus.y, org.snailya.base.app.backBufferWidth() / zoom, org.snailya.base.app.backBufferHeight() / zoom)
+        projection.setToOrtho2DCentered(focus.x, focus.y, app.backBufferWidth() / zoom, app.backBufferHeight() / zoom)
 
         inverseProjection.set(projection)
         inverseProjection.inv()
@@ -326,7 +326,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 for (y in top until bottom) {
                     for (x in left until right) {
                         val tile = game.map(x, y)
-                        if (tile.terrain == t && tile.waterSurface != DeepWater) {
+                        if (tile.terrain == t && tile.waterSurface?.isShallow ?: true) {
                             put(tile.position.x + 0.5F,
                                     tile.position.y + 0.5F,
                                     i.toFloat())
@@ -353,7 +353,7 @@ class GamePage(val c: ServerConnection) : Page() {
      */
 
     private fun debug_renderDebugUi() {
-        widgets.debug_info.setText("FPS: ${graphics.framesPerSecond}\nrender time: ${org.snailya.base.app.renderTime}")
+        widgets.debug_info.setText("FPS: ${graphics.framesPerSecond}\nrender time: ${app.renderTime}")
     }
 
     val debug_shapeRenderer = ShapeRenderer()

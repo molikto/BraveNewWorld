@@ -8,7 +8,7 @@ class WalkWrapper {
 
     // temp
     val pos = svec2()
-    @Strictfp operator fun invoke(walker: Walker, /* in-out */ route: MutableList<Tile>, /* in-out */ position: StrictVector2) {
+    @Strictfp operator fun invoke(walker: Walker, /* in-out */ route: MutableList<Tile>, /* in-out */ position: SVector2) {
         // TODO re-plan when game structure changes
         if (!route.isEmpty()) {
             val id = route.last()
@@ -41,7 +41,7 @@ val walk = WalkWrapper()
 open class Walker {
     var speed = 1F.ps
 
-    lateinit var position: StrictVector2
+    lateinit var position: SVector2
     val size = 0.5F // TODO now all stuff is actually round!
     val route = mutableListOf<Tile>()
     inline val walking: Boolean
@@ -54,7 +54,7 @@ open class Walker {
     fun tryWalk() = walk(this, route, position)
 
     @Strictfp
-    fun intersects(from: StrictVector2, to: StrictVector2): Float? {
+    fun intersects(from: SVector2, to: SVector2): Float? {
         val dis = pointToLineDistance(from, to, position)
         if (dis < size) {
             val d2 = pointToLineSegmentDistance(from, to, position)

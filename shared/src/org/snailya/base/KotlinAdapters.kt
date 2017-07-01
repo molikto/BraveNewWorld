@@ -19,12 +19,12 @@ object IntVector2Adapter : KotlinSerializationAdapter<IntVector2>() {
     }
 }
 
-object StrictVector2Adapter : KotlinSerializationAdapter<StrictVector2>() {
-    override fun parse(b: ByteBuffer): StrictVector2 {
-        return StrictVector2(b.getFloat(), b.getFloat())
+object StrictVector2Adapter : KotlinSerializationAdapter<SVector2>() {
+    override fun parse(b: ByteBuffer): SVector2 {
+        return SVector2(b.getFloat(), b.getFloat())
     }
 
-    override fun serialize(b: ByteBuffer, t: StrictVector2) {
+    override fun serialize(b: ByteBuffer, t: SVector2) {
         b.putFloat(t.x)
         b.putFloat(t.y)
     }

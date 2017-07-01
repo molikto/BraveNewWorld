@@ -3,7 +3,6 @@ package org.snailya.bnw.gamelogic
 import org.snailya.base.*
 import org.snailya.bnw.*
 import java.util.*
-import kotlin.Comparator
 
 
 var _game: BnwGame? = null
@@ -39,7 +38,7 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
         for (a in agents) {
             while (true) {
                 val t = map.randomTile()
-                if (!t.notWalkable) {
+                if (!t.nonWalkable) {
                     t.center(a.position)
                     break
                 }

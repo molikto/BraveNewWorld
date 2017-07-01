@@ -6,21 +6,14 @@ import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
-import com.badlogic.gdx.math.Matrix3
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
-import com.badlogic.gdx.scenes.scene2d.ui.Label
-import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import ktx.math.vec2
 import ktx.math.vec3
-import ktx.scene2d.KTableWidget
-import ktx.scene2d.KWidget
-import ktx.scene2d.Scene2DSkin
-import ktx.scene2d.defaultStyle
 
 
 inline fun post(crossinline a: () -> Unit) = Gdx.app.postRunnable { a.invoke() }
@@ -76,8 +69,8 @@ val identityMatrix4 = Matrix4()
 fun identityMatrix4() = Matrix4()
 
 
-inline fun Vector2.svec2(): StrictVector2 = svec2(x, y)
-inline fun StrictVector2.vec2(): Vector2 = vec2(x, y)
+inline fun Vector2.svec2(): SVector2 = svec2(x, y)
+inline fun SVector2.vec2(): Vector2 = vec2(x, y)
 
 inline fun Vector2.ivec2(): IntVector2 = ivec2(x.toInt(), y.toInt())
 
