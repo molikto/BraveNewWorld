@@ -1,4 +1,4 @@
-package org.snailya.bnw.gamelogic
+package org.snailya.bnw.gamelogic.stateless
 
 
 

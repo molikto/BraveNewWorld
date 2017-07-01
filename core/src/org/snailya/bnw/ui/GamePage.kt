@@ -15,9 +15,10 @@ import org.lwjgl.opengl.GL11
 import org.snailya.base.*
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
-import org.snailya.bnw.gamelogic.DeepWater
-import org.snailya.bnw.gamelogic.NaturalTerrainsByGrainSizeInverse
-import org.snailya.bnw.gamelogic.WatersByDepth
+import org.snailya.bnw.gamelogic.game
+import org.snailya.bnw.gamelogic.stateless.DeepWater
+import org.snailya.bnw.gamelogic.stateless.NaturalTerrainsByGrainSizeInverse
+import org.snailya.bnw.gamelogic.stateless.WatersByDepth
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
@@ -51,6 +52,7 @@ class GamePage(val c: ServerConnection) : Page() {
     }
 
     override fun dispose() {
+        game.dispose()
         // TODO textures
     }
 
@@ -79,7 +81,9 @@ class GamePage(val c: ServerConnection) : Page() {
     /**
      * game simulation
      */
-    val g = BnwGame(c.myIndex, c.playerSize, seed = c.serverGameStartTime)
+    init {
+        BnwGame(c.myIndex, c.playerSize, seed = c.serverGameStartTime)
+    }
 
     /**
      * commands buffer
@@ -97,7 +101,7 @@ class GamePage(val c: ServerConnection) : Page() {
     /**
      * game ui
      */
-    var focus: Vector2 = g.agents[g.myIndex].position.vec2()
+    var focus: Vector2 = game.agents[game.myIndex].position.vec2()
     var focusSpeed = 10F
     val maxZoom = 33.dp
     val minZoom = 9.dp
@@ -128,7 +132,7 @@ class GamePage(val c: ServerConnection) : Page() {
     var right = 0
 
     fun inputGameCoor(x: Int, y: Int) =
-            vec2(x.tf * 2 / game.backBufferWidth() - 1, 1 - y.tf * 2 / game.backBufferHeight()).extends().mul(inverseProjection).lose()
+            vec2(x.tf * 2 / org.snailya.base.app.backBufferWidth() - 1, 1 - y.tf * 2 / org.snailya.base.app.backBufferHeight()).extends().mul(inverseProjection).lose()
 
 
     override fun render() {
@@ -151,8 +155,8 @@ class GamePage(val c: ServerConnection) : Page() {
     private fun gatherCommands() {
         if (Gdx.input.justTouched()) {
             val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
-            if (g.map.inBound(dest)) {
-                if (!g.map(dest).notWalkable) {
+            if (game.map.inBound(dest)) {
+                if (!game.map(dest).notWalkable) {
                     commands.add(PlayerCommand(dest))
                 }
             }
@@ -177,7 +181,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 var confirmedCommands: List<List<PlayerCommand>>? = null
                 if (networkTickedTime + timePerTick == toTime) {
                     netTicks += 1
-                    confirmedCommands = c.tick(commands, g.debug_hash())
+                    confirmedCommands = c.tick(commands, game.debug_hash())
                     networkTickedTime += timePerTick
                     if (c.gamePaused) {
                         // we schedule a resend at next tick timed
@@ -187,7 +191,7 @@ class GamePage(val c: ServerConnection) : Page() {
                         commands.clear()
                     }
                 }
-                g.tick(confirmedCommands)
+                game.tick(confirmedCommands)
                 gameTickedTime += timePerGameTick
             } else {
                 break
@@ -220,7 +224,7 @@ class GamePage(val c: ServerConnection) : Page() {
 
     private fun setupProjection() {
 
-        projection.setToOrtho2DCentered(focus.x, focus.y, game.backBufferWidth() / zoom, game.backBufferHeight() / zoom)
+        projection.setToOrtho2DCentered(focus.x, focus.y, org.snailya.base.app.backBufferWidth() / zoom, org.snailya.base.app.backBufferHeight() / zoom)
 
         inverseProjection.set(projection)
         inverseProjection.inv()
@@ -232,8 +236,8 @@ class GamePage(val c: ServerConnection) : Page() {
         val margin = 0
         top = Math.max(gtl.y.toInt() - margin, 0)
         left = Math.max(gtl.x.toInt() - margin, 0)
-        bottom = Math.min(gbr.y.toInt() + 1 + margin, g.map.size)
-        right = Math.min(gbr.x.toInt() + 1 + margin, g.map.size)
+        bottom = Math.min(gbr.y.toInt() + 1 + margin, game.map.size)
+        right = Math.min(gbr.x.toInt() + 1 + margin, game.map.size)
 
     }
 
@@ -241,7 +245,7 @@ class GamePage(val c: ServerConnection) : Page() {
         batch.projectionMatrix = projection
         batch.begin()
 
-        for (agent in g.agents) {
+        for (agent in game.agents) {
             batch.draw(textures.black, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
             if (agent.lockingOnTarget != null) {
                 val lockOnSize = agent.lockingOnTime / agent.totalLockOnTime
@@ -253,7 +257,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 batch.color = Color.WHITE
             }
         }
-        for (bullet in g.bullets) {
+        for (bullet in game.bullets) {
             batch.draw(textures.black, bullet.position.x - 0.1F, bullet.position.y - 0.1F, 0.2F, 0.2F)
         }
 
@@ -262,7 +266,7 @@ class GamePage(val c: ServerConnection) : Page() {
 
 
     val waterSurface = object : Batched(
-            // TODO how to animate waterSurface?
+            // TODO how to animate WaterSurface?
             shaderOf("terrain"),
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
                     VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
@@ -270,8 +274,6 @@ class GamePage(val c: ServerConnection) : Page() {
             texture = textureArrayOf(WatersByDepth.map { it.texture.name }),
             primitiveType = GL20.GL_POINTS
     ) {
-
-
         // constants
         val paddingSize = 0.2F // in game coordinate
         val pointSize = 1 + paddingSize * 2
@@ -286,7 +288,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 val t = WatersByDepth[i]
                 for (y in top until bottom) {
                     for (x in left until right) {
-                        val tile = g.map(x, y)
+                        val tile = game.map(x, y)
                         if (tile.waterSurface == t) {
                             put(tile.position.x + 0.5F,
                                     tile.position.y + 0.5F,
@@ -323,7 +325,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 val t = NaturalTerrainsByGrainSizeInverse[i]
                 for (y in top until bottom) {
                     for (x in left until right) {
-                        val tile = g.map(x, y)
+                        val tile = game.map(x, y)
                         if (tile.terrain == t && tile.waterSurface != DeepWater) {
                             put(tile.position.x + 0.5F,
                                     tile.position.y + 0.5F,
@@ -351,7 +353,7 @@ class GamePage(val c: ServerConnection) : Page() {
      */
 
     private fun debug_renderDebugUi() {
-        widgets.debug_info.setText("FPS: ${graphics.framesPerSecond}\nrender time: ${game.renderTime}")
+        widgets.debug_info.setText("FPS: ${graphics.framesPerSecond}\nrender time: ${org.snailya.base.app.renderTime}")
     }
 
     val debug_shapeRenderer = ShapeRenderer()
@@ -359,14 +361,14 @@ class GamePage(val c: ServerConnection) : Page() {
         val renderer = debug_shapeRenderer
         renderer.projectionMatrix = projection
         renderer.begin(ShapeRenderer.ShapeType.Line)
-        val size = g.map.size
-        for (e in g.map.debug_mapGen.debug_edges) {
+        val size = game.map.size
+        for (e in game.map.debug_mapGen.debug_edges) {
             renderer.line((e.start.x * size).toFloat(), (e.start.y * size).toFloat(), (e.end.x * size).toFloat(), (e.end.y * size).toFloat())
         }
         renderer.end()
         renderer.begin(ShapeRenderer.ShapeType.Filled)
         val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
-        for (p in g.map.debug_mapGen.debug_points) {
+        for (p in game.map.debug_mapGen.debug_points) {
             if (p.attachment.isSea) {
                 renderer.color = Color.BLUE
             } else if (p.attachment.isBeach) {
@@ -380,7 +382,7 @@ class GamePage(val c: ServerConnection) : Page() {
             } else {
                 renderer.color = Color.WHITE
             }
-            if (g.map(dest).debug_inputPoint == p) {
+            if (game.map(dest).debug_inputPoint == p) {
                 renderer.color = Color.RED
             }
             renderer.circle(p.x.toFloat(), p.y.toFloat(), 1F)
@@ -393,8 +395,8 @@ class GamePage(val c: ServerConnection) : Page() {
 
         for (y in top until bottom) {
             for (x in left until right) {
-                val tile = g.map(x, y)
-                if (g.findRoute.counter == tile.temp_visited) {
+                val tile = game.map(x, y)
+                if (game.map.findRoute.debug_counter == tile.temp_visited) {
                     batch.color = Color(1F, 1F, 1F, tile.temp_cost / 30)
                     batch.draw(textures.black, x.tf, y.tf, 1F, 1F)
                     batch.color = Color.WHITE

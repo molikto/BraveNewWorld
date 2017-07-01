@@ -3,6 +3,13 @@ package org.snailya.bnw.gamelogic
 import org.serenaz.InputPoint
 import org.snailya.base.IntVector2
 import org.snailya.base.StrictVector2
+import org.snailya.bnw.gamelogic.stateless.ConstructedFloor
+import org.snailya.bnw.gamelogic.stateless.DeepWater
+import org.snailya.bnw.gamelogic.stateless.Terrain
+import org.snailya.bnw.gamelogic.stateless.WaterSurface
+
+
+// stateful
 
 class Tile(
         val position: IntVector2
@@ -10,6 +17,8 @@ class Tile(
     lateinit var terrain: Terrain
     var waterSurface: WaterSurface? = null
     var floor: ConstructedFloor? = null
+
+    // TODO these are temp
     val wall: Unit? = null
     val walled = wall != null
 
@@ -27,10 +36,12 @@ class Tile(
     }
 
 
+    // temp values used by route finder
     var temp_cost: Float = 0F
     var temp_priority: Float = 0F
     var temp_visited: Int = -1
     var temp_ttpo: IntVector2 = IntVector2.Zero // to the previous of
 
+    // links to map generator
     lateinit var debug_inputPoint: InputPoint
 }

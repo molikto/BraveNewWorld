@@ -9,7 +9,8 @@ import org.snailya.bnw.ui.GeneralUi
  */
 class BraveNewWorldWrapper(pdi: PlatformDependentInfo) : ApplicationWrapper({ BraveNewWorld(pdi) })
 
-val bnw by lazy { game as BraveNewWorld }
+// our specific singleton
+val bnw by lazy { app as BraveNewWorld }
 
 /**
  * REAL THING

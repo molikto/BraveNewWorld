@@ -1,4 +1,4 @@
-package org.snailya.bnw.gamelogic
+package org.snailya.bnw.gamelogic.mapgen
 
 import org.serenaz.Edge
 import org.serenaz.Edge.clamp
@@ -6,6 +6,8 @@ import org.serenaz.InputPoint
 import org.serenaz.Point
 import org.serenaz.Voronoi
 import org.snailya.base.*
+import org.snailya.bnw.gamelogic.Tile
+import org.snailya.bnw.gamelogic.stateless.*
 import java.util.*
 import kotlin.Comparator
 import kotlin.collections.ArrayList
@@ -15,13 +17,13 @@ import kotlin.collections.ArrayList
  * this class use a Voronoi generation algorithm found from GitHub
  * this algorithm is NOT intended to be used in other places
  */
-class MapGen(val random: Random, val size: Int) {
+open class MapGen(private val random: Random, val size: Int) {
 
     lateinit var debug_edges: List<Edge>
     lateinit var debug_points: List<InputPoint>
 
 
-    fun randomNonZeroDouble(): Double {
+    private fun randomNonZeroDouble(): Double {
         val a = 0.001
         val b = (1 - a * 2)
         return a + b * random.nextDouble()
@@ -137,22 +139,22 @@ class MapGen(val random: Random, val size: Int) {
 
 
 
-    val xFirstComparator = Comparator<InputPoint> { o1, o2 ->
+    private val xFirstComparator = Comparator<InputPoint> { o1, o2 ->
         if (o1.x > o2.x) 1 else if (o1.x < o2.x) -1 else {
             if (o1.y > o2.y) 1 else if (o1.y < o2.y) -1 else 0
         }
     }
-    val yFirstComparator = Comparator<InputPoint> { o1, o2->
+    private val yFirstComparator = Comparator<InputPoint> { o1, o2->
         if (o1.y > o2.y) 1 else if (o1.y < o2.y) -1 else {
             if (o1.x > o2.x) 1 else if (o1.x < o2.x) -1 else 0
         }
     }
 
-    var currentBest: Double = 0.0
-    var currentPoint: InputPoint? = null
+    private var temp_currentBest: Double = 0.0
+    private var temp_currentPoint: InputPoint? = null
 
     @Strictfp
-    fun kdTree(sites: MutableList<InputPoint>, useX: Boolean): InputPoint? {
+    private fun kdTree(sites: MutableList<InputPoint>, useX: Boolean): InputPoint? {
         if (sites.size == 0) {
             return null
         } else if (sites.size == 1) {
@@ -180,10 +182,10 @@ class MapGen(val random: Random, val size: Int) {
             for (j in 0 until size) {
                 testPoint.x = i + 0.5
                 testPoint.y = j + 0.5
-                currentBest = Double.MAX_VALUE
-                currentPoint = null
+                temp_currentBest = Double.MAX_VALUE
+                temp_currentPoint = null
                 search(root, testPoint, true)
-                val result = currentPoint!!
+                val result = temp_currentPoint!!
                 val tile = map[i][j]
                 tile.terrain = terrainOf(result)
                 if (result.attachment.isDeepSea || i == 0 || j == 0 || i == size - 1 || j == size - 1)
@@ -196,11 +198,11 @@ class MapGen(val random: Random, val size: Int) {
     }
 
 
-    private fun  search(root: InputPoint, x: InputPoint, useX: Boolean) {
+    private fun search(root: InputPoint, x: InputPoint, useX: Boolean) {
         val res = (if (useX) xFirstComparator else yFirstComparator).compare(x, root)
         if (res == 0) {
-            currentBest = 0.0
-            currentPoint = root
+            temp_currentBest = 0.0
+            temp_currentPoint = root
         } else {
             val can: InputPoint?
             val o: InputPoint?
@@ -224,21 +226,21 @@ class MapGen(val random: Random, val size: Int) {
     private fun  doRest(root: InputPoint, can: InputPoint, o: InputPoint?, x: InputPoint, b: Boolean) {
         search(can, x, !b)
         val dis2 = dis2(root, x)
-        if (dis2 < currentBest) {
-            currentBest = dis2
-            currentPoint = root
+        if (dis2 < temp_currentBest) {
+            temp_currentBest = dis2
+            temp_currentPoint = root
         }
         val c = if (b) (x.x - root.x) else (x.y - root.y)
-        if (currentBest > c * c && o != null) {
+        if (temp_currentBest > c * c && o != null) {
             search(o, x, !b)
         }
     }
 
     private fun searchedLeaf(root: InputPoint, x: InputPoint) {
         val dis2 = dis2(root, x)
-        if (currentBest > dis2) {
-            currentBest = dis2
-            currentPoint = root
+        if (temp_currentBest > dis2) {
+            temp_currentBest = dis2
+            temp_currentPoint = root
         }
     }
 
@@ -377,7 +379,7 @@ class MapGen(val random: Random, val size: Int) {
 
     */
 
-    fun terrainOf(top: InputPoint) : Terrain =
+    private fun terrainOf(top: InputPoint) : Terrain =
         if (top.attachment.isDeepSea) SandstoneHewnRock // TODO mineral under sea
         else if (top.attachment.isShallowSea) Sand
         else if (top.attachment.isBeach) Sand
@@ -387,6 +389,6 @@ class MapGen(val random: Random, val size: Int) {
 
 }
 
-@Strictfp inline fun outside(p: Point) = p.x <= 0 || p.y <= 0 || p.x >= 1 || p.y >= 1
+private @Strictfp fun outside(p: Point) = p.x <= 0 || p.y <= 0 || p.x >= 1 || p.y >= 1
 
-fun Edge.touchMapBoundary() =  outside(this.start) || outside(this.end)
+private fun Edge.touchMapBoundary() =  outside(this.start) || outside(this.end)
