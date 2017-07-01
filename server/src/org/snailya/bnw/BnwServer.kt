@@ -7,6 +7,12 @@ import org.snailya.base.tif
 import org.snailya.base.timedResult
 
 
+/**
+ * this is currently used for debug purpose
+ * a desktop instance will host a server itself in the future...
+ * but currently the server is a standalone app
+ * this gives the server a simple looping behaviour
+ */
 object BnwServer : (() -> Unit) {
 
     override fun invoke(): Unit {
@@ -21,7 +27,7 @@ object BnwServer : (() -> Unit) {
 
 class BnwGameServer(val debug_onStop: () -> Unit): Listener() {
 
-    val gameSize = 1
+    val gamePlayerSize = 1
 
     var server = NetworkingShared.createServer()
     init {
@@ -58,17 +64,17 @@ class BnwGameServer(val debug_onStop: () -> Unit): Listener() {
                 is FrameworkMessage.Ping -> {
                     if (p.isReply) {
                         val connections = server.connections
-                        if (connections.size >= gameSize && connections.all{ it.returnTripTime >= 0 }) {
+                        if (connections.size >= gamePlayerSize && connections.all{ it.returnTripTime >= 0 }) {
                             val rtts = connections.map { it.returnTripTime }
                             val maxRtt = rtts.max()!!
                             val maxTick: Int = Math.ceil(maxRtt.toDouble() / timePerTick).toInt()
                             tif("RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick")
                             val time = System.currentTimeMillis()
                             for (cc in connections) {
-                                cc.sendTCP(StartGameMessage(indexOf(cc), time, cc.returnTripTime, maxTick, gameSize))
+                                cc.sendTCP(StartGameMessage(indexOf(cc), time, cc.returnTripTime, maxTick, gamePlayerSize))
                             }
                             gameStartTime = System.currentTimeMillis()
-                            cachedCommands = Array(gameSize, { null })
+                            cachedCommands = Array(gamePlayerSize, { null })
                         }
                     }
                     ""
@@ -87,7 +93,7 @@ class BnwGameServer(val debug_onStop: () -> Unit): Listener() {
                             val commands = cachedCommands.map { it!!.commands }.toList()
                             val info = GameCommandsMessage(tick - 1, commands, false)
                             previousConfirmation = info.copy(debug_resend = true)
-                            for (i in 0 until gameSize) {
+                            for (i in 0 until gamePlayerSize) {
                                 cachedCommands[i] = null
                             }
                             val connections = server.connections
