@@ -9,31 +9,6 @@ inline fun <T> configured(receiver: T, block: T.() -> Unit): T {
     receiver.block()
     return receiver
 }
-var logger: (String) -> Unit = {}
-
-fun tif(s: String) = logger("${System.currentTimeMillis()}:  $s")
-
-
-inline fun <T> timed(str: String, b: () -> T): T {
-    val t = System.currentTimeMillis()
-    val a = b.invoke()
-    tif("timed ${System.currentTimeMillis() - t}: $str")
-    return a
-}
-
-inline fun <T> nanoTimed(str: String, b: () -> T): T {
-    val t = System.nanoTime()
-    val a = b.invoke()
-    tif("timed ${System.nanoTime() - t}: $str")
-    return a
-}
-
-inline fun timedResult(str: String, b: () -> String) {
-    val t = System.currentTimeMillis()
-    var res = b.invoke()
-    if (!res.isEmpty()) res = ", " + res
-    tif("timed ${System.currentTimeMillis() - t}: $str$res")
-}
 
 
 inline fun svec2(x: Float = 0F, y: Float = 0F) = SVector2(x, y)

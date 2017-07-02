@@ -8,7 +8,6 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
-import ktx.log.info
 import org.snailya.base.GdxScheduler
 import org.snailya.base.*
 import org.snailya.bnw.*
@@ -95,7 +94,7 @@ class ServerConnection(val ip: String) {
             }
 
             override fun received(connection: Connection, obj: Any) {
-                tif("received called in network thread")
+                info {"received called in network thread" }
                 post {
                     var debug_unexpected = false
                     when (obj) {
@@ -117,11 +116,11 @@ class ServerConnection(val ip: String) {
                                 receivedTime = System.currentTimeMillis()
                             } else {
                                 debug_unexpected = true
-                                tif("unexpected message $obj, $tick")
+                                info {"unexpected message $obj, $tick"}
                             }
                         }
                     }
-                    if (!debug_unexpected) tif("received $obj, $tick")
+                    if (!debug_unexpected) info {"received $obj, $tick" }
                 }
             }
         })

@@ -93,7 +93,7 @@ class Map() {
 
 
     // all variables is temp
-    inner class FindRouteWrapper {
+    inner class FindRouteMethod {
 
         private val map = this@Map
 
@@ -210,5 +210,5 @@ class Map() {
         }
 
     }
-    val findRoute = FindRouteWrapper()
+    val findRoute = FindRouteMethod()
 }

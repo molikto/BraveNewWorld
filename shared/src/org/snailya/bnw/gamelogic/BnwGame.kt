@@ -3,13 +3,14 @@ package org.snailya.bnw.gamelogic
 import org.snailya.base.*
 import org.snailya.bnw.*
 import java.util.*
+import org.snailya.bnw.gamelogic.TryWalkMethod.tryWalk
 
 
 var _game: BnwGame? = null
 
 val game by lazy { _game!! }
 
-class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
+class BnwGame(val myIndex: Int, playerSize: Int, seed: Long) {
 
     // singleton so you don't need to pass them around, though, this means that you only call it when it is valid
     init {
@@ -27,6 +28,8 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
     val random = Random(seed)
     val map = Map()
     val bullets = mutableListOf<Bullet>()
+
+    val masterMinds = (0 until playerSize).map { MasterMind() }
 
     // TODO this is native
     val agents = (0 until playerSize).map { index ->
@@ -51,8 +54,8 @@ class BnwGame(val myIndex: Int, val playerSize: Int, seed: Long) {
      */
     fun tick(commands: List<List<PlayerCommand>>?) {
         if (commands != null) {
-            assert(commands.size == playerSize)
-            for (i in 0 until playerSize) {
+            assert(commands.size == masterMinds.size)
+            for (i in 0 until masterMinds.size) {
                 val agent = agents[i]
                 val cs = commands[i]
                 for ((dest) in cs) {

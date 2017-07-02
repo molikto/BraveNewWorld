@@ -3,7 +3,8 @@ package org.snailya.bnw
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.FrameworkMessage
 import com.esotericsoftware.kryonet.Listener
-import org.snailya.base.tif
+import org.snailya.base.info
+import org.snailya.base.infoTime
 import org.snailya.base.timedResult
 
 
@@ -68,7 +69,7 @@ class BnwGameServer(val debug_onStop: () -> Unit): Listener() {
                             val rtts = connections.map { it.returnTripTime }
                             val maxRtt = rtts.max()!!
                             val maxTick: Int = Math.ceil(maxRtt.toDouble() / timePerTick).toInt()
-                            tif("RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick")
+                            info {"RTTs: ${rtts.joinToString(" ")}, maxTick: $maxTick" }
                             val time = System.currentTimeMillis()
                             for (cc in connections) {
                                 cc.sendTCP(StartGameMessage(indexOf(cc), time, cc.returnTripTime, maxTick, gamePlayerSize))

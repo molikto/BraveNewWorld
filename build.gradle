@@ -34,7 +34,6 @@ allprojects {
     }
 }
 
-// TODO because game logic is in this folder, but we cannot depends on LibGDX, so the logging library is not included... we might switch to a better solution? like a new module with local dependency?
 project(":shared") {
     apply plugin: "java"
     apply plugin: "kotlin"
@@ -84,7 +83,6 @@ project(":core") {
         compile "io.github.libktx:ktx-math:$ktxVersion"
         compile "io.github.libktx:ktx-style:$ktxVersion"
         compile "io.github.libktx:ktx-scene2d:$ktxVersion"
-        compile "io.github.libktx:ktx-log:$ktxVersion"
         compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
 

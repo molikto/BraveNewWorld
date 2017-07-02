@@ -4,18 +4,19 @@ import org.snailya.base.*
 import org.snailya.bnw.ps
 
 
-class WalkWrapper {
-
+// we do these is so that we have a "local static" temp variable
+object TryWalkMethod {
     // temp
     val pos = svec2()
-    @Strictfp operator fun invoke(walker: Walker, /* in-out */ route: MutableList<Tile>, /* in-out */ position: SVector2) {
+
+    @Strictfp fun Walker.tryWalk() {
         // TODO re-plan when game structure changes
         if (!route.isEmpty()) {
             val id = route.last()
             id.center(pos)
             pos - position
             val dis = pos.len()
-            val time = dis / walker.speed
+            val time = dis / speed
             if (time < 1) { // we can finish this dis
                 // move the player to id
                 id.center(position)
@@ -26,17 +27,14 @@ class WalkWrapper {
                     val nid = route.last()
                     nid.center(pos)
                     pos - position
-                    position + pos.nor() * walker.speed * (1 - time)
+                    position + pos.nor() * speed * (1 - time)
                 }
             } else {
-                position + pos.nor() * walker.speed
+                position + pos.nor() * speed
             }
         }
     }
-
 }
-
-val walk = WalkWrapper()
 
 open class Walker {
     var speed = 1F.ps
@@ -50,8 +48,6 @@ open class Walker {
     fun findRoute(dest: IntVector2) {
         timed("finding route") { game.map.findRoute(position, dest, route) }
     }
-
-    fun tryWalk() = walk(this, route, position)
 
     @Strictfp
     fun intersects(from: SVector2, to: SVector2): Float? {

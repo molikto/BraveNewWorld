@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.glutils.IndexBufferObject
 import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.glutils.VertexBufferObjectWithVAO
-import ktx.log.info
 import org.joor.Reflect
 
 

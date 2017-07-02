@@ -197,7 +197,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 break
             }
         }
-        // info { "game tick $gameTicks, net tick $netTicks" }
+         info { "game tick $gameTicks, net tick $netTicks" }
     }
 
 

@@ -12,7 +12,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import ktx.scene2d.KTableWidget
-import ktx.log.*
 import ktx.scene2d.KWidget
 
 private var _app: ApplicationInner? = null

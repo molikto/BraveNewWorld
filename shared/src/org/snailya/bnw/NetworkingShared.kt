@@ -2,7 +2,6 @@ package org.snailya.bnw
 
 import com.esotericsoftware.kryonet.*
 import org.snailya.base.KotlinSerializationAdapter
-import org.snailya.base.tif
 import java.nio.ByteBuffer
 
 
