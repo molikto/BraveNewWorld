@@ -23,15 +23,15 @@ class Map() {
 
     // states
     val debug_mapGen = MapGen(random, size)
-    val map: Array<Array<Tile>> = debug_mapGen.gen()
+    val tiles: Array<Array<Tile>> = debug_mapGen.gen()
 
-    fun randomTile() = map[random.nextInt(size)][random.nextInt(size)]
+    fun randomTile() = tiles[random.nextInt(size)][random.nextInt(size)]
 
-    inline operator fun invoke(i: IntVector2) = map[i.x][i.y]
-    inline operator fun invoke(i: SVector2) = map[i.x.toInt()][i.y.toInt()]
+    inline operator fun invoke(i: IntVector2) = tiles[i.x][i.y]
+    inline operator fun invoke(i: SVector2) = tiles[i.x.toInt()][i.y.toInt()]
 
-    inline operator fun invoke(x: Int, y: Int) = map[x][y]
-    inline operator fun invoke(x: Float, y: Float) = map[x.toInt()][y.toInt()]
+    inline operator fun invoke(x: Int, y: Int) = tiles[x][y]
+    inline operator fun invoke(x: Float, y: Float) = tiles[x.toInt()][y.toInt()]
 
     fun inBound(x: Int, y: Int) = x >= 0 && x < size && y >= 0 && y < size
     fun inBound(a: IntVector2) = inBound(a.x, a.y)
