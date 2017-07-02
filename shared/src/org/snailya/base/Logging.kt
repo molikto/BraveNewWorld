@@ -1,7 +1,7 @@
 package org.snailya.base
 
 
-const val logLevel = 0
+const val logLevel = 3
 
 const val LOG_NONE = 0
 const val LOG_ERROR = 1
@@ -41,6 +41,7 @@ inline fun error(cause: Throwable, tag: String = "[ERROR]", message: () -> Strin
     if (logLevel >= LOG_ERROR) log(cause, tag, message())
 }
 
+// TODO modify them so we have `info.timed`??
 inline fun <T> timed(str: String, b: () -> T): T {
     val t = System.currentTimeMillis()
     val a = b.invoke()

@@ -4,7 +4,6 @@ import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.FrameworkMessage
 import com.esotericsoftware.kryonet.Listener
 import org.snailya.base.info
-import org.snailya.base.infoTime
 import org.snailya.base.timedResult
 
 

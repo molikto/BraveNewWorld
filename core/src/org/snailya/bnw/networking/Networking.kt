@@ -94,7 +94,7 @@ class ServerConnection(val ip: String) {
             }
 
             override fun received(connection: Connection, obj: Any) {
-                info {"received called in network thread" }
+                debug {"received called in network thread" }
                 post {
                     var debug_unexpected = false
                     when (obj) {
