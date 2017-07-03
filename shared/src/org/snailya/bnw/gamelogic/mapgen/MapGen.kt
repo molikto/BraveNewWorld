@@ -7,7 +7,7 @@ import org.serenaz.Point
 import org.serenaz.Voronoi
 import org.snailya.base.*
 import org.snailya.bnw.gamelogic.Tile
-import org.snailya.bnw.gamelogic.stateless.*
+import org.snailya.bnw.gamelogic.def.*
 import java.util.*
 import kotlin.Comparator
 import kotlin.collections.ArrayList

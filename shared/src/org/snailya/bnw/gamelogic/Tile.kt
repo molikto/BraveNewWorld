@@ -3,14 +3,15 @@ package org.snailya.bnw.gamelogic
 import org.serenaz.InputPoint
 import org.snailya.base.IntVector2
 import org.snailya.base.SVector2
-import org.snailya.bnw.gamelogic.stateless.*
+import org.snailya.bnw.gamelogic.def.*
+import java.io.Serializable
 
 
 // stateful
 
 class Tile(
         val position: IntVector2
-) {
+) : Serializable {
     var roof: Roof? = null
     var waterSurface: WaterSurface? = null
     var itemPack: ItemPack? = null
@@ -47,5 +48,5 @@ class Tile(
     var temp_ttpo: IntVector2 = IntVector2.Zero // to the previous of
 
     // links to map generator
-    lateinit var debug_inputPoint: InputPoint
+    @Transient lateinit var debug_inputPoint: InputPoint
 }

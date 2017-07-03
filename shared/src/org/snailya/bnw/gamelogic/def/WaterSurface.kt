@@ -1,9 +1,9 @@
-package org.snailya.bnw.gamelogic.stateless
+package org.snailya.bnw.gamelogic.def
 
 class WaterSurface(
         val texture: TextureRef,
         val depth: Int // a
-) {
+): Def {
     // it is just a mark, can be used by other things,
     // for
     val isDeep get() = depth >= 1

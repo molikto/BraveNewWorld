@@ -1,7 +1,7 @@
-package org.snailya.bnw.gamelogic.stateless
+package org.snailya.bnw.gamelogic.def
 
 
-class Roof(val name: String, val height: Int, val constructable: Boolean)
+class Roof(val name: String, val height: Int, val constructable: Boolean) : Def
 
 val ConstructedRoof = Roof("Constructed Roof", 1, true)
 

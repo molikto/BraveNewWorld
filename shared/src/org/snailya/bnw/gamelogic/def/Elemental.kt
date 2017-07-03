@@ -1,10 +1,10 @@
-package org.snailya.bnw.gamelogic.stateless
+package org.snailya.bnw.gamelogic.def
 
 
 
 // TODO not used. elemental is things that make the material world??
 sealed class Elemental(
-)
+) : Def
 
 
 object H2O : Elemental()

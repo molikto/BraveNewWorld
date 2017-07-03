@@ -1,11 +1,12 @@
 package org.snailya.bnw.gamelogic
 
+import java.io.Serializable
 
 
-class Order {
+class Order : Serializable {
 }
 
-class MasterMind {
+class MasterMind : Serializable {
     val orders = mutableListOf<Order>()
 }
 

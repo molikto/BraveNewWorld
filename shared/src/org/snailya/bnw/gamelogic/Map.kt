@@ -2,6 +2,7 @@ package org.snailya.bnw.gamelogic
 
 import org.snailya.base.*
 import org.snailya.bnw.gamelogic.mapgen.MapGen
+import java.io.Serializable
 import java.util.*
 
 
@@ -14,15 +15,12 @@ private val RelativeSides =  arrayOf(ivec2(-1, 0), ivec2(1, 0), ivec2(0, 1), ive
  *
  * the map will have unwalk-able areas around it now, so no need to check pointer over-bound
  */
-class Map() {
-
-    val random = game.random
-
-    // tiles 0.... 99, metrics 0..1...100
-    val size = 200
+class Map : Serializable {
 
     // states
-    val debug_mapGen = MapGen(random, size)
+    val random = game.random
+    val size = 200 // tiles 0.... 99, metrics 0..1...100
+    @Transient val debug_mapGen = MapGen(random, size)
     val tiles: Array<Array<Tile>> = debug_mapGen.gen()
 
     fun randomTile() = tiles[random.nextInt(size)][random.nextInt(size)]
@@ -93,7 +91,7 @@ class Map() {
 
 
     // all variables is temp
-    inner class FindRouteMethod {
+    inner class FindRouteMethod : Serializable {
 
         private val map = this@Map
 
@@ -183,7 +181,7 @@ class Map() {
             return // no route
         }
 
-        private val hpos = ivec2()
+        private val temp_hpos = ivec2() // not transient, we need them to have a value
 
         private fun util_tryAddRoute(next: Tile, dt: Tile, vec: IntVector2, cost: Float, h: Boolean) {
             val new = next.temp_visited != counter
@@ -191,10 +189,10 @@ class Map() {
                 if (!new) pq.remove(next)
                 next.temp_cost = cost
                 val p = if (h) {
-                    hpos.set(next.position)
-                    hpos - dt.position
-                    val x = Math.abs(hpos.x)
-                    val y = Math.abs(hpos.y)
+                    temp_hpos.set(next.position)
+                    temp_hpos - dt.position
+                    val x = Math.abs(temp_hpos.x)
+                    val y = Math.abs(temp_hpos.y)
                     val max = Math.max(x, y)
                     val min = Math.min(x, y)
                     val remainingDis = (max - min) + min * CornerCost
@@ -208,7 +206,7 @@ class Map() {
                 pq.add(next)
             }
         }
-
     }
+
     val findRoute = FindRouteMethod()
 }

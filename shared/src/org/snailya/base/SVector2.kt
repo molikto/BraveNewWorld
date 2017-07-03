@@ -1,11 +1,13 @@
 package org.snailya.base
 
+import java.io.Serializable
+
 
 // TODO not thread safe
 /**
  * Strict Vector
  */
-data class SVector2(@JvmField var x: Float, @JvmField var y: Float) {
+data class SVector2(@JvmField var x: Float, @JvmField var y: Float) : Serializable {
     companion object {
         val Zero = SVector2(0F, 0F)
     }

@@ -17,8 +17,8 @@ import org.snailya.base.app
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.gamelogic.game
-import org.snailya.bnw.gamelogic.stateless.NaturalTerrainsByGrainSizeInverse
-import org.snailya.bnw.gamelogic.stateless.WatersByDepth
+import org.snailya.bnw.gamelogic.def.NaturalTerrainsByGrainSizeInverse
+import org.snailya.bnw.gamelogic.def.WatersByDepth
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick

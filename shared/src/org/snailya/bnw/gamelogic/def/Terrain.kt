@@ -1,10 +1,10 @@
-package org.snailya.bnw.gamelogic.stateless
+package org.snailya.bnw.gamelogic.def
 
 
 open class Terrain(
         val texture: TextureRef,
         val grainSize: Int
-) {
+): Def {
         val baseWalkSpeed = 1F
 }
 

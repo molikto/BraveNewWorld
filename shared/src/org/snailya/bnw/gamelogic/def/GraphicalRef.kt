@@ -1,4 +1,4 @@
-package org.snailya.bnw.gamelogic.stateless
+package org.snailya.bnw.gamelogic.def
 
 
 /**
@@ -10,6 +10,6 @@ package org.snailya.bnw.gamelogic.stateless
  * the name is a relative defined thing mostly...
  */
 
-sealed class TextureRef(open val name: String)
+sealed class TextureRef(open val name: String) : Def
 data class SimpleTextureRef(override val name: String) : TextureRef(name)
 data class TintedTextureRef(override val name: String, val color: Int /* rgba8888 */) : TextureRef(name)

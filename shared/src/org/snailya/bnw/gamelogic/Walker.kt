@@ -2,6 +2,7 @@ package org.snailya.bnw.gamelogic
 
 import org.snailya.base.*
 import org.snailya.bnw.ps
+import java.io.Serializable
 
 
 // we do these is so that we have a "local static" temp variable
@@ -36,7 +37,7 @@ object TryWalkMethod {
     }
 }
 
-open class Walker {
+open class Walker : Serializable {
     var speed = 1F.ps
 
     lateinit var position: SVector2

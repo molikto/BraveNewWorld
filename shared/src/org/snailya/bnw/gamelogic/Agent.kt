@@ -1,9 +1,10 @@
 package org.snailya.bnw.gamelogic
 
 import org.snailya.bnw.ps
+import java.io.Serializable
 
 
-class Agent() : Walker() {
+class Agent() : Walker(), Serializable {
     var faction: Int = -1
     // temp variables
     // constants

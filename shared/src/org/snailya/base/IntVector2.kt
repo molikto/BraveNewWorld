@@ -1,10 +1,12 @@
 package org.snailya.base
 
+import java.io.Serializable
+
 /**
  * Created by molikto on 18/06/2017.
  */
 
-data class IntVector2(@JvmField var x: Int, @JvmField var y: Int) {
+data class IntVector2(@JvmField var x: Int, @JvmField var y: Int) : Serializable {
 
     companion object {
         val Zero = ivec2()

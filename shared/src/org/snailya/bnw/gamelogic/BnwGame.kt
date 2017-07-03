@@ -4,22 +4,35 @@ import org.snailya.base.*
 import org.snailya.bnw.*
 import java.util.*
 import org.snailya.bnw.gamelogic.TryWalkMethod.tryWalk
+import java.io.Serializable
 
 
 var _game: BnwGame? = null
 
 val game by lazy { _game!! }
 
-class BnwGame(val myIndex: Int, playerSize: Int, seed: Long) {
+
+fun registerGameSingleton(game: BnwGame) {
+    assert(_game == null)
+    _game = game
+}
+
+fun unregisterGameSingleton() {
+    _game = null
+}
+
+/**
+ * the state of the entire game can be serialized.
+ *
+ * we are currently using Java standard Serializable.
+ *
+ * TODO one problem is, the stateless objects is also serialized, but this only causing problems for performance now (equal comparision)
+ */
+class BnwGame(val myIndex: Int, playerSize: Int, val seed: Long) : Serializable {
 
     // singleton so you don't need to pass them around, though, this means that you only call it when it is valid
     init {
-        assert(_game == null)
-        _game = this
-    }
-
-    fun dispose() {
-        _game = null
+        registerGameSingleton(this)
     }
     /**
      *
