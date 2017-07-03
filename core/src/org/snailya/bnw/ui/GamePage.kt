@@ -12,6 +12,7 @@ import com.badlogic.gdx.utils.Align
 import ktx.math.*
 import ktx.scene2d.*
 import org.lwjgl.opengl.GL11
+import org.nustaq.serialization.FSTConfiguration
 import org.nustaq.serialization.FSTObjectInput
 import org.nustaq.serialization.FSTObjectOutput
 import org.snailya.base.*
@@ -88,6 +89,9 @@ class GamePage(val c: ServerConnection) : Page() {
      * game simulation
      */
     init {
+        // when you want to debug save file across different JVM instance, comment these two lines manually
+        // TODO remove this when we have save files
+        // debug_loadSaveFileAsGame()
         BnwGame(c.myIndex, c.playerSize, seed = c.serverGameStartTime)
     }
 
@@ -360,6 +364,11 @@ class GamePage(val c: ServerConnection) : Page() {
     /**
      * we don't have a fully functioning save-file for multi-player now,
      */
+    private fun debug_loadSaveFileAsGame() {
+        val file = files.external("debug_save_file")
+        val input = ObjectInputStream(file.read())
+        registerGameSingleton(input.readObject() as BnwGame)
+    }
     private fun debug_processSaveAndReloadInput() {
         if (keyed(Input.Keys.Q)) {
             timed("saving game state and re-loading") {

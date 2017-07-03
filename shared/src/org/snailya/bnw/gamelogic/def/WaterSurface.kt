@@ -1,6 +1,6 @@
 package org.snailya.bnw.gamelogic.def
 
-class WaterSurface(
+data class WaterSurface(
         val texture: TextureRef,
         val depth: Int // a
 ): Def {
