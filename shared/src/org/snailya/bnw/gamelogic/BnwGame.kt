@@ -7,7 +7,7 @@ import org.snailya.bnw.gamelogic.TryWalkMethod.tryWalk
 import java.io.Serializable
 
 
-var _game: BnwGame? = null
+private var _game: BnwGame? = null
 
 val game by lazy { _game!! }
 
@@ -18,6 +18,7 @@ fun registerGameSingleton(game: BnwGame) {
 }
 
 fun unregisterGameSingleton() {
+    assert(_game != null)
     _game = null
 }
 
@@ -31,7 +32,7 @@ fun unregisterGameSingleton() {
  *
  * but this is not the case when the object graph is deserialized
  *
- * TODO one problem is, the stateless objects is also serialized, but this only causing problems for performance now (equal comparision)
+ * so you need to call [registerGameSingleton] when you load a game from save file
  */
 class BnwGame(val myIndex: Int, playerSize: Int, val seed: Long) : Serializable {
 
