@@ -26,6 +26,11 @@ fun unregisterGameSingleton() {
  *
  * we are currently using Java standard Serializable.
  *
+ * also we are using a global variable as the game state singleton,
+ * and this singleton is accessed in sub-states's initialization phrase
+ *
+ * but this is not the case when the object graph is deserialized
+ *
  * TODO one problem is, the stateless objects is also serialized, but this only causing problems for performance now (equal comparision)
  */
 class BnwGame(val myIndex: Int, playerSize: Int, val seed: Long) : Serializable {

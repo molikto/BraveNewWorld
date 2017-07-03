@@ -4,6 +4,7 @@ import org.serenaz.InputPoint
 import org.snailya.base.IntVector2
 import org.snailya.base.SVector2
 import org.snailya.bnw.gamelogic.def.*
+import org.snailya.bnw.gamelogic.stateless.ItemPack
 import java.io.Serializable
 
 

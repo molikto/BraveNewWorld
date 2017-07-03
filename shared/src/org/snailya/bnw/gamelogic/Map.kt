@@ -98,7 +98,7 @@ class Map : Serializable {
         private var counter = -1
         val debug_counter get() = counter
 
-        private val pq = PriorityQueue<Tile>(30, object : Comparator<Tile> {
+        private val pq = PriorityQueue<Tile>(30, object : Comparator<Tile>, Serializable {
 
             @Strictfp
             override fun compare(o1: Tile, o2: Tile): Int {

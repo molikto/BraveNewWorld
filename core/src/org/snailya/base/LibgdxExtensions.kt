@@ -116,3 +116,7 @@ fun glEnableBlend() {
 }
 
 
+/**
+ * input helpers
+ */
+fun keyed(i: Int) = Gdx.input.isKeyPressed(i)

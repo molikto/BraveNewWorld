@@ -19,9 +19,13 @@ import org.snailya.bnw.gamelogic.BnwGame
 import org.snailya.bnw.gamelogic.game
 import org.snailya.bnw.gamelogic.def.NaturalTerrainsByGrainSizeInverse
 import org.snailya.bnw.gamelogic.def.WatersByDepth
+import org.snailya.bnw.gamelogic.registerGameSingleton
+import org.snailya.bnw.gamelogic.unregisterGameSingleton
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 
 /**
  *
@@ -52,7 +56,7 @@ class GamePage(val c: ServerConnection) : Page() {
     }
 
     override fun dispose() {
-        game.dispose()
+        unregisterGameSingleton()
         // TODO textures
     }
 
@@ -137,6 +141,7 @@ class GamePage(val c: ServerConnection) : Page() {
 
     override fun render() {
         // all these functions SHOULD know when they are called
+        debug_saveAndReload()
         debug_renderDebugUi()
         if (!c.gamePaused) gatherCommands()
         tickGameAndNetwork()
@@ -151,6 +156,23 @@ class GamePage(val c: ServerConnection) : Page() {
         //debug_renderVoronoiDiagram()
     }
 
+
+    /**
+     * we don't have a fully functioning save-file for multi-player now,
+     */
+    private fun debug_saveAndReload() {
+        if (keyed(Input.Keys.Q)) {
+            timed("saving game state and re-loading") {
+                val file = files.external("debug_save_file")
+                val output = ObjectOutputStream(file.write(false))
+                output.writeObject(game)
+                output.close()
+                unregisterGameSingleton()
+                val input = ObjectInputStream(file.read())
+                registerGameSingleton(input.readObject() as BnwGame)
+            }
+        }
+    }
 
     private fun gatherCommands() {
         if (Gdx.input.justTouched()) {
@@ -207,19 +229,16 @@ class GamePage(val c: ServerConnection) : Page() {
 
 
     private fun processLocalInput() {
+        val delta = Gdx.graphics.deltaTime
+        val direction = vec2(0F, 0F)
         run {
-            val delta = Gdx.graphics.deltaTime
-            val direction = vec2(0F, 0F)
-            run {
-                fun keyed(i: Int) = Gdx.input.isKeyPressed(i)
-                if (keyed(Input.Keys.W)) direction.add(0F, 1F)
-                if (keyed(Input.Keys.S)) direction.add(0F, -1F)
-                if (keyed(Input.Keys.A)) direction.add(-1F, 0F)
-                if (keyed(Input.Keys.D)) direction.add(1F, 0F)
-                direction.nor()
-            }
-            focus + (direction * (focusSpeed * delta))
+            if (keyed(Input.Keys.W)) direction.add(0F, 1F)
+            if (keyed(Input.Keys.S)) direction.add(0F, -1F)
+            if (keyed(Input.Keys.A)) direction.add(-1F, 0F)
+            if (keyed(Input.Keys.D)) direction.add(1F, 0F)
+            direction.nor()
         }
+        focus + (direction * (focusSpeed * delta))
     }
 
     private fun setupProjection() {
