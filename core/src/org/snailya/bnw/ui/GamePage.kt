@@ -364,6 +364,8 @@ class GamePage(val c: ServerConnection) : Page() {
         if (keyed(Input.Keys.Q)) {
             timed("saving game state and re-loading") {
                 val file = files.external("debug_save_file")
+                // inspector for java standard serialization
+                // https://code.google.com/archive/p/jdeserialize/downloads
                 val javaStandard = { // time 861ms, size 1200kb
                     val output = ObjectOutputStream(file.write(false))
                     output.writeObject(game)
@@ -380,7 +382,7 @@ class GamePage(val c: ServerConnection) : Page() {
                     val input = FSTObjectInput(file.read())
                     registerGameSingleton(input.readObject() as BnwGame)
                 }
-                fst.invoke()
+                javaStandard.invoke()
             }
         }
     }
