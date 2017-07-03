@@ -11,8 +11,8 @@ data class WaterSurface(
     val isShallow get() = depth < 1
 }
 
-val DeepWater = WaterSurface(SimpleTextureRef("WaterSurface/DeepWater"), 1)
-val ShallowWater = WaterSurface(SimpleTextureRef("WaterSurface/ShallowWater"), 0)
+val DeepWater = WaterSurface(TextureRef("WaterSurface/DeepWater"), 1)
+val ShallowWater = WaterSurface(TextureRef("WaterSurface/ShallowWater"), 0)
 
 val Waters = listOf(DeepWater, ShallowWater)
 val WatersByDepth = Waters.sortedBy { it.depth }

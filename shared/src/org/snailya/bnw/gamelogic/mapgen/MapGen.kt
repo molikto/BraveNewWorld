@@ -17,6 +17,10 @@ import kotlin.collections.ArrayList
 /**
  * this class use a Voronoi generation algorithm found from GitHub
  * this algorithm is NOT intended to be used in other places
+ *
+ * the code is a bit hacky now
+ *
+ * TODO use a general method to measure distance from sea
  */
 open class MapGen(private val random: Random, val size: Int) {
 

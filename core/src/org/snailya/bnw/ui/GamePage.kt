@@ -18,12 +18,11 @@ import org.nustaq.serialization.FSTObjectOutput
 import org.snailya.base.*
 import org.snailya.base.app
 import org.snailya.bnw.PlayerCommand
-import org.snailya.bnw.gamelogic.BnwGame
-import org.snailya.bnw.gamelogic.game
+import org.snailya.bnw.gamelogic.*
+import org.snailya.bnw.gamelogic.def.FreeFormBlockageType
+import org.snailya.bnw.gamelogic.def.NaturalTerrains
 import org.snailya.bnw.gamelogic.def.NaturalTerrainsByGrainSizeInverse
 import org.snailya.bnw.gamelogic.def.WatersByDepth
-import org.snailya.bnw.gamelogic.registerGameSingleton
-import org.snailya.bnw.gamelogic.unregisterGameSingleton
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
@@ -254,6 +253,20 @@ class GamePage(val c: ServerConnection) : Page() {
         batch.projectionMatrix = projection
         batch.begin()
 
+        for (y in top until bottom) {
+            for (x in left until right) {
+                val tile = game.map(x, y)
+                tile.blockage?.let {
+                    when (it) {
+//                        is FreeFormBlockage -> {
+//                            batch.draw(it.type.textureAtlas)
+//                        }
+                        else -> {
+                        }
+                    }
+                }
+            }
+        }
         for (agent in game.agents) {
             batch.draw(textures.black, agent.position.x - 0.5F, agent.position.y - 0.5F, 1F, 1F)
             if (agent.lockingOnTarget != null) {
@@ -276,7 +289,7 @@ class GamePage(val c: ServerConnection) : Page() {
 
     val waterSurface = object : Batched(
             // TODO how to animate WaterSurface?
-            shaderOf("terrain"),
+            shaderOf("WaterSurface"),
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
                     VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
             maxVertices = 4000,
@@ -311,12 +324,18 @@ class GamePage(val c: ServerConnection) : Page() {
 
     }
 
+
+    val TerrainTextureNames = NaturalTerrainsByGrainSizeInverse.map { it.texture.name }.toSet().toList()
+    val TerrainTexturesToNamesIndex = NaturalTerrainsByGrainSizeInverse.map { a -> TerrainTextureNames.indexOfFirst { it == a.texture.name } }
+
     val terrain = object : Batched(
-            shaderOf("terrain"),
+            shaderOf("Terrain"),
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
-                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
+                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_index"),
+                    VertexAttribute(VertexAttributes.Usage.ColorPacked, 4, "v_tintColor")
+            ),
             maxVertices = 4000,
-            texture = textureArrayOf(NaturalTerrainsByGrainSizeInverse.map { it.texture.name }),
+            texture = textureArrayOf(TerrainTextureNames),
             primitiveType = GL20.GL_POINTS
     ) {
 
@@ -330,15 +349,18 @@ class GamePage(val c: ServerConnection) : Page() {
             begin()
             shader.setUniformMatrix("projection", projection)
             shader.setUniformi("texture", 0)
-            for (i in 0 until NaturalTerrainsByGrainSizeInverse.size) {
-                val t = NaturalTerrainsByGrainSizeInverse[i]
+            val terrainsByOrder = NaturalTerrainsByGrainSizeInverse
+            for (i in 0 until terrainsByOrder.size) {
+                val t = terrainsByOrder[i]
+                val tint = t.texture.colorFloatBits
                 for (y in top until bottom) {
                     for (x in left until right) {
                         val tile = game.map(x, y)
                         if (tile.terrain == t && tile.waterSurface?.isShallow ?: true) {
                             put(tile.position.x + 0.5F,
                                     tile.position.y + 0.5F,
-                                    i.toFloat())
+                                    TerrainTexturesToNamesIndex[i].toFloat(),
+                                    tint)
                         }
                     }
                 }

@@ -66,6 +66,42 @@ open class Batched(
         _index += 3
     }
 
+    inline fun put(
+            a0: Float,
+            a1: Float,
+            a2: Float,
+            a3: Float
+    ) {
+        if (_index == _cache.size) {
+            _flush()
+        }
+        val index = _index
+        _cache[index + 0] = a0
+        _cache[index + 1] = a1
+        _cache[index + 2] = a2
+        _cache[index + 3] = a3
+        _index += 4
+    }
+
+    inline fun put(
+            a0: Float,
+            a1: Float,
+            a2: Float,
+            a3: Float,
+            a4: Float
+    ) {
+        if (_index == _cache.size) {
+            _flush()
+        }
+        val index = _index
+        _cache[index + 0] = a0
+        _cache[index + 1] = a1
+        _cache[index + 2] = a2
+        _cache[index + 3] = a3
+        _cache[index + 4] = a4
+        _index += 5
+    }
+
 
     inline fun put(
             a0: Float,

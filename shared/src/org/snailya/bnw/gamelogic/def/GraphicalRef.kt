@@ -10,6 +10,7 @@ package org.snailya.bnw.gamelogic.def
  * the name is a relative defined thing mostly...
  */
 
-sealed class TextureRef(open val name: String) : Def
-data class SimpleTextureRef(override val name: String) : TextureRef(name)
-data class TintedTextureRef(override val name: String, val color: Int /* rgba8888 */) : TextureRef(name)
+// TODO tint color is off
+data class TextureRef(val name: String, val color: Int /* rgba8888 */ = 0xFFFFFFFF.toInt()) : Def {
+    val colorFloatBits  = java.lang.Float.intBitsToFloat(color and (0xfeffffff.toInt()))
+}

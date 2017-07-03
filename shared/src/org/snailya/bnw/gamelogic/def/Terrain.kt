@@ -8,13 +8,13 @@ open class Terrain(
         val baseWalkSpeed = 1F
 }
 
-val Sand = Terrain(SimpleTextureRef("Terrain/Sand"), 1)
-val Soil = Terrain(SimpleTextureRef("Terrain/Soil"), 2)
-val Gravel = Terrain(SimpleTextureRef("Terrain/Gravel"), 3)
+val Sand = Terrain(TextureRef("Terrain/Sand"), 1)
+val Soil = Terrain(TextureRef("Terrain/Soil"), 2)
+val Gravel = Terrain(TextureRef("Terrain/Gravel"), 3)
 
 class HewnRock(
         val rock: Mineral
-) : Terrain(TintedTextureRef("Terrain/HewnRock", rock.tintColor), 10)
+) : Terrain(TextureRef("Terrain/HewnRock", rock.tintColor), 10)
 
 val SandstoneHewnRock = HewnRock(SandstoneMineral)
 
@@ -26,6 +26,6 @@ val NaturalTerrainsByGrainSizeInverse = NaturalTerrains.sortedBy { -it.grainSize
 
 class StoneTerrain(
         val mineral: Mineral
-) : Terrain(TintedTextureRef("Terrain/Stone", mineral.tintColor), 10)
+) : Terrain(TextureRef("Terrain/Stone", mineral.tintColor), 10)
 
 

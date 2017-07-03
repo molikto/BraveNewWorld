@@ -17,8 +17,8 @@ class Wood(val tintColor: Int) : Elemental() {
 }
 
 
-val SandstoneMineral = Mineral(0xa020f0ff.toInt())
+val SandstoneMineral = Mineral(0x7c6d5aFF)
 
-val MarbleMineral = Mineral(0xc380f0ff.toInt())
+val MarbleMineral = Mineral(0xc380f0FF.toInt())
 
 val TempWood = Wood(0xFFFFFFFF.toInt())
