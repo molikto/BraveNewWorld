@@ -34,6 +34,7 @@ class Tile(
     val nonWalkable get() = !walkable
 
 
+    // TODO this function is UGLY, as it takes a output parameter
     @Strictfp
     inline fun center(s: SVector2): SVector2 {
         s.x = position.x + 0.5F

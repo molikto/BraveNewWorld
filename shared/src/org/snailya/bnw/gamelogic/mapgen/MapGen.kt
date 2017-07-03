@@ -6,6 +6,7 @@ import org.serenaz.InputPoint
 import org.serenaz.Point
 import org.serenaz.Voronoi
 import org.snailya.base.*
+import org.snailya.bnw.gamelogic.FreeFormBlockage
 import org.snailya.bnw.gamelogic.Tile
 import org.snailya.bnw.gamelogic.def.*
 import java.util.*
@@ -188,6 +189,9 @@ open class MapGen(private val random: Random, val size: Int) {
                 val result = temp_currentPoint!!
                 val tile = map[i][j]
                 tile.terrain = terrainOf(result)
+                if (result.attachment.height >= 3) {
+                    tile.blockage = FreeFormBlockage(SandstoneMineralBlockageType)
+                }
                 if (result.attachment.isDeepSea || i == 0 || j == 0 || i == size - 1 || j == size - 1)
                     tile.waterSurface = DeepWater
                 else if (result.attachment.isShallowSea) tile.waterSurface = ShallowWater
