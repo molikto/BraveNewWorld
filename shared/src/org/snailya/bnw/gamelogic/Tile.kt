@@ -43,10 +43,10 @@ class Tile(
 
 
     // temp values used by route finder
-    var temp_cost: Float = 0F
-    var temp_priority: Float = 0F
-    var temp_visited: Int = -1
-    var temp_ttpo: IntVector2 = IntVector2.Zero // to the previous of
+    @Transient var temp_cost: Float = 0F
+    @Transient var temp_priority: Float = 0F
+    @Transient var temp_visited: Int = -1
+    @Transient var temp_ttpo: IntVector2 = IntVector2.Zero // to the previous of
 
     // links to map generator
     @Transient lateinit var debug_inputPoint: InputPoint

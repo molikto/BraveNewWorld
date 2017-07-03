@@ -12,6 +12,8 @@ import com.badlogic.gdx.utils.Align
 import ktx.math.*
 import ktx.scene2d.*
 import org.lwjgl.opengl.GL11
+import org.nustaq.serialization.FSTObjectInput
+import org.nustaq.serialization.FSTObjectOutput
 import org.snailya.base.*
 import org.snailya.base.app
 import org.snailya.bnw.PlayerCommand
@@ -141,7 +143,7 @@ class GamePage(val c: ServerConnection) : Page() {
 
     override fun render() {
         // all these functions SHOULD know when they are called
-        debug_saveAndReload()
+        debug_processSaveAndReloadInput()
         debug_renderDebugUi()
         if (!c.gamePaused) gatherCommands()
         tickGameAndNetwork()
@@ -157,22 +159,6 @@ class GamePage(val c: ServerConnection) : Page() {
     }
 
 
-    /**
-     * we don't have a fully functioning save-file for multi-player now,
-     */
-    private fun debug_saveAndReload() {
-        if (keyed(Input.Keys.Q)) {
-            timed("saving game state and re-loading") {
-                val file = files.external("debug_save_file")
-                val output = ObjectOutputStream(file.write(false))
-                output.writeObject(game)
-                output.close()
-                unregisterGameSingleton()
-                val input = ObjectInputStream(file.read())
-                registerGameSingleton(input.readObject() as BnwGame)
-            }
-        }
-    }
 
     private fun gatherCommands() {
         if (Gdx.input.justTouched()) {
@@ -370,6 +356,34 @@ class GamePage(val c: ServerConnection) : Page() {
      *
      *
      */
+
+    /**
+     * we don't have a fully functioning save-file for multi-player now,
+     */
+    private fun debug_processSaveAndReloadInput() {
+        if (keyed(Input.Keys.Q)) {
+            timed("saving game state and re-loading") {
+                val file = files.external("debug_save_file")
+                val javaStandard = { // time 861ms, size 1200kb
+                    val output = ObjectOutputStream(file.write(false))
+                    output.writeObject(game)
+                    output.close()
+                    unregisterGameSingleton()
+                    val input = ObjectInputStream(file.read())
+                    registerGameSingleton(input.readObject() as BnwGame)
+                }
+                val fst = { // time 245ms, size 839kb
+                    val output = FSTObjectOutput(file.write(false))
+                    output.writeObject(game)
+                    output.close()
+                    unregisterGameSingleton()
+                    val input = FSTObjectInput(file.read())
+                    registerGameSingleton(input.readObject() as BnwGame)
+                }
+                fst.invoke()
+            }
+        }
+    }
 
     private fun debug_renderDebugUi() {
         widgets.debug_info.setText("FPS: ${graphics.framesPerSecond}\nrender time: ${app.renderTime}")
