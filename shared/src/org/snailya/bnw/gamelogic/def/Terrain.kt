@@ -3,26 +3,28 @@ package org.snailya.bnw.gamelogic.def
 
 open class Terrain(
         val texture: TextureRef,
-        val grainSize: Int
+        val grainSize: Float
 ): Def {
+    companion object {
+        val minimalSpeedM = 0.7F
+    }
+    val walkM = minimalSpeedM + grainSize * (1 - minimalSpeedM)
 }
 
-val Sand = Terrain(TextureRef("Terrain/Sand"), 1)
-val Soil = Terrain(TextureRef("Terrain/Soil"), 2)
-val Gravel = Terrain(TextureRef("Terrain/Gravel"), 3)
+val Sand = Terrain(TextureRef("Terrain/Sand"), 0.1F)
+val Soil = Terrain(TextureRef("Terrain/Soil"), 0.2F)
+val Gravel = Terrain(TextureRef("Terrain/Gravel"), 0.4F)
 
-class HewnRock(
-        val mineral: Mineral
-) : Terrain(TextureRef("Terrain/HewnRock", mineral.tintColor), 10)
-
+val SandstoneHewnRock = Sandstone.hewnRock()
 
 // TODO what to do with spreadsheet data??
-val NaturalTerrains = listOf(Sand, Soil, Gravel, Sandstone.HewnRock)
+val NaturalTerrains = listOf(
+        Sand,
+        Soil,
+        Gravel,
+        SandstoneHewnRock
+)
+
+
 val NaturalTerrainsByGrainSize = NaturalTerrains.sortedBy { it.grainSize }
 val NaturalTerrainsByGrainSizeInverse = NaturalTerrains.sortedBy { -it.grainSize }
-
-class StoneTerrain(
-        val mineral: Mineral
-) : Terrain(TextureRef("Terrain/Stone", mineral.tintColor), 10)
-
-

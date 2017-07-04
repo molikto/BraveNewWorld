@@ -53,6 +53,9 @@ things that has a mind is called a creature. a creature has needs. then driven b
 but for other things, they don't have a thing called **do things**, they are just affected by the environment
 
 
+
+### systems
+
 * systems
     * thermodynamics for temperature
 

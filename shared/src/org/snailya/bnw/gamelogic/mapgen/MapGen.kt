@@ -6,8 +6,9 @@ import org.serenaz.InputPoint
 import org.serenaz.Point
 import org.serenaz.Voronoi
 import org.snailya.base.*
-import org.snailya.bnw.gamelogic.FreeFormBlockage
+import org.snailya.bnw.gamelogic.SimpleBlockage
 import org.snailya.bnw.gamelogic.Tile
+import org.snailya.bnw.gamelogic.WallLike
 import org.snailya.bnw.gamelogic.def.*
 import java.util.*
 import kotlin.Comparator
@@ -194,11 +195,11 @@ open class MapGen(private val random: Random, val size: Int) {
                 val tile = map[i][j]
                 tile.terrain = terrainOf(result)
                 if (result.attachment.height >= 3) {
-                    tile.blockage = FreeFormBlockage(SandstoneMineralBlockageType)
+                    tile.planted = WallLike(SandstoneMineralWall)
                 }
                 if (result.attachment.isDeepSea || i == 0 || j == 0 || i == size - 1 || j == size - 1)
-                    tile.waterSurface = DeepWater
-                else if (result.attachment.isShallowSea) tile.waterSurface = ShallowWater
+                    tile.planted = DeepWater
+                else if (result.attachment.isShallowSea) tile.planted = ShallowWater
                 map[i][j].debug_inputPoint = result
             }
         }
@@ -388,12 +389,12 @@ open class MapGen(private val random: Random, val size: Int) {
     */
 
     private fun terrainOf(top: InputPoint) : Terrain =
-        if (top.attachment.isDeepSea) Sandstone.HewnRock // TODO mineral under sea
+        if (top.attachment.isDeepSea) SandstoneHewnRock // TODO mineral under sea
         else if (top.attachment.isShallowSea) Sand
         else if (top.attachment.isBeach) Sand
         else if (top.attachment.height < 2) Soil
         else if (top.attachment.height < 3) Gravel
-        else Sandstone.HewnRock
+        else SandstoneHewnRock
 
 }
 

@@ -10,8 +10,9 @@ sealed class Elemental(
 object H2O : Elemental()
 
 class Mineral(val tintColor: Int) : Elemental() {
-    val HewnRock = HewnRock(this)
-    val StoneTerrain = StoneTerrain(this)
+    fun hewnRock() = Terrain(TextureRef("Terrain/HewnRock", tintColor), 0.9F)
+    fun stoneTerrain() = Terrain(TextureRef("Terrain/Stone", tintColor), 0.9F)
+    fun mineralWallType() = WallLikeType(TextureRef("WallLikeType/Mineral", tintColor))
 }
 
 

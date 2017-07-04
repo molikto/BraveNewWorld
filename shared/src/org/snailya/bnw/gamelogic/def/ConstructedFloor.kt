@@ -2,5 +2,5 @@ package org.snailya.bnw.gamelogic.def
 
 
 data class ConstructedFloor(
-        val texture: String
+        val texture: TextureRef
 ) : Def

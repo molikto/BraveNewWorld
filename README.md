@@ -6,4 +6,5 @@ multiplayer RimWorld-like game
 * docs
     * [game design](GAME_DESIGN.md)
     * [networking](MULTIPLAYER_ARCH.md)
+    * [project structure](PROJECT_STRUCTURE.md)
 

@@ -6,13 +6,11 @@ import java.io.Serializable
 
 class Agent() : Walker(), Serializable {
     var faction: Int = -1
-    // temp variables
-    // constants
     val totalLockOnTime = 0.5F
     val maxLockOnDistance = 5F
     val maxHealth = 10F
     var health: Float = maxHealth
-    var lockingOnTarget: Agent? = null
+    var lockingOnTarget: Walker? = null
     var lockingOnTime = 0F
 
     @Strictfp
@@ -23,7 +21,7 @@ class Agent() : Walker(), Serializable {
             val target = lockingOnTarget
             if (target != null) {
                 val distance = target.position.dis(position)
-                if (distance <= maxLockOnDistance && game.map.hitWall(position, target.position) == null) {
+                if (distance <= maxLockOnDistance && game.map.blockSight(position, target.position) == null) {
                     lockingOnTime += 0.2F.ps
                     if (lockingOnTime >= totalLockOnTime) {
                         game.bullets.add(Bullet(faction, position, target.position))
@@ -40,7 +38,7 @@ class Agent() : Walker(), Serializable {
                     if (a != this) {
                         val distance = a.position.dis(position)
                         if (distance <= maxLockOnDistance) {
-                            if (game.map.hitWall(position, a.position) == null) {
+                            if (game.map.blockSight(position, a.position) == null) {
                                 lockingOnTarget = a
                                 lockingOnTime = 0F
                             }

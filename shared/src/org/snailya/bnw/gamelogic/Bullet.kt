@@ -5,13 +5,19 @@ import org.snailya.bnw.ps
 import java.io.Serializable
 
 
-class Bullet(val shooterFaction: Int, val initial: SVector2, to: SVector2) : Serializable {
-    val temp_pos: SVector2 = svec2()
-    val maxLifetime = 1F
+class Bullet(
+        val shooterFaction: Int,
+        val initial: SVector2,
+        to: SVector2) : Serializable {
+    companion object {
+        const val maxLifetime = 1F
+        val speed = 10F.ps
+    }
     var lifetime = maxLifetime
-    val speed = 10F.ps
     val position: SVector2 = initial.copy()
     val positionTick = (to.copy() - initial).nor() * speed
+
+    val temp_pos: SVector2 = svec2()
 
     @Strictfp
     fun fly() {
@@ -19,7 +25,7 @@ class Bullet(val shooterFaction: Int, val initial: SVector2, to: SVector2) : Ser
         temp_pos.set(position)
         position + positionTick
         // TODO hit wall
-        if (game.map.hitWall(temp_pos, position) == null) {
+        if (game.map.blockSight(temp_pos, position) == null) {
             for (a in game.agents) {
                 if (a.faction == shooterFaction && initial.dis(position) <1.3F) {
                     // ignore this

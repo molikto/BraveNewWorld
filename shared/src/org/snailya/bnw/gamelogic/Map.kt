@@ -14,12 +14,13 @@ private val RelativeSides =  arrayOf(ivec2(-1, 0), ivec2(1, 0), ivec2(0, 1), ive
 /**
  *
  * the map will have unwalk-able areas around it now, so no need to check pointer over-bound
+ *
  */
-class Map : Serializable {
+class Map(val size: Int) : Serializable {
+    // size = 200 // tiles 0.... 99, metrics 0..1...100
 
     // states
-    val random = game.random
-    val size = 200 // tiles 0.... 99, metrics 0..1...100
+    private val random = game.random
     @Transient val debug_mapGen = MapGen(random, size)
     val tiles: Array<Array<Tile>> = debug_mapGen.gen()
 
@@ -37,10 +38,13 @@ class Map : Serializable {
 
 
     // TODO return the hit point
+    /**
+     * see [Tile.noSight]
+     */
     @Strictfp
-    fun hitWall(a: SVector2, b: SVector2): Tile? {
+    fun blockSight(a: SVector2, b: SVector2): Tile? {
         if (a.x < 0 || a.y < 0 || a.x >= size || a.y >= size) return null
-        if (this(a).blocked) return this(a)
+        if (this(a).noSight) return this(a)
         val higher = if (a.y > b.y) a else b
         val lower = if (a.y > b.y) b else a
         val vertical = a.x == b.x
@@ -52,52 +56,52 @@ class Map : Serializable {
             if (x.toFloat() == fx) { // a exact value
                 if (slope > 0F) {
                     var can1 = this(x, y)
-                    if (can1.blocked) return can1
+                    if (can1.noSight) return can1
                     can1 = this(x - 1, y - 1)
-                    if (can1.blocked) return can1
+                    if (can1.noSight) return can1
                     can1 = this(x, y - 1)
                     val can2 = this(x - 1, y)
-                    if (can1.blocked && can2.blocked) return if (random.nextBoolean()) can1 else can2
+                    if (can1.noSight && can2.noSight) return if (random.nextBoolean()) can1 else can2
                 } else if (slope < 0F) {
                     var can1 = this(x - 1, y)
-                    if (can1.blocked) return can1
+                    if (can1.noSight) return can1
                     can1 = this(x, y - 1)
-                    if (can1.blocked) return can1
+                    if (can1.noSight) return can1
                     can1 = this(x, y)
                     val can2 = this(x - 1, y - 1)
-                    if (can1.blocked && can2.blocked) return if (random.nextBoolean()) can1 else can2
+                    if (can1.noSight && can2.noSight) return if (random.nextBoolean()) can1 else can2
                 } else {
                     // TODO... make it better, whatever
                     var can1 = this(x, y)
-                    if (can1.blocked) return can1
+                    if (can1.noSight) return can1
                     can1 = this(x - 1, y - 1)
-                    if (can1.blocked) return can1
+                    if (can1.noSight) return can1
                     can1 = this(x - 1, y)
-                    if (can1.blocked) return can1
+                    if (can1.noSight) return can1
                     can1 = this(x, y - 1)
-                    if (can1.blocked) return can1
+                    if (can1.noSight) return can1
                 }
             } else {
                 var can1 = this(x, y)
-                if (can1.blocked) return can1
+                if (can1.noSight) return can1
                 can1 = this(x, y - 1)
-                if (can1.blocked) return can1
+                if (can1.noSight) return can1
             }
         }
         return null
     }
 
 
-
-
-    // all variables is temp
+    /**
+     * the reason for inner class is we want to group a method with their temp variables
+     */
     inner class FindRouteMethod : Serializable {
 
         private val map = this@Map
 
+        // all variables is temp
         private var counter = -1
         val debug_counter get() = counter
-
         private val pq = PriorityQueue<Tile>(30, object : Comparator<Tile>, Serializable {
 
             @Strictfp
@@ -116,8 +120,8 @@ class Map : Serializable {
 
         @Strictfp operator fun invoke(position: SVector2, dest: IntVector2, /* out */ route: MutableList<Tile>) {
             val dt = map(dest)
-            if (dt.nonWalkable) {
-                println("glitch: dest is nonWalkable")
+            if (dt.noWalk) {
+                println("glitch: dest is noWalk")
                 return
             }
             route.clear()
@@ -134,7 +138,7 @@ class Map : Serializable {
                 val next = map(ipos.x + vec.x, ipos.y + vec.y)
                 val next0 = map(ipos.x + vec.x, ipos.y)
                 val next1 = map(ipos.x, ipos.y + vec.y)
-                if (!next.nonWalkable && !next0.nonWalkable && !next1.nonWalkable) {
+                if (!next.noWalk && !next0.noWalk && !next1.noWalk) {
                     next.center(tpos)
                     val cost = position.dis(tpos)
                     util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
@@ -142,7 +146,7 @@ class Map : Serializable {
             }
             for (vec in RelativeSides) {
                 val next = map(ipos.x + vec.x, ipos.y + vec.y)
-                if (!next.nonWalkable) {
+                if (!next.noWalk) {
                     next.center(tpos)
                     val cost = position.dis(tpos)
                     util_tryAddRoute(next, dt, IntVector2.Zero, cost, false)
@@ -167,13 +171,13 @@ class Map : Serializable {
                     val next = map(ipos.x + vec.x, ipos.y + vec.y)
                     val next0 = map(ipos.x + vec.x, ipos.y)
                     val next1 = map(ipos.x, ipos.y + vec.y)
-                    if (!next.nonWalkable && !next0.nonWalkable && !next1.nonWalkable) {
+                    if (!next.noWalk && !next0.noWalk && !next1.noWalk) {
                         util_tryAddRoute(next, dt, vec, nearest.temp_cost + CornerCost, true)
                     }
                 }
                 for (vec in RelativeSides) {
                     val next = map(ipos.x + vec.x, ipos.y + vec.y)
-                    if (!next.nonWalkable) {
+                    if (!next.noWalk) {
                         util_tryAddRoute(next, dt, vec, nearest.temp_cost + 1F, true)
                     }
                 }
@@ -181,7 +185,7 @@ class Map : Serializable {
             return // no route
         }
 
-        private val temp_hpos = ivec2() // not transient, we need them to have a value
+        private val hpos = ivec2() // not transient, we need them to have a value
 
         private fun util_tryAddRoute(next: Tile, dt: Tile, vec: IntVector2, cost: Float, h: Boolean) {
             val new = next.temp_visited != counter
@@ -189,10 +193,10 @@ class Map : Serializable {
                 if (!new) pq.remove(next)
                 next.temp_cost = cost
                 val p = if (h) {
-                    temp_hpos.set(next.position)
-                    temp_hpos - dt.position
-                    val x = Math.abs(temp_hpos.x)
-                    val y = Math.abs(temp_hpos.y)
+                    hpos.set(next.position)
+                    hpos - dt.position
+                    val x = Math.abs(hpos.x)
+                    val y = Math.abs(hpos.y)
                     val max = Math.max(x, y)
                     val min = Math.min(x, y)
                     val remainingDis = (max - min) + min * CornerCost

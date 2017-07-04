@@ -34,7 +34,10 @@ fun unregisterGameSingleton() {
  *
  * so you need to call [registerGameSingleton] when you load a game from save file
  */
-class BnwGame(val myIndex: Int, playerSize: Int, val seed: Long) : Serializable {
+class BnwGame(mapSize: Int,
+              playerSize: Int,
+              val seed: Long
+) : Serializable {
 
     // singleton so you don't need to pass them around, though, this means that you only call it when it is valid
     init {
@@ -45,22 +48,18 @@ class BnwGame(val myIndex: Int, playerSize: Int, val seed: Long) : Serializable 
      * basic
      */
     val random = Random(seed)
-    val map = Map()
+    val map = Map(mapSize)
     val bullets = mutableListOf<Bullet>()
-
     val masterMinds = (0 until playerSize).map { MasterMind() }
-
-    // TODO this is native
     val agents = (0 until playerSize).map { index ->
+        // TODO this is native
         configured(Agent()) { faction = index; position = svec2(0.5F, 0.5F) }
     }
-
-
     init {
         for (a in agents) {
             while (true) {
                 val t = map.randomTile()
-                if (!t.nonWalkable) {
+                if (!t.noWalk) {
                     t.center(a.position)
                     break
                 }

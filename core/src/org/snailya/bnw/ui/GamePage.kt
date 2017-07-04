@@ -12,17 +12,13 @@ import com.badlogic.gdx.utils.Align
 import ktx.math.*
 import ktx.scene2d.*
 import org.lwjgl.opengl.GL11
-import org.nustaq.serialization.FSTConfiguration
 import org.nustaq.serialization.FSTObjectInput
 import org.nustaq.serialization.FSTObjectOutput
 import org.snailya.base.*
 import org.snailya.base.app
 import org.snailya.bnw.PlayerCommand
 import org.snailya.bnw.gamelogic.*
-import org.snailya.bnw.gamelogic.def.FreeFormBlockageType
-import org.snailya.bnw.gamelogic.def.NaturalTerrains
-import org.snailya.bnw.gamelogic.def.NaturalTerrainsByGrainSizeInverse
-import org.snailya.bnw.gamelogic.def.WatersByDepth
+import org.snailya.bnw.gamelogic.def.*
 import org.snailya.bnw.networking.ServerConnection
 import org.snailya.bnw.timePerGameTick
 import org.snailya.bnw.timePerTick
@@ -87,11 +83,12 @@ class GamePage(val c: ServerConnection) : Page() {
     /**
      * game simulation
      */
+    val myIndex = c.myIndex
     init {
         // when you want to debug save file across different JVM instance, comment these two lines manually
         // TODO remove this when we have save files
         // debug_loadSaveFileAsGame()
-        BnwGame(c.myIndex, c.playerSize, seed = c.serverGameStartTime)
+        BnwGame(200, c.playerSize, seed = c.serverGameStartTime)
     }
 
     /**
@@ -110,7 +107,7 @@ class GamePage(val c: ServerConnection) : Page() {
     /**
      * game ui
      */
-    var focus: Vector2 = game.agents[game.myIndex].position.vec2()
+    var focus: Vector2 = game.agents[myIndex].position.vec2()
     var focusSpeed = 10F
     val maxZoom = 33.dp
     val minZoom = 9.dp
@@ -167,7 +164,7 @@ class GamePage(val c: ServerConnection) : Page() {
         if (Gdx.input.justTouched()) {
             val dest = inputGameCoor(Gdx.input.x, Gdx.input.y).ivec2()
             if (game.map.inBound(dest)) {
-                if (!game.map(dest).nonWalkable) {
+                if (!game.map(dest).noWalk) {
                     commands.add(PlayerCommand(dest))
                 }
             }
@@ -255,16 +252,6 @@ class GamePage(val c: ServerConnection) : Page() {
 
         for (y in top until bottom) {
             for (x in left until right) {
-                val tile = game.map(x, y)
-                tile.blockage?.let {
-                    when (it) {
-//                        is FreeFormBlockage -> {
-//                            batch.draw(it.type.textureAtlas)
-//                        }
-                        else -> {
-                        }
-                    }
-                }
             }
         }
         for (agent in game.agents) {
@@ -311,7 +298,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 for (y in top until bottom) {
                     for (x in left until right) {
                         val tile = game.map(x, y)
-                        if (tile.waterSurface == t) {
+                        if (tile.planted == t) {
                             put(tile.position.x + 0.5F,
                                     tile.position.y + 0.5F,
                                     i.toFloat())
@@ -356,7 +343,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 for (y in top until bottom) {
                     for (x in left until right) {
                         val tile = game.map(x, y)
-                        if (tile.terrain == t && tile.waterSurface?.isShallow ?: true) {
+                        if (tile.terrain == t && (tile.planted != DeepWater)) {
                             put(tile.position.x + 0.5F,
                                     tile.position.y + 0.5F,
                                     TerrainTexturesToNamesIndex[i].toFloat(),
