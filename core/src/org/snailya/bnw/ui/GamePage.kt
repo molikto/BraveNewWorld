@@ -278,7 +278,7 @@ class GamePage(val c: ServerConnection) : Page() {
             // TODO how to animate WaterSurface?
             shaderOf("WaterSurface"),
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
-                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "in_terrain")),
+                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "in_index")),
             maxVertices = 4000,
             texture = textureArrayOf(WatersByDepth.map { it.texture.name }),
             primitiveType = GL20.GL_POINTS
@@ -343,7 +343,7 @@ class GamePage(val c: ServerConnection) : Page() {
                 for (y in top until bottom) {
                     for (x in left until right) {
                         val tile = game.map(x, y)
-                        if (tile.terrain == t && (tile.planted != DeepWater)) {
+                        if (tile.terrain == t && !isDeepWaterSurface(tile.planted)) {
                             put(tile.position.x + 0.5F,
                                     tile.position.y + 0.5F,
                                     TerrainTexturesToNamesIndex[i].toFloat(),

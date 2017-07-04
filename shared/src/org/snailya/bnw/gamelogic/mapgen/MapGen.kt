@@ -6,7 +6,6 @@ import org.serenaz.InputPoint
 import org.serenaz.Point
 import org.serenaz.Voronoi
 import org.snailya.base.*
-import org.snailya.bnw.gamelogic.SimpleBlockage
 import org.snailya.bnw.gamelogic.Tile
 import org.snailya.bnw.gamelogic.WallLike
 import org.snailya.bnw.gamelogic.def.*
@@ -194,11 +193,10 @@ open class MapGen(private val random: Random, val size: Int) {
                 val result = temp_currentPoint!!
                 val tile = map[i][j]
                 tile.terrain = terrainOf(result)
-                if (result.attachment.height >= 3) {
+                if (result.attachment.height > 3) {
                     tile.planted = WallLike(SandstoneMineralWall)
                 }
-                if (result.attachment.isDeepSea || i == 0 || j == 0 || i == size - 1 || j == size - 1)
-                    tile.planted = DeepWater
+                if (result.attachment.isDeepSea || i == 0 || j == 0 || i == size - 1 || j == size - 1) tile.planted = DeepWater
                 else if (result.attachment.isShallowSea) tile.planted = ShallowWater
                 map[i][j].debug_inputPoint = result
             }

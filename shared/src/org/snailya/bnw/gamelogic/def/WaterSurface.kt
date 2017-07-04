@@ -11,6 +11,14 @@ data class WaterSurface(
     override val coverage: Float = 0F
 }
 
+fun isDeepWaterSurface(p: Planted?): Boolean {
+    if (p is WaterSurface) {
+        return p.depth == 1F
+    } else {
+        return false
+    }
+}
+
 val DeepWater = WaterSurface(TextureRef("WaterSurface/DeepWater"), 1F)
 val ShallowWater = WaterSurface(TextureRef("WaterSurface/ShallowWater"), 0.1F)
 
