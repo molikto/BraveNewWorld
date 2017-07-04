@@ -1,5 +1,7 @@
 package org.snailya.bnw.gamelogic.def
 
+import javafx.scene.paint.Color
+
 
 /**
  * TextureRef
@@ -11,6 +13,5 @@ package org.snailya.bnw.gamelogic.def
  */
 
 // TODO tint color is off
-data class TextureRef(val name: String, val color: Int /* rgba8888 */ = 0xFFFFFFFF.toInt()) : Def {
-    val colorFloatBits  = java.lang.Float.intBitsToFloat(color and (0xfeffffff.toInt()))
+data class TextureRef(val name: String, val color: Float = ColorWhite) : Def {
 }

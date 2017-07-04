@@ -33,4 +33,5 @@ void main()
    // every texture covers 16 tiles
    tileTextureIndex = ivec2(int(position.x) % 16, 15 - int(position.y) % 16);
    tintColor = in_tintColor;
+   tintColor.a = tintColor.a * (255.0/254.0);
 }

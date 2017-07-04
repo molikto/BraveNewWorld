@@ -9,19 +9,16 @@ sealed class Elemental(
 
 object H2O : Elemental()
 
-class Mineral(val tintColor: Int) : Elemental() {
+class Mineral(val tintColor: Float) : Elemental() {
     fun hewnRock() = Terrain(TextureRef("Terrain/HewnRock", tintColor), 0.9F)
     fun stoneTerrain() = Terrain(TextureRef("Terrain/Stone", tintColor), 0.9F)
     fun mineralWallType() = WallLikeType(TextureRef("WallLikeType/Mineral", tintColor))
 }
 
 
-class Wood(val tintColor: Int) : Elemental() {
+class Wood(val tintColor: Float) : Elemental() {
 }
 
 
-val Sandstone = Mineral(0x7c6d5aFF)
+val Sandstone = Mineral(colorOf(0x7c,0x6d, 0x5a))
 
-val MarbleMineral = Mineral(0xc380f0FF.toInt())
-
-val TempWood = Wood(0xFFFFFFFF.toInt())

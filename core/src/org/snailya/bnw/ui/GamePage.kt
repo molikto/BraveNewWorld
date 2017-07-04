@@ -339,7 +339,7 @@ class GamePage(val c: ServerConnection) : Page() {
             val terrainsByOrder = NaturalTerrainsByGrainSizeInverse
             for (i in 0 until terrainsByOrder.size) {
                 val t = terrainsByOrder[i]
-                val tint = t.texture.colorFloatBits
+                val tint = t.texture.color
                 for (y in top until bottom) {
                     for (x in left until right) {
                         val tile = game.map(x, y)
