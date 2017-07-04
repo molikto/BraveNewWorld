@@ -10,6 +10,8 @@ sealed class Elemental(
 object H2O : Elemental()
 
 class Mineral(val tintColor: Int) : Elemental() {
+    val HewnRock = HewnRock(this)
+    val StoneTerrain = StoneTerrain(this)
 }
 
 
@@ -17,7 +19,7 @@ class Wood(val tintColor: Int) : Elemental() {
 }
 
 
-val SandstoneMineral = Mineral(0x7c6d5aFF)
+val Sandstone = Mineral(0x7c6d5aFF)
 
 val MarbleMineral = Mineral(0xc380f0FF.toInt())
 

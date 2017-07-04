@@ -291,7 +291,7 @@ class GamePage(val c: ServerConnection) : Page() {
             // TODO how to animate WaterSurface?
             shaderOf("WaterSurface"),
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
-                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_terrain")),
+                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "in_terrain")),
             maxVertices = 4000,
             texture = textureArrayOf(WatersByDepth.map { it.texture.name }),
             primitiveType = GL20.GL_POINTS
@@ -331,8 +331,8 @@ class GamePage(val c: ServerConnection) : Page() {
     val terrain = object : Batched(
             shaderOf("Terrain"),
             attrs(VertexAttribute(VertexAttributes.Usage.Position, 2, "position"),
-                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "v_index"),
-                    VertexAttribute(VertexAttributes.Usage.ColorPacked, 4, "v_tintColor")
+                    VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 1, "in_index"),
+                    VertexAttribute(VertexAttributes.Usage.ColorPacked, 4, "in_tintColor")
             ),
             maxVertices = 4000,
             texture = textureArrayOf(TerrainTextureNames),

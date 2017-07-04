@@ -388,12 +388,12 @@ open class MapGen(private val random: Random, val size: Int) {
     */
 
     private fun terrainOf(top: InputPoint) : Terrain =
-        if (top.attachment.isDeepSea) SandstoneHewnRock // TODO mineral under sea
+        if (top.attachment.isDeepSea) Sandstone.HewnRock // TODO mineral under sea
         else if (top.attachment.isShallowSea) Sand
         else if (top.attachment.isBeach) Sand
         else if (top.attachment.height < 2) Soil
         else if (top.attachment.height < 3) Gravel
-        else SandstoneHewnRock
+        else Sandstone.HewnRock
 
 }
 

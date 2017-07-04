@@ -21,7 +21,7 @@ class MineralBlockageType(val mineral: Mineral) : FreeFormBlockageType(
 
 //class ConstructedWallType(val wood: Wood) : FreeFormBlockageType(true)
 
-val SandstoneMineralBlockageType = MineralBlockageType(SandstoneMineral)
+val SandstoneMineralBlockageType = MineralBlockageType(Sandstone)
 
 
 

@@ -39,12 +39,18 @@ the world can be seen as a 2d grid (X, Y) of "tile"
         * base level: where people walks, when level is -0.1 and 0
     * we don't have a complex system how gravity works, how waterfall works, etc.
 
-### molecular level
+### molecular level (WIP??)
 
 generally the functionality & logic of the game is grounded in some kind of physics (temperature, cold weapon, etc.) & chemistry (magic...) & biology rules. they should have some similarity to science, but not exactly, we don't have the computation power, also changing the rules for the sake of fun game play
 
 the main reason of having this level is create stories that are logical, but surprising
 
+
+### creatures and non-creatures
+
+things that has a mind is called a creature. a creature has needs. then driven by the master's commands and their own needs, also adapts to the physics environment, they will have thoughts, and they will reflect and maybe change their plan on the ticks, based again on the environment and their needs also the master's commands, see if the plan is still valid, then they will **do things**.
+
+but for other things, they don't have a thing called **do things**, they are just affected by the environment
 
 
 * systems
