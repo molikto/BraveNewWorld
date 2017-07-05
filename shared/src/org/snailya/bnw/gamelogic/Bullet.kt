@@ -25,7 +25,7 @@ class Bullet(
         temp_pos.set(position)
         position + positionTick
         // TODO hit wall
-        if (game.map.blockSight(temp_pos, position) == null) {
+        if (game.map.noSight(temp_pos, position) == null) {
             for (a in game.agents) {
                 if (a.faction == shooterFaction && initial.dis(position) <1.3F) {
                     // ignore this

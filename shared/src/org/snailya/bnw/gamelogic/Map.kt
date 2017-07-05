@@ -42,7 +42,7 @@ class Map(val size: Int) : Serializable {
      * see [Tile.noSight]
      */
     @Strictfp
-    fun blockSight(a: SVector2, b: SVector2): Tile? {
+    fun noSight(a: SVector2, b: SVector2): Tile? {
         if (a.x < 0 || a.y < 0 || a.x >= size || a.y >= size) return null
         if (this(a).noSight) return this(a)
         val higher = if (a.y > b.y) a else b

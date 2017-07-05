@@ -1,6 +1,5 @@
 package org.snailya.bnw.gamelogic.def
 
-import javafx.scene.paint.Color
 
 
 /**

@@ -21,7 +21,7 @@ class Agent() : Walker(), Serializable {
             val target = lockingOnTarget
             if (target != null) {
                 val distance = target.position.dis(position)
-                if (distance <= maxLockOnDistance && game.map.blockSight(position, target.position) == null) {
+                if (distance <= maxLockOnDistance && game.map.noSight(position, target.position) == null) {
                     lockingOnTime += 0.2F.ps
                     if (lockingOnTime >= totalLockOnTime) {
                         game.bullets.add(Bullet(faction, position, target.position))
@@ -38,7 +38,7 @@ class Agent() : Walker(), Serializable {
                     if (a != this) {
                         val distance = a.position.dis(position)
                         if (distance <= maxLockOnDistance) {
-                            if (game.map.blockSight(position, a.position) == null) {
+                            if (game.map.noSight(position, a.position) == null) {
                                 lockingOnTarget = a
                                 lockingOnTime = 0F
                             }
