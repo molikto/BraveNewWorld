@@ -139,7 +139,6 @@ open class Batched(
 
 
     open fun render() {
-
     }
 }
 

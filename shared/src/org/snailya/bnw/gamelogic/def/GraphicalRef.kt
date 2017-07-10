@@ -11,6 +11,5 @@ package org.snailya.bnw.gamelogic.def
  * the name is a relative defined thing mostly...
  */
 
-// TODO tint color is off
 data class TextureRef(val name: String, val color: Float = ColorWhite) : Def {
 }

@@ -252,6 +252,13 @@ class GamePage(val c: ServerConnection) : Page() {
 
         for (y in top until bottom) {
             for (x in left until right) {
+                val planted = game.map(x, y).planted
+                game.map
+                when (planted) {
+                    is WallLike -> {
+                        planted.type.textureAtlas
+                    }
+                }
             }
         }
         for (agent in game.agents) {

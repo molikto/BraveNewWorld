@@ -2,6 +2,8 @@ package org.snailya.bnw.gamelogic.def
 
 import org.snailya.bnw.gamelogic.Planted
 
+class TextureAtlasComponent()
+
 
 class WallLikeType(val textureAtlas: TextureRef) : Planted {
     override val walkM: Float = 0F
