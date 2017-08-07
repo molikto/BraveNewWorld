@@ -34,9 +34,9 @@ class JoinServerPage : Page() {
     fun joiningServer(ip: String) = simplePage {
         val connection = ServerConnection(ip)
         connection.connect().flatMap {
-            it.obs().filter{ connection.rttGot }.firstOrError().map { connection }
-        }.subscribe({ c ->
-            bnw.change { waitingForGame(c) }
+            connection.obs().filter{ connection.rttGot }.firstOrError()
+        }.subscribe({
+            bnw.change { waitingForGame(connection) }
         }, { err ->
             onErrorGoBack(err, null)
         })

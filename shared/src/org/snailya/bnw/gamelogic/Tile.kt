@@ -8,8 +8,6 @@ import org.snailya.bnw.gamelogic.stateless.ItemPack
 import java.io.Serializable
 
 
-// stateful
-
 class Tile(
         val position: IntVector2
 ) : Serializable {

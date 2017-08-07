@@ -146,7 +146,7 @@ class GamePage(val c: ServerConnection) : Page() {
         debug_processSaveAndReloadInput()
         debug_renderDebugUi()
         if (!c.gamePaused) gatherCommands()
-        tickGameAndNetwork()
+        tickGameAndTickMaybePauseNetwork()
         updateGameUi()
         if (c.gamePaused) return
         processLocalInput()
@@ -174,7 +174,7 @@ class GamePage(val c: ServerConnection) : Page() {
     /**
      * probably will pause the game
      */
-    private fun tickGameAndNetwork() {
+    private fun tickGameAndTickMaybePauseNetwork() {
         val time = System.currentTimeMillis()
         if (c.gamePaused && c.received != null) {
             gameTickedTime = c.receivedTime - timePerGameTick
@@ -416,7 +416,7 @@ class GamePage(val c: ServerConnection) : Page() {
         widgets.debug_info.setText("FPS: ${graphics.framesPerSecond}\nrender time: ${app.renderTime}")
     }
 
-    val debug_shapeRenderer = ShapeRenderer()
+    val debug_shapeRenderer by lazy { ShapeRenderer() }
     private fun debug_renderVoronoiDiagram() {
         val renderer = debug_shapeRenderer
         renderer.projectionMatrix = projection

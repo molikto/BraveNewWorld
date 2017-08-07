@@ -33,7 +33,7 @@ each step client do:
 ### use "raw input" or?
 
 
-see the game loop, in `tickGameAndNetwork` we are processing commands in game simulation, but the commands are actually commands gathered 100ms before, and they are sent over the network and confirmed and received now. The problem is, we are gathering user commands first.
+see the game loop, in `tickGameAndTickMaybePauseNetwork` we are processing commands in game simulation, but the commands are actually commands gathered 100ms before, and they are sent over the network and confirmed and received now. The problem is, we are gathering user commands first.
 
 their are two ways of doing this:
 

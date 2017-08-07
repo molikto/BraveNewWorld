@@ -18,75 +18,12 @@ private var _app: ApplicationInner? = null
 // reference Gdx.app by Gdx.app ...
 val app by lazy { _app!! }
 
-inline val Int.dp: Float
-    inline get() = app.dpiPixel * this
-
-inline val Float.dp: Float
-    inline get() = app.dpiPixel * this
-
-
 /**
  * to calculate REAL logical size, because LibGDX's method is wrong
  * the reason we do this is because we want to be consistent with https://material.io/devices/
  */
 class PlatformDependentInfo(val iOSScale: Float?, val logicalWidth: Int?)
 
-fun simplePage(uip: () -> KTableWidget?): Page = object : Page() {
-    init {
-        ui = uip()
-    }
-}
-
-abstract class Page {
-
-    //fun uiViewport() = ScalingViewport(Scaling.stretch, game.backBufferWidth().toFloat(), game.backBufferHeight().toFloat(), OrthographicCamera())
-    fun uiViewport() = ScreenViewport(OrthographicCamera())
-
-    val uiStage = Stage(uiViewport(), app.batch)
-    var inputProcessor: InputProcessor? = null
-    var clearColor = Color.BLACK
-    val batch = app.batch
-
-    var ui: KWidget<*>? = null
-        set(value) {
-            if (value != null) {
-                if (value is WidgetGroup) value.setFillParent(true)
-                uiStage.addActor(value as Actor)
-            } else {
-                uiStage.clear()
-            }
-        }
-
-    open fun resume() {}
-    open fun pause() {}
-
-    fun disposeInner() {
-        dispose()
-        uiStage.dispose()
-    }
-
-    open fun dispose() {}
-
-    fun renderInner() {
-        gl.glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a)
-        gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-        batch.projectionMatrix = identityMatrix4
-        uiStage.act() // TODO why 30fps??
-        render()
-        uiStage.draw()
-    }
-
-    open fun render() {
-    }
-
-    fun resizeInner(width: Int, height: Int) {
-        uiStage.viewport.update(width, height, true)
-        resize(width, height)
-    }
-
-    open fun resize(width: Int, height: Int) {
-    }
-}
 
 
 abstract class ApplicationInner(pdi: PlatformDependentInfo) {

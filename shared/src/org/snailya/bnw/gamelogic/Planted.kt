@@ -6,7 +6,7 @@ package org.snailya.bnw.gamelogic
  */
 interface Planted {
     val walkM: Float
-    val sightM: Float // 1 means total sightM, 0 means none
+    val sightM: Float // 1 means total sight, 0 means none, used for bullet calculations
     val coverage: Float
 }
 

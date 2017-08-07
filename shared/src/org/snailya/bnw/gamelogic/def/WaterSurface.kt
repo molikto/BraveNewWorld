@@ -4,7 +4,7 @@ import org.snailya.bnw.gamelogic.Planted
 
 data class WaterSurface(
         val texture: TextureRef,
-        val depth: Float // a
+        val depth: Float // 0 - 1 depth, 1 means super deep
 ): Def, Planted {
     override val walkM: Float = (1 - depth)
     override val sightM: Float = 1F

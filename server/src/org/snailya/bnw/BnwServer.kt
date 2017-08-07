@@ -64,7 +64,7 @@ class BnwGameServer(val debug_onStop: () -> Unit): Listener() {
                 is FrameworkMessage.Ping -> {
                     if (p.isReply) {
                         val connections = server.connections
-                        if (connections.size >= gamePlayerSize && connections.all{ it.returnTripTime >= 0 }) {
+                        if (connections.size >= gamePlayerSize && connections.all { it.returnTripTime >= 0 }) {
                             val rtts = connections.map { it.returnTripTime }
                             val maxRtt = rtts.max()!!
                             val maxTick: Int = Math.ceil(maxRtt.toDouble() / timePerTick).toInt()

@@ -20,8 +20,7 @@ class ServerConnection(val ip: String) {
 
     var rttGot: Boolean = false
 
-    val id
-        get() = client.id
+    val id get() = client.id
     // valid after game started
     var myIndex: Int = 0
     var gameStartTime: Long = -1L

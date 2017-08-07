@@ -16,7 +16,7 @@ import org.snailya.base.ofSize
 
 
 
-class GeneralUi() {
+class GeneralUi {
     val RobotoMono = fontGenerator("RobotoMono-Regular")
     val RobotoMono14 = RobotoMono.ofSize(14.dp)
 

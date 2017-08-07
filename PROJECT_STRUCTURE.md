@@ -11,6 +11,5 @@ game
     // things that has a floating point position
     animals
     bullets
-    
 ```
 
