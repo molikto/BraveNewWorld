@@ -21,12 +21,6 @@ www-test/
 .gwt-tmp/
 
 ## Android Studio and Intellij and Android in general
-/android/libs/armeabi/
-/android/libs/armeabi-v7a/
-/android/libs/arm64-v8a/
-/android/libs/x86/
-/android/libs/x86_64/
-/android/gen/
 .idea/
 *.ipr
 *.iws
@@ -105,15 +99,9 @@ nb-configuration.xml
 .gradle/
 gradle-app.setting
 build/
-/client-android/build/
-/client-core/build/
-/client-desktop/build/
-/html/build/
-/client-ios/build/
-/client-ios/robovm-build/
-/client-ios-moe/build/
-/server/build/
-/shared/build/
+/*/build/
+/*/robovm-build/
+/client-android/gen/
 
 ## OS Specific
 .DS_Store
