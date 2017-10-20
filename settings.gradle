@@ -1,2 +1,12 @@
-include 'shared', 'server', 'core', 'desktop'
-//, 'android', 'ios'
+// basic shared code
+include ':shared'
+
+// server
+include ':server'
+
+// client: core
+include ':client-core'
+// client: desktop runner
+include ':client-desktop'
+
+//, 'client-android', 'client-ios'

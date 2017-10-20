@@ -1,2 +1,0 @@
-kotlinc -script gen.kts
-

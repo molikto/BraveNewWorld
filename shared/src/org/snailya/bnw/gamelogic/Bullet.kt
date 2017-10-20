@@ -1,23 +1,27 @@
 package org.snailya.bnw.gamelogic
 
 import org.snailya.base.*
+import org.snailya.base.strictmath.StrictVector2
+import org.snailya.base.strictmath.minus
+import org.snailya.base.strictmath.plus
+import org.snailya.base.strictmath.times
 import org.snailya.bnw.ps
 import java.io.Serializable
 
 
 class Bullet(
         val shooterFaction: Int,
-        val initial: SVector2,
-        to: SVector2) : Serializable {
+        val initial: StrictVector2,
+        to: StrictVector2) : Serializable {
     companion object {
         const val maxLifetime = 1F
         val speed = 10F.ps
     }
     var lifetime = maxLifetime
-    val position: SVector2 = initial.copy()
+    val position: StrictVector2 = initial.copy()
     val positionTick = (to.copy() - initial).nor() * speed
 
-    val temp_pos: SVector2 = svec2()
+    val temp_pos: StrictVector2 = svec2()
 
     @Strictfp
     fun fly() {

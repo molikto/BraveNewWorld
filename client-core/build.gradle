@@ -1,0 +1,21 @@
+apply plugin: "java"
+apply plugin: 'kotlin'
+
+sourceSets.main.java.srcDirs = [ "src/" ]
+
+dependencies {
+    compile project(":shared")
+
+    compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+    compile "io.github.libktx:ktx-math:$ktxVersion"
+    compile "io.github.libktx:ktx-style:$ktxVersion"
+    compile "io.github.libktx:ktx-scene2d:$ktxVersion"
+    compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+    compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+
+    // TODO try to contribute to libGDX? we are using desktop API here, if we are not, these should be in DESKTOP project
+    compile "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+    compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+}

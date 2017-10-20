@@ -12,16 +12,15 @@ const val timePerGameTick = 20
 const val gameTickPerTick = timePerTick / timePerGameTick
 const val gameTickPerSecond = 1000 / timePerGameTick
 
-object GameConfigAsserts {
+private object GameConfigAsserts {
     init {
         assert(timePerTick % timePerGameTick == 0)
         assert(1000 % timePerGameTick == 0)
     }
 }
 
-private val debug_nothing = GameConfigAsserts.hashCode()
+private val debug_assertGameConfig = GameConfigAsserts.hashCode()
 
 // second value to per tick value
 val Float.ps
     get() = this / gameTickPerSecond
-

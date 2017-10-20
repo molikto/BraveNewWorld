@@ -104,13 +104,14 @@ nb-configuration.xml
 /local.properties
 .gradle/
 gradle-app.setting
-/build/
-/android/build/
-/core/build/
-/desktop/build/
+build/
+/client-android/build/
+/client-core/build/
+/client-desktop/build/
 /html/build/
-/ios/build/
-/ios-moe/build/
+/client-ios/build/
+/client-ios/robovm-build/
+/client-ios-moe/build/
 /server/build/
 /shared/build/
 

@@ -5,7 +5,7 @@ import org.serenaz.Edge.clamp
 import org.serenaz.InputPoint
 import org.serenaz.Point
 import org.serenaz.Voronoi
-import org.snailya.base.*
+import org.snailya.base.logging.timed
 import org.snailya.bnw.gamelogic.Tile
 import org.snailya.bnw.gamelogic.WallLike
 import org.snailya.bnw.gamelogic.def.*

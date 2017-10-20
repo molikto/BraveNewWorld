@@ -1,7 +1,8 @@
 package org.snailya.bnw.gamelogic
 
 import org.snailya.base.*
-import org.snailya.bnw.*
+import org.snailya.base.lang.configured
+import org.snailya.bnw.data.PlayerCommand
 import java.util.*
 import org.snailya.bnw.gamelogic.TryWalkMethod.tryWalk
 import java.io.Serializable

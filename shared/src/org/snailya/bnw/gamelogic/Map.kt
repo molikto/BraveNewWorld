@@ -1,6 +1,10 @@
 package org.snailya.bnw.gamelogic
 
 import org.snailya.base.*
+import org.snailya.base.math.IntVector2
+import org.snailya.base.math.ivec2
+import org.snailya.base.math.minus
+import org.snailya.base.strictmath.StrictVector2
 import org.snailya.bnw.gamelogic.mapgen.MapGen
 import java.io.Serializable
 import java.util.*
@@ -27,14 +31,14 @@ class Map(val size: Int) : Serializable {
     fun randomTile() = tiles[random.nextInt(size)][random.nextInt(size)]
 
     inline operator fun invoke(i: IntVector2) = tiles[i.x][i.y]
-    inline operator fun invoke(i: SVector2) = tiles[i.x.toInt()][i.y.toInt()]
+    inline operator fun invoke(i: StrictVector2) = tiles[i.x.toInt()][i.y.toInt()]
 
     inline operator fun invoke(x: Int, y: Int) = tiles[x][y]
     inline operator fun invoke(x: Float, y: Float) = tiles[x.toInt()][y.toInt()]
 
     fun inBound(x: Int, y: Int) = x >= 0 && x < size && y >= 0 && y < size
     fun inBound(a: IntVector2) = inBound(a.x, a.y)
-    fun inBound(s: SVector2) = inBound(s.x.toInt(), s.y.toInt())
+    fun inBound(s: StrictVector2) = inBound(s.x.toInt(), s.y.toInt())
 
 
     // TODO return the hit point
@@ -42,7 +46,7 @@ class Map(val size: Int) : Serializable {
      * see [Tile.noSight]
      */
     @Strictfp
-    fun noSight(a: SVector2, b: SVector2): Tile? {
+    fun noSight(a: StrictVector2, b: StrictVector2): Tile? {
         if (a.x < 0 || a.y < 0 || a.x >= size || a.y >= size) return null
         if (this(a).noSight) return this(a)
         val higher = if (a.y > b.y) a else b
@@ -118,7 +122,7 @@ class Map(val size: Int) : Serializable {
         private var ipos = ivec2()
 
 
-        @Strictfp operator fun invoke(position: SVector2, dest: IntVector2, /* out */ route: MutableList<Tile>) {
+        @Strictfp operator fun invoke(position: StrictVector2, dest: IntVector2, /* out */ route: MutableList<Tile>) {
             val dt = map(dest)
             if (dt.noWalk) {
                 println("glitch: dest is noWalk")

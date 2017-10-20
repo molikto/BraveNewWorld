@@ -4,6 +4,10 @@ apply plugin: 'kotlin'
 sourceSets.main.java.srcDirs = [ "src/" ]
 
 
+dependencies {
+    compile project(":shared")
+}
+
 task dist(type: Jar) {
     from files(sourceSets.main.output.classesDir)
     // from files(sourceSets.main.output.resourcesDir)

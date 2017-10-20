@@ -1,8 +1,8 @@
 package org.snailya.bnw.gamelogic
 
 import org.serenaz.InputPoint
-import org.snailya.base.IntVector2
-import org.snailya.base.SVector2
+import org.snailya.base.math.IntVector2
+import org.snailya.base.strictmath.StrictVector2
 import org.snailya.bnw.gamelogic.def.*
 import org.snailya.bnw.gamelogic.stateless.ItemPack
 import java.io.Serializable
@@ -47,7 +47,7 @@ class Tile(
 
     // TODO this function is UGLY, as it takes a output parameter
     @Strictfp
-    inline fun center(s: SVector2): SVector2 {
+    inline fun center(s: StrictVector2): StrictVector2 {
         s.x = position.x + 0.5F
         s.y = position.y + 0.5F
         return s
