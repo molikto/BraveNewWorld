@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import ktx.math.vec2
 import ktx.math.vec3
 import org.snailya.base.math.IntVector2
+import org.snailya.base.math.ivec2
 import org.snailya.base.strictmath.StrictVector2
 
 
@@ -49,7 +50,6 @@ fun Actor.onClick(action: (event: InputEvent, x: Float, y: Float) -> Unit) = thi
 /**
  * Kotlin math functions
  */
-
 fun Matrix4.setToOrtho2DCentered(cx: Float, cy: Float, w: Float, h: Float): Matrix4 =
         this.setToOrtho2D(cx - w / 2, cy - h / 2, w, h)
 
@@ -71,7 +71,7 @@ val identityMatrix4 = Matrix4()
 fun identityMatrix4() = Matrix4()
 
 
-inline fun Vector2.svec2(): StrictVector2 = svec2(x, y)
+inline fun Vector2.svec2(): StrictVector2 = org.snailya.base.strictmath.svec2(x, y)
 inline fun StrictVector2.vec2(): Vector2 = vec2(x, y)
 
 inline fun Vector2.ivec2(): IntVector2 = ivec2(x.toInt(), y.toInt())

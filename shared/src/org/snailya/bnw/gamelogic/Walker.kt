@@ -1,6 +1,5 @@
 package org.snailya.bnw.gamelogic
 
-import org.snailya.base.*
 import org.snailya.base.logging.timed
 import org.snailya.base.math.IntVector2
 import org.snailya.base.strictmath.*

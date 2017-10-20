@@ -4,6 +4,8 @@ import org.snailya.base.math.IntVector2
 import java.io.Serializable
 
 
+inline fun svec2(x: Float = 0F, y: Float = 0F) = StrictVector2(x, y)
+
 // TODO not thread safe
 /**
  * Strict Vector

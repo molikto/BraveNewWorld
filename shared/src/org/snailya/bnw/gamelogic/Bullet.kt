@@ -1,10 +1,6 @@
 package org.snailya.bnw.gamelogic
 
-import org.snailya.base.*
-import org.snailya.base.strictmath.StrictVector2
-import org.snailya.base.strictmath.minus
-import org.snailya.base.strictmath.plus
-import org.snailya.base.strictmath.times
+import org.snailya.base.strictmath.*
 import org.snailya.bnw.ps
 import java.io.Serializable
 

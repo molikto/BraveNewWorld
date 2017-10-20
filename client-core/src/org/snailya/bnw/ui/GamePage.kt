@@ -140,7 +140,7 @@ class GamePage(val c: ServerConnection) : Page() {
     var right = 0
 
     fun inputGameCoor(x: Int, y: Int) =
-            vec2(x.toFloat() * 2 / app.backBufferWidth() - 1, 1 - y.toFloat() * 2 / app.backBufferHeight()).extends().mu(inverseProjection).lose()
+            vec2(x.toFloat() * 2 / app.backBufferWidth() - 1, 1 - y.toFloat() * 2 / app.backBufferHeight()).extends().mul(inverseProjection).lose()
 
 
     override fun render() {

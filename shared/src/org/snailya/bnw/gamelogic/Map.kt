@@ -1,10 +1,10 @@
 package org.snailya.bnw.gamelogic
 
-import org.snailya.base.*
 import org.snailya.base.math.IntVector2
 import org.snailya.base.math.ivec2
 import org.snailya.base.math.minus
 import org.snailya.base.strictmath.StrictVector2
+import org.snailya.base.strictmath.svec2
 import org.snailya.bnw.gamelogic.mapgen.MapGen
 import java.io.Serializable
 import java.util.*

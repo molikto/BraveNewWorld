@@ -1,7 +1,6 @@
 package org.snailya.bnw.gamelogic
 
-import org.snailya.base.*
-import org.snailya.base.lang.configured
+import org.snailya.base.strictmath.svec2
 import org.snailya.bnw.data.PlayerCommand
 import java.util.*
 import org.snailya.bnw.gamelogic.TryWalkMethod.tryWalk
@@ -54,7 +53,7 @@ class BnwGame(mapSize: Int,
     val masterMinds = (0 until playerSize).map { MasterMind() }
     val agents = (0 until playerSize).map { index ->
         // TODO this is native
-        configured(Agent()) { faction = index; position = svec2(0.5F, 0.5F) }
+        Agent().apply { faction = index; position = svec2(0.5F, 0.5F) }
     }
     init {
         for (a in agents) {
