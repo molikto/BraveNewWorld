@@ -13,9 +13,8 @@ multiplayer RimWorld-like game
 
 ## build
 
-### server
-
-### client
-
+standard Gradle build. see LibGDX documentation.
 
 ## run
+
+run server first, then run two client.
